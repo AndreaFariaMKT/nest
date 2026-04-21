@@ -33,7 +33,26 @@
   "clients": {
     "title": "Clientes",
     "subtitle": "Todas as contas de clientes ativos.",
-    "empty": "Nenhum cliente ainda. Adicione o primeiro pra começar."
+    "empty": "Nenhum cliente ainda. Adicione o primeiro pra começar.",
+    "new": "Novo cliente",
+    "newTitle": "Novo cliente",
+    "newSubtitle": "Cadastre uma conta pra começar a construir brand kits e conteúdo.",
+    "createSubmit": "Criar cliente",
+    "fields": {
+      "name": "Nome",
+      "industry": "Segmento",
+      "website": "Site",
+      "notes": "Notas"
+    },
+    "status": {
+      "prospect": "Prospect",
+      "active": "Ativo",
+      "paused": "Pausado",
+      "archived": "Arquivado"
+    },
+    "errors": {
+      "tooShort": "O nome precisa ter pelo menos 2 caracteres."
+    }
   },
   "projects": {
     "title": "Projetos",

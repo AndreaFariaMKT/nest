@@ -33,7 +33,26 @@
   "clients": {
     "title": "Clients",
     "subtitle": "All active client accounts.",
-    "empty": "No clients yet. Add your first client to get started."
+    "empty": "No clients yet. Add your first client to get started.",
+    "new": "New client",
+    "newTitle": "New client",
+    "newSubtitle": "Add an account so you can start building brand kits and content.",
+    "createSubmit": "Create client",
+    "fields": {
+      "name": "Name",
+      "industry": "Industry",
+      "website": "Website",
+      "notes": "Notes"
+    },
+    "status": {
+      "prospect": "Prospect",
+      "active": "Active",
+      "paused": "Paused",
+      "archived": "Archived"
+    },
+    "errors": {
+      "tooShort": "Name must be at least 2 characters."
+    }
   },
   "projects": {
     "title": "Projects",

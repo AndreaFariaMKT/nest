@@ -1,4 +1,6 @@
 import { setRequestLocale } from "next-intl/server";
+import { redirect } from "@/i18n/routing";
+import { createClient } from "@/lib/supabase/server";
 import { Sidebar } from "@/components/layout/Sidebar";
 import { TopBar } from "@/components/layout/TopBar";
 
@@ -11,6 +13,15 @@ export default async function AppLayout({
 }) {
   const { locale } = await params;
   setRequestLocale(locale);
+
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    redirect({ href: "/login", locale: locale as "pt-BR" | "en" });
+  }
 
   return (
     <div className="flex min-h-screen">
