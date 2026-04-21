@@ -1,0 +1,82 @@
+{
+  "brand": {
+    "name": "Nest"
+  },
+  "nav": {
+    "today": "Hoje",
+    "clients": "Clientes",
+    "projects": "Projetos",
+    "calendar": "Calendário",
+    "meetings": "Reuniões",
+    "contentEngine": "Motor de Conteúdo",
+    "brandKits": "Brand Kits",
+    "reports": "Relatórios",
+    "team": "Equipe",
+    "settings": "Configurações"
+  },
+  "auth": {
+    "signIn": "Entrar",
+    "signOut": "Sair",
+    "email": "E-mail",
+    "password": "Senha",
+    "magicLink": "Enviar link mágico",
+    "signInWithEmail": "Continuar com e-mail",
+    "checkEmail": "Verifique sua caixa de entrada para o link de acesso.",
+    "invalidCredentials": "E-mail ou senha inválidos.",
+    "welcomeBack": "Bem-vinda de volta",
+    "welcomeSubtitle": "Entre para gerenciar seu studio."
+  },
+  "today": {
+    "title": "Hoje",
+    "subtitle": "O que precisa da sua atenção agora."
+  },
+  "clients": {
+    "title": "Clientes",
+    "subtitle": "Todas as contas de clientes ativos.",
+    "empty": "Nenhum cliente ainda. Adicione o primeiro pra começar."
+  },
+  "projects": {
+    "title": "Projetos",
+    "subtitle": "Ciclos mensais e trabalhos em andamento."
+  },
+  "calendar": {
+    "title": "Calendário",
+    "subtitle": "Sincronizado com o Google Calendar."
+  },
+  "meetings": {
+    "title": "Reuniões",
+    "subtitle": "Próximas chamadas e transcrições anteriores."
+  },
+  "contentEngine": {
+    "title": "Motor de Conteúdo",
+    "subtitle": "Transcrição → carrosséis → criativos → publicação."
+  },
+  "brandKits": {
+    "title": "Brand Kits",
+    "subtitle": "Identidade visual por cliente."
+  },
+  "reports": {
+    "title": "Relatórios",
+    "subtitle": "Análise de desempenho entre plataformas."
+  },
+  "team": {
+    "title": "Equipe",
+    "subtitle": "Membros e permissões."
+  },
+  "settings": {
+    "title": "Configurações",
+    "language": "Idioma",
+    "languagePtBR": "Português (Brasil)",
+    "languageEn": "Inglês"
+  },
+  "common": {
+    "loading": "Carregando…",
+    "save": "Salvar",
+    "cancel": "Cancelar",
+    "delete": "Excluir",
+    "create": "Criar",
+    "edit": "Editar",
+    "search": "Buscar",
+    "comingSoon": "Em breve"
+  }
+}

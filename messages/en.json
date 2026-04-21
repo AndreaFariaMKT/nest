@@ -1,0 +1,82 @@
+{
+  "brand": {
+    "name": "Nest"
+  },
+  "nav": {
+    "today": "Today",
+    "clients": "Clients",
+    "projects": "Projects",
+    "calendar": "Calendar",
+    "meetings": "Meetings",
+    "contentEngine": "Content Engine",
+    "brandKits": "Brand Kits",
+    "reports": "Reports",
+    "team": "Team",
+    "settings": "Settings"
+  },
+  "auth": {
+    "signIn": "Sign in",
+    "signOut": "Sign out",
+    "email": "Email",
+    "password": "Password",
+    "magicLink": "Send magic link",
+    "signInWithEmail": "Continue with email",
+    "checkEmail": "Check your inbox for the sign-in link.",
+    "invalidCredentials": "Invalid email or password.",
+    "welcomeBack": "Welcome back",
+    "welcomeSubtitle": "Sign in to manage your studio."
+  },
+  "today": {
+    "title": "Today",
+    "subtitle": "What needs your attention right now."
+  },
+  "clients": {
+    "title": "Clients",
+    "subtitle": "All active client accounts.",
+    "empty": "No clients yet. Add your first client to get started."
+  },
+  "projects": {
+    "title": "Projects",
+    "subtitle": "Monthly cycles and ongoing work."
+  },
+  "calendar": {
+    "title": "Calendar",
+    "subtitle": "Synced with Google Calendar."
+  },
+  "meetings": {
+    "title": "Meetings",
+    "subtitle": "Upcoming calls and past transcripts."
+  },
+  "contentEngine": {
+    "title": "Content Engine",
+    "subtitle": "Transcription → carousels → creatives → publish."
+  },
+  "brandKits": {
+    "title": "Brand Kits",
+    "subtitle": "Visual identity per client."
+  },
+  "reports": {
+    "title": "Reports",
+    "subtitle": "Performance analytics across platforms."
+  },
+  "team": {
+    "title": "Team",
+    "subtitle": "Members and permissions."
+  },
+  "settings": {
+    "title": "Settings",
+    "language": "Language",
+    "languagePtBR": "Portuguese (Brazil)",
+    "languageEn": "English"
+  },
+  "common": {
+    "loading": "Loading…",
+    "save": "Save",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "create": "Create",
+    "edit": "Edit",
+    "search": "Search",
+    "comingSoon": "Coming soon"
+  }
+}
