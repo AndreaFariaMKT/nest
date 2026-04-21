@@ -38,11 +38,29 @@
     "newTitle": "New client",
     "newSubtitle": "Add an account so you can start building brand kits and content.",
     "createSubmit": "Create client",
+    "editTitle": "Edit client",
+    "editSubtitle": "Update details, notes, or status.",
+    "saveSubmit": "Save changes",
+    "edit": "Edit",
+    "archive": "Archive",
+    "confirmArchive": "Confirm archive",
+    "comingSoon": "Coming soon",
+    "sections": {
+      "details": "Details",
+      "notes": "Notes",
+      "notesEmpty": "No notes yet.",
+      "brandKit": "Brand kit",
+      "contracts": "Contracts",
+      "tasks": "Tasks"
+    },
     "fields": {
       "name": "Name",
       "industry": "Industry",
       "website": "Website",
-      "notes": "Notes"
+      "notes": "Notes",
+      "status": "Status",
+      "slug": "Slug",
+      "createdAt": "Created"
     },
     "status": {
       "prospect": "Prospect",

@@ -1,6 +1,7 @@
 import { setRequestLocale, getTranslations } from "next-intl/server";
 import { Link } from "@/i18n/routing";
-import { NewClientForm } from "./NewClientForm";
+import { ClientForm } from "../_components/ClientForm";
+import { createClientAction } from "../actions";
 
 export default async function NewClientPage({
   params,
@@ -23,11 +24,14 @@ export default async function NewClientPage({
         <h1 className="mt-2 font-display text-4xl text-foreground">
           {t("newTitle")}
         </h1>
-        <p className="mt-1 text-sm text-muted-foreground">
-          {t("newSubtitle")}
-        </p>
+        <p className="mt-1 text-sm text-muted-foreground">{t("newSubtitle")}</p>
       </div>
-      <NewClientForm locale={locale} />
+      <ClientForm
+        locale={locale}
+        action={createClientAction}
+        submitLabel={t("createSubmit")}
+        cancelHref="/clients"
+      />
     </div>
   );
 }

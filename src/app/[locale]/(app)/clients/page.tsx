@@ -1,6 +1,5 @@
 import { setRequestLocale, getTranslations } from "next-intl/server";
 import { Link } from "@/i18n/routing";
-import { PageHeader } from "@/components/ui/PageHeader";
 import { Placeholder } from "@/components/ui/Placeholder";
 import { Pill } from "@/components/ui/Pill";
 import { createClient } from "@/lib/supabase/server";
@@ -55,9 +54,10 @@ export default async function ClientsPage({
       ) : (
         <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-3">
           {clients.map((client) => (
-            <article
+            <Link
               key={client.id}
-              className="rounded-lg border border-border bg-card p-5 transition-colors hover:border-foreground/20"
+              href={`/clients/${client.slug}`}
+              className="block rounded-lg border border-border bg-card p-5 transition-colors hover:border-foreground/20 hover:bg-accent/30"
             >
               <div className="flex items-start justify-between gap-3">
                 <div>
@@ -74,7 +74,7 @@ export default async function ClientsPage({
                   {t(`status.${client.status}`)}
                 </Pill>
               </div>
-            </article>
+            </Link>
           ))}
         </div>
       )}
@@ -84,6 +84,3 @@ export default async function ClientsPage({
 
 // Keep the clients page always fresh — it mutates via server actions.
 export const dynamic = "force-dynamic";
-
-// PageHeader wasn't used but keep the import reachable for consistency elsewhere.
-void PageHeader;

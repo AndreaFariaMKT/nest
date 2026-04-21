@@ -38,11 +38,29 @@
     "newTitle": "Novo cliente",
     "newSubtitle": "Cadastre uma conta pra começar a construir brand kits e conteúdo.",
     "createSubmit": "Criar cliente",
+    "editTitle": "Editar cliente",
+    "editSubtitle": "Atualize detalhes, notas ou status.",
+    "saveSubmit": "Salvar alterações",
+    "edit": "Editar",
+    "archive": "Arquivar",
+    "confirmArchive": "Confirmar arquivamento",
+    "comingSoon": "Em breve",
+    "sections": {
+      "details": "Detalhes",
+      "notes": "Notas",
+      "notesEmpty": "Sem notas ainda.",
+      "brandKit": "Brand kit",
+      "contracts": "Contratos",
+      "tasks": "Tarefas"
+    },
     "fields": {
       "name": "Nome",
       "industry": "Segmento",
       "website": "Site",
-      "notes": "Notas"
+      "notes": "Notas",
+      "status": "Status",
+      "slug": "Slug",
+      "createdAt": "Criado em"
     },
     "status": {
       "prospect": "Prospect",
