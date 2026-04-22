@@ -70,7 +70,7 @@ Goal: Andréa cadastra clientes, brand kits e contratos.
   - Services card on client detail: active assignments (non-ended) + owner-only attach dropdown + detach-with-`ended_on`
   - Sidebar gains a Services entry (ShieldCheck-style icon)
   - Playwright smoke: create service → new client → attach → row visible
-- [ ] **Global /brand-kits index** — lista todos os kits ativos com preview, atalho pra edit
+- [x] Global /brand-kits index — grid of all kits with 8-swatch preview + typography line, card links to each client's edit page
 - [ ] **Today page skeleton** — "Minhas tarefas hoje" + "Reuniões da semana" + "Aprovações pendentes" (todos placeholders até Sprint 3/5/7)
 
 **Entrega da sprint:** Factory usa o Nest pra gerenciar sua própria base de clientes + contratos + visuais.

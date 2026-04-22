@@ -106,7 +106,9 @@
   },
   "brandKits": {
     "title": "Brand Kits",
-    "subtitle": "Identidade visual por cliente."
+    "subtitle": "Paletas, tipografia e assets de todos os clientes em um só lugar.",
+    "empty": "Nenhum brand kit ainda. Configure um pela página de detalhe do cliente.",
+    "colorsSuffix": "cores"
   },
   "services": {
     "title": "Serviços",
