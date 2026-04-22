@@ -53,6 +53,10 @@
       "brandKit": "Brand kit",
       "brandKitEmpty": "No brand kit yet.",
       "contracts": "Contracts",
+      "contractsEmpty": "No contracts yet.",
+      "manageContracts": "Manage",
+      "mrrLabel": "MRR {mrr}",
+      "autoRenew": "auto-renew",
       "tasks": "Tasks"
     },
     "fields": {
@@ -93,6 +97,34 @@
   "brandKits": {
     "title": "Brand Kits",
     "subtitle": "Visual identity per client."
+  },
+  "contracts": {
+    "title": "Contracts",
+    "subtitle": "Active MRR: {mrr}",
+    "new": "New contract",
+    "newTitle": "New contract",
+    "editTitle": "Edit contract",
+    "createSubmit": "Create contract",
+    "saveSubmit": "Save contract",
+    "delete": "Delete",
+    "confirmDelete": "Confirm delete",
+    "empty": "No contracts yet. Create the first one to start tracking MRR.",
+    "autoRenewBadge": "auto-renew",
+    "fields": {
+      "title": "Title",
+      "monthlyValue": "Monthly value (BRL)",
+      "startsOn": "Starts on",
+      "endsOn": "Ends on",
+      "autoRenew": "Auto-renew",
+      "documentUrl": "Document URL",
+      "notes": "Notes"
+    },
+    "errors": {
+      "tooShort": "Title must be at least 2 characters.",
+      "required": "This field is required.",
+      "beforeStart": "End date can't be before the start date.",
+      "invalid": "Enter a valid amount (e.g. 4500 or 4500,50)."
+    }
   },
   "brandKit": {
     "title": "Brand kit",

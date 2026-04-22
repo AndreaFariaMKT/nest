@@ -57,7 +57,13 @@ Goal: Andréa cadastra clientes, brand kits e contratos.
   - `uploadBrandAssetAction` (lazy-creates kit) + `deleteBrandAssetAction`
   - `BrandAssets.tsx` — file input, aspect-square thumb grid, kind pill, remove-on-blur
   - playwright smoke: login → new client → brand kit → upload tiny PNG → thumbnail
-- [ ] **Contracts** (owner-only) — CRUD simples: título, valor mensal (BRL), datas, auto-renew flag, link pro documento; aparece como card no detalhe do cliente só se `role = owner`
+- [x] Contracts (owner-only) — CRUD + MRR
+  - `src/lib/money.ts` (parse/format BRL cents, handles `.` vs `,` disambiguation) + 13 unit tests
+  - `src/lib/auth.ts` (`getCurrentProfile`, `isOwner`) — UX owner gate on top of RLS
+  - `/clients/[slug]/contracts` list + `new` + `[id]/edit` with inline delete (2-click confirm)
+  - `ContractForm` shared (title, BRL input, starts/ends, auto-renew, document, notes)
+  - owner-only Contracts card on detail page with active MRR summary
+  - playwright smoke: owner creates contract → list shows R$ 4.500,00 + title
 - [ ] **Services catalog** — `/services` com templates (Social Media Essential, Premium, Mentoria); client_services para atribuir a um cliente
 - [ ] **Global /brand-kits index** — lista todos os kits ativos com preview, atalho pra edit
 - [ ] **Today page skeleton** — "Minhas tarefas hoje" + "Reuniões da semana" + "Aprovações pendentes" (todos placeholders até Sprint 3/5/7)

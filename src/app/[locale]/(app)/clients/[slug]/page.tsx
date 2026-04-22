@@ -4,6 +4,8 @@ import { Link } from "@/i18n/routing";
 import { Pill } from "@/components/ui/Pill";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/Card";
 import { createClient } from "@/lib/supabase/server";
+import { isOwner } from "@/lib/auth";
+import { formatCentsAsBrl, sumCents } from "@/lib/money";
 import type { BrandColor, Database } from "@/types/database";
 import { ArchiveButton } from "./ArchiveButton";
 
@@ -11,6 +13,10 @@ type Client = Database["public"]["Tables"]["clients"]["Row"];
 type BrandKitPreview = Pick<
   Database["public"]["Tables"]["brand_kits"]["Row"],
   "palette" | "typography"
+>;
+type ContractPreview = Pick<
+  Database["public"]["Tables"]["contracts"]["Row"],
+  "id" | "title" | "monthly_value_cents" | "starts_on" | "ends_on" | "auto_renew"
 >;
 
 const statusTone = {
@@ -45,6 +51,26 @@ export default async function ClientDetailPage({
     .eq("client_id", client.id)
     .maybeSingle();
   const kit = (kitData ?? null) as BrandKitPreview | null;
+
+  const ownerView = await isOwner();
+  let contracts: ContractPreview[] = [];
+  let mrrCents = 0;
+  if (ownerView) {
+    const { data: contractData } = await supabase
+      .from("contracts")
+      .select("id, title, monthly_value_cents, starts_on, ends_on, auto_renew")
+      .eq("client_id", client.id)
+      .order("starts_on", { ascending: false });
+    contracts = (contractData ?? []) as ContractPreview[];
+    const today = new Date().toISOString().slice(0, 10);
+    mrrCents = sumCents(
+      contracts
+        .filter(
+          (c) => c.starts_on <= today && (!c.ends_on || c.ends_on >= today),
+        )
+        .map((c) => c.monthly_value_cents),
+    );
+  }
 
   return (
     <div className="mx-auto max-w-5xl">
@@ -159,18 +185,48 @@ export default async function ClientDetailPage({
           </CardContent>
         </Card>
 
-        {(["contracts", "tasks"] as const).map((section) => (
-          <Card key={section}>
-            <CardHeader>
+        {ownerView ? (
+          <Card>
+            <CardHeader className="flex-row items-center justify-between">
               <CardTitle className="text-base">
-                {t(`sections.${section}`)}
+                {t("sections.contracts")}
               </CardTitle>
+              <Link
+                href={`/clients/${client.slug}/contracts`}
+                className="text-xs text-muted-foreground hover:text-foreground"
+              >
+                {t("sections.manageContracts")}
+              </Link>
             </CardHeader>
-            <CardContent className="text-sm text-muted-foreground">
-              {t("comingSoon")}
+            <CardContent className="text-sm">
+              {contracts.length === 0 ? (
+                <p className="text-muted-foreground">
+                  {t("sections.contractsEmpty")}
+                </p>
+              ) : (
+                <div className="space-y-2">
+                  <div className="text-xs text-muted-foreground">
+                    {t("sections.mrrLabel", { mrr: formatCentsAsBrl(mrrCents) })}
+                  </div>
+                  <div className="font-display text-lg">{contracts[0].title}</div>
+                  <div className="text-xs text-muted-foreground">
+                    {formatCentsAsBrl(contracts[0].monthly_value_cents)}
+                    {contracts[0].auto_renew ? ` · ${t("sections.autoRenew")}` : ""}
+                  </div>
+                </div>
+              )}
             </CardContent>
           </Card>
-        ))}
+        ) : null}
+
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base">{t("sections.tasks")}</CardTitle>
+          </CardHeader>
+          <CardContent className="text-sm text-muted-foreground">
+            {t("comingSoon")}
+          </CardContent>
+        </Card>
       </div>
     </div>
   );

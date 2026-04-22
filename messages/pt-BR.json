@@ -53,6 +53,10 @@
       "brandKit": "Brand kit",
       "brandKitEmpty": "Nenhum brand kit ainda.",
       "contracts": "Contratos",
+      "contractsEmpty": "Sem contratos ainda.",
+      "manageContracts": "Gerenciar",
+      "mrrLabel": "MRR {mrr}",
+      "autoRenew": "renovação automática",
       "tasks": "Tarefas"
     },
     "fields": {
@@ -93,6 +97,34 @@
   "brandKits": {
     "title": "Brand Kits",
     "subtitle": "Identidade visual por cliente."
+  },
+  "contracts": {
+    "title": "Contratos",
+    "subtitle": "MRR ativo: {mrr}",
+    "new": "Novo contrato",
+    "newTitle": "Novo contrato",
+    "editTitle": "Editar contrato",
+    "createSubmit": "Criar contrato",
+    "saveSubmit": "Salvar contrato",
+    "delete": "Excluir",
+    "confirmDelete": "Confirmar exclusão",
+    "empty": "Nenhum contrato ainda. Crie o primeiro pra começar a acompanhar o MRR.",
+    "autoRenewBadge": "renovação automática",
+    "fields": {
+      "title": "Título",
+      "monthlyValue": "Valor mensal (BRL)",
+      "startsOn": "Início",
+      "endsOn": "Término",
+      "autoRenew": "Renovação automática",
+      "documentUrl": "URL do documento",
+      "notes": "Notas"
+    },
+    "errors": {
+      "tooShort": "O título precisa ter pelo menos 2 caracteres.",
+      "required": "Campo obrigatório.",
+      "beforeStart": "A data de término não pode ser antes do início.",
+      "invalid": "Informe um valor válido (ex: 4500 ou 4500,50)."
+    }
   },
   "brandKit": {
     "title": "Brand kit",
