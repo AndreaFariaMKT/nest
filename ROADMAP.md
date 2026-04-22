@@ -92,13 +92,7 @@ Goal: operação diária migra do Notion pro Nest.
   - `/projects/new` + `/projects/[id]/edit` with shared `TaskForm` (status, priority, datetime-local, assignee + client dropdowns; cycle auto-resolved from client's current cycle)
   - server actions: create, update, delete; `completed_at` auto-stamps on transition to `done` and clears on rollback
   - tests: 48/48 unit + 7/7 smoke (incl. new tasks smoke)
-- [ ] **Kanban board** — `/projects` com 5 colunas (todo/in_progress/blocked/review/done), drag-n-drop otimista, filtros por cliente/assignee
-  - server component passes tasks + client/assignee filter choices to `KanbanBoard`
-  - client component uses `useOptimistic` + `useTransition` for snappy re-ordering on drop
-  - native HTML5 DnD (no extra deps) — desktop-only for MVP
-  - filters via URL search params `?client=&assignee=` with onChange auto-navigation
-  - `updateTaskStatusAction` mirrors the completed_at state machine from the CRUD slice
-  - playwright smoke: create task → visible in its status column with filters applied
+- [x] Kanban board — 5 columns with native HTML5 DnD + useOptimistic snap + URL-param filters (shipped in `aeef233`)
 - [ ] **Task templates** (opcional) — template "Ciclo mensal padrão" clona N tarefas ao criar novo ciclo
 - [ ] **Team invite flow** — owner envia convite por email (Supabase Auth invite), novo usuário aceita → vira `role = staff`
 - [ ] **Client assignments** (`client_members`) — owner atribui staff a clientes via UI no detalhe do cliente
