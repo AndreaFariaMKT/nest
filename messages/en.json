@@ -194,6 +194,16 @@
     "createSubmit": "Create transcript",
     "empty": "No transcripts yet. Upload one to get started.",
     "wordCount": "{count, plural, one {# word} other {# words}}",
+    "draftsCount": "{count, plural, =0 {no drafts} one {# draft} other {# drafts}}",
+    "transcriptTitle": "Transcript",
+    "sections": {
+      "drafts": "Generated drafts",
+      "draftsEmpty": "No drafts yet. Click Generate on the transcript row."
+    },
+    "actions": {
+      "generate": "Generate",
+      "viewDrafts": "View drafts"
+    },
     "fields": {
       "client": "Client",
       "pickClient": "Pick a client…",

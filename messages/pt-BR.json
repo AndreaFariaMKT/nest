@@ -194,6 +194,16 @@
     "createSubmit": "Criar transcrição",
     "empty": "Nenhuma transcrição ainda. Faça o primeiro upload pra começar.",
     "wordCount": "{count, plural, one {# palavra} other {# palavras}}",
+    "draftsCount": "{count, plural, =0 {sem drafts} one {# draft} other {# drafts}}",
+    "transcriptTitle": "Transcrição",
+    "sections": {
+      "drafts": "Drafts gerados",
+      "draftsEmpty": "Nenhum draft ainda. Clique em Gerar na linha da transcrição."
+    },
+    "actions": {
+      "generate": "Gerar",
+      "viewDrafts": "Ver drafts"
+    },
     "fields": {
       "client": "Cliente",
       "pickClient": "Escolha um cliente…",

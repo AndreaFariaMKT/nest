@@ -118,7 +118,12 @@ Goal: primeiro post Factory publicado pelo Nest.
 
 - [x] Claude API wrapper — model router + cached-brand system helper + adaptive thinking + streaming via `.finalMessage()` (shipped in `aa56d73`)
 - [x] Transcript upload — `/content-engine/new` (paste or .txt/.vtt upload) · `src/lib/vtt.ts` strips WEBVTT headers + timing lines + `<v Name>` tags · creates an ad-hoc `meetings` row so `transcripts` can hang off it (real meetings come in Sprint 9) · list at `/content-engine` shows client + language + word count
-- [ ] **Generate carousels** — server action chama Claude com brand kit do cliente + últimos `content_drafts` (evita repetição), produz 3-8 `content_drafts` com `slides[]` sugeridos
+- [x] Generate carousels — transcript → Claude → 7 drafts shipped end-to-end (manual verification)
+  - `src/lib/carousel-prompt.ts` (buildSystem/buildUser/parseDraftsPayload) + 13 unit tests
+  - brand summary + last 10 drafts piped into the user message; brand block cached via `cache_control: ephemeral`
+  - server action streams via `.finalMessage()` and bulk-inserts drafts + slides
+  - "Generate" button on each transcript row triggers the action; redirects to `/content-engine/transcripts/[id]`
+  - manual test: 7 drafts (pillars: Autoconhecimento, Conexão pessoal, etc.), 10 hashtags each, 7 slides each
 - [ ] **Text editor** — `/content-engine/[id]` mostra draft editável: título, pilar, hook, caption, hashtags, slides (posição + headline + body)
 - [ ] **Creative editor v1** — cada slide renderizado via template Playwright (server-side HTML→PNG), URL vai pro Supabase Storage (bucket `creatives`)
 - [ ] **Approval workflow** — botão "Approve for scheduling" muda status pra `approved`

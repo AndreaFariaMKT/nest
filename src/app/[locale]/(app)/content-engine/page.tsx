@@ -2,6 +2,7 @@ import { setRequestLocale, getTranslations } from "next-intl/server";
 import { Link } from "@/i18n/routing";
 import { createClient } from "@/lib/supabase/server";
 import { wordCount } from "@/lib/vtt";
+import { generateCarouselsAction } from "./actions";
 
 type Row = {
   id: string;
@@ -37,7 +38,7 @@ export default async function ContentEnginePage({
     .order("created_at", { ascending: false })
     .limit(25);
 
-  const rows = ((data ?? []) as unknown as Row[]).map((r) => {
+  const baseRows = ((data ?? []) as unknown as Row[]).map((r) => {
     const meeting = pickOne(r.meeting);
     const client = meeting ? pickOne(meeting.client) : null;
     return {
@@ -48,6 +49,24 @@ export default async function ContentEnginePage({
       client,
     };
   });
+
+  // Draft counts per transcript (separate query — easier than a nested count)
+  const ids = baseRows.map((r) => r.id);
+  const draftCounts = new Map<string, number>();
+  if (ids.length > 0) {
+    const { data: counts } = await supabase
+      .from("content_drafts")
+      .select("transcript_id")
+      .in("transcript_id", ids);
+    for (const c of counts ?? []) {
+      const key = (c as { transcript_id: string }).transcript_id;
+      draftCounts.set(key, (draftCounts.get(key) ?? 0) + 1);
+    }
+  }
+  const rows = baseRows.map((r) => ({
+    ...r,
+    draftsCount: draftCounts.get(r.id) ?? 0,
+  }));
 
   return (
     <div className="mx-auto max-w-5xl">
@@ -90,7 +109,28 @@ export default async function ContentEnginePage({
                     {row.language}
                     {" · "}
                     {t("wordCount", { count: row.words })}
+                    {" · "}
+                    {t("draftsCount", { count: row.draftsCount })}
                   </div>
+                </div>
+                <div className="flex shrink-0 items-center gap-2">
+                  <Link
+                    href={`/content-engine/transcripts/${row.id}`}
+                    className="inline-flex h-8 items-center rounded-md border border-input bg-background px-3 text-xs hover:bg-muted"
+                  >
+                    {t("actions.viewDrafts")}
+                  </Link>
+                  <form action={generateCarouselsAction}>
+                    <input type="hidden" name="transcriptId" value={row.id} />
+                    <input type="hidden" name="locale" value={locale} />
+                    <button
+                      type="submit"
+                      className="inline-flex h-8 items-center rounded-md bg-primary px-3 text-xs font-medium text-primary-foreground transition-colors hover:bg-primary/90"
+                      data-testid="generate-carousels"
+                    >
+                      {t("actions.generate")}
+                    </button>
+                  </form>
                 </div>
               </div>
             </li>

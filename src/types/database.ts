@@ -100,6 +100,60 @@ export interface Database {
           Database["public"]["Tables"]["client_services"]["Insert"]
         >;
       };
+      content_drafts: {
+        Row: {
+          id: string;
+          client_id: string;
+          transcript_id: string | null;
+          title: string;
+          pillar: string | null;
+          hook: string | null;
+          caption: string | null;
+          hashtags: string[];
+          status: string;
+          created_by: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          client_id: string;
+          transcript_id?: string | null;
+          title: string;
+          pillar?: string | null;
+          hook?: string | null;
+          caption?: string | null;
+          hashtags?: string[];
+          status?: string;
+          created_by?: string | null;
+        };
+        Update: Partial<
+          Database["public"]["Tables"]["content_drafts"]["Insert"]
+        >;
+      };
+      slides: {
+        Row: {
+          id: string;
+          draft_id: string;
+          position: number;
+          template_id: string | null;
+          headline: string | null;
+          body: string | null;
+          data: Record<string, unknown>;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          draft_id: string;
+          position: number;
+          template_id?: string | null;
+          headline?: string | null;
+          body?: string | null;
+          data?: Record<string, unknown>;
+        };
+        Update: Partial<Database["public"]["Tables"]["slides"]["Insert"]>;
+      };
       transcripts: {
         Row: {
           id: string;
