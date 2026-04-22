@@ -71,7 +71,11 @@
       "attachService": "Attach",
       "detachService": "Detach",
       "pickService": "Pick a service…",
-      "catalogEmpty": "No services in the catalog yet."
+      "catalogEmpty": "No services in the catalog yet.",
+      "attachMember": "Attach",
+      "detachMember": "Remove",
+      "pickMember": "Pick a teammate…",
+      "noStaff": "No staff members to assign — invite someone from /team."
     },
     "sections": {
       "details": "Details",
@@ -86,6 +90,8 @@
       "autoRenew": "auto-renew",
       "services": "Services",
       "servicesEmpty": "No services assigned.",
+      "members": "Team",
+      "membersEmpty": "No team members assigned.",
       "readonly": "read-only",
       "tasks": "Tasks"
     },

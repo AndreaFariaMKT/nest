@@ -18,6 +18,11 @@ import {
   type ActiveAssignment,
   type CatalogService,
 } from "./_components/ClientServicesCard";
+import {
+  ClientMembersCard,
+  type AssignedMember,
+  type MemberChoice,
+} from "./_components/ClientMembersCard";
 
 type Client = Database["public"]["Tables"]["clients"]["Row"];
 type BrandKitPreview = Pick<
@@ -126,6 +131,44 @@ export default async function ClientDetailPage({
     .select("id, name")
     .order("name", { ascending: true });
   const catalog: CatalogService[] = (catalogData ?? []) as CatalogService[];
+
+  // Client members (staff assigned to this client). Owner-only.
+  let assignedMembers: AssignedMember[] = [];
+  let memberCandidates: MemberChoice[] = [];
+  if (ownerView) {
+    type MembRow = {
+      user_id: string;
+      profiles:
+        | { full_name: string | null; email: string }
+        | Array<{ full_name: string | null; email: string }>
+        | null;
+    };
+    const { data: memberRows } = await supabase
+      .from("client_members")
+      .select("user_id, profiles!inner(full_name, email)")
+      .eq("client_id", client.id);
+    assignedMembers = ((memberRows ?? []) as unknown as MembRow[])
+      .map((row) => {
+        const p = Array.isArray(row.profiles) ? row.profiles[0] : row.profiles;
+        if (!p) return null;
+        return {
+          userId: row.user_id,
+          label: p.full_name ?? p.email,
+          email: p.email,
+        };
+      })
+      .filter((x): x is AssignedMember => x !== null);
+
+    const { data: staffData } = await supabase
+      .from("profiles")
+      .select("id, full_name, email")
+      .eq("role", "staff")
+      .order("full_name", { ascending: true });
+    memberCandidates = (staffData ?? []).map((p) => ({
+      id: p.id,
+      label: p.full_name ?? p.email,
+    }));
+  }
 
   // Current cycle (created by the monthly cron; fall back to computed bounds
   // if the cron hasn't run yet for this month)
@@ -319,6 +362,25 @@ export default async function ClientDetailPage({
             />
           </CardContent>
         </Card>
+
+        {ownerView ? (
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-base">
+                {t("sections.members")}
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="text-sm">
+              <ClientMembersCard
+                locale={locale}
+                clientId={client.id}
+                clientSlug={client.slug}
+                members={assignedMembers}
+                candidates={memberCandidates}
+              />
+            </CardContent>
+          </Card>
+        ) : null}
 
         <Card>
           <CardHeader>

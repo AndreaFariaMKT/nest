@@ -71,7 +71,11 @@
       "attachService": "Anexar",
       "detachService": "Remover",
       "pickService": "Escolha um serviço…",
-      "catalogEmpty": "Nenhum serviço no catálogo ainda."
+      "catalogEmpty": "Nenhum serviço no catálogo ainda.",
+      "attachMember": "Anexar",
+      "detachMember": "Remover",
+      "pickMember": "Escolha um integrante…",
+      "noStaff": "Ninguém na equipe pra atribuir — convide alguém em /team."
     },
     "sections": {
       "details": "Detalhes",
@@ -86,6 +90,8 @@
       "autoRenew": "renovação automática",
       "services": "Serviços",
       "servicesEmpty": "Nenhum serviço atribuído.",
+      "members": "Equipe",
+      "membersEmpty": "Nenhum membro da equipe atribuído.",
       "readonly": "somente leitura",
       "tasks": "Tarefas"
     },
