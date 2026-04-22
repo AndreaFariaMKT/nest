@@ -4,10 +4,14 @@ import { Link } from "@/i18n/routing";
 import { Pill } from "@/components/ui/Pill";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/Card";
 import { createClient } from "@/lib/supabase/server";
-import type { Database } from "@/types/database";
+import type { BrandColor, Database } from "@/types/database";
 import { ArchiveButton } from "./ArchiveButton";
 
 type Client = Database["public"]["Tables"]["clients"]["Row"];
+type BrandKitPreview = Pick<
+  Database["public"]["Tables"]["brand_kits"]["Row"],
+  "palette" | "typography"
+>;
 
 const statusTone = {
   prospect: "warning",
@@ -34,6 +38,13 @@ export default async function ClientDetailPage({
 
   if (!data) notFound();
   const client = data as Client;
+
+  const { data: kitData } = await supabase
+    .from("brand_kits")
+    .select("palette, typography")
+    .eq("client_id", client.id)
+    .maybeSingle();
+  const kit = (kitData ?? null) as BrandKitPreview | null;
 
   return (
     <div className="mx-auto max-w-5xl">
@@ -130,7 +141,25 @@ export default async function ClientDetailPage({
       </div>
 
       <div className="mt-4 grid grid-cols-1 gap-4 md:grid-cols-3">
-        {(["brandKit", "contracts", "tasks"] as const).map((section) => (
+        <Card>
+          <CardHeader className="flex-row items-center justify-between">
+            <CardTitle className="text-base">{t("sections.brandKit")}</CardTitle>
+            <Link
+              href={`/clients/${client.slug}/brand-kit`}
+              className="text-xs text-muted-foreground hover:text-foreground"
+            >
+              {kit ? t("edit") : t("configureBrandKit")}
+            </Link>
+          </CardHeader>
+          <CardContent className="text-sm">
+            <BrandKitPreviewBlock
+              kit={kit}
+              emptyLabel={t("sections.brandKitEmpty")}
+            />
+          </CardContent>
+        </Card>
+
+        {(["contracts", "tasks"] as const).map((section) => (
           <Card key={section}>
             <CardHeader>
               <CardTitle className="text-base">
@@ -158,6 +187,40 @@ function DetailRow({
     <div className="flex items-baseline justify-between gap-4">
       <dt className="text-muted-foreground">{label}</dt>
       <dd className="text-right">{children}</dd>
+    </div>
+  );
+}
+
+function BrandKitPreviewBlock({
+  kit,
+  emptyLabel,
+}: {
+  kit: BrandKitPreview | null;
+  emptyLabel: string;
+}) {
+  if (!kit || !kit.palette || kit.palette.length === 0) {
+    return <p className="text-muted-foreground">{emptyLabel}</p>;
+  }
+  const palette = kit.palette as BrandColor[];
+  return (
+    <div className="space-y-3">
+      <div className="flex flex-wrap gap-1.5">
+        {palette.slice(0, 8).map((color, index) => (
+          <div
+            key={`${color.hex}-${index}`}
+            className="h-8 w-8 rounded-md border border-border"
+            style={{ backgroundColor: color.hex }}
+            title={`${color.name} · ${color.hex}`}
+          />
+        ))}
+      </div>
+      {kit.typography?.headings || kit.typography?.body ? (
+        <p className="text-xs text-muted-foreground">
+          {[kit.typography.headings, kit.typography.body]
+            .filter(Boolean)
+            .join(" · ")}
+        </p>
+      ) : null}
     </div>
   );
 }

@@ -5,9 +5,41 @@
 export type ClientStatus = "prospect" | "active" | "paused" | "archived";
 export type UserRole = "owner" | "staff" | "client";
 
+export type BrandColor = { name: string; hex: string };
+export type BrandTypography = { headings: string; body: string };
+
 export interface Database {
   public: {
     Tables: {
+      brand_kits: {
+        Row: {
+          id: string;
+          client_id: string;
+          name: string;
+          palette: BrandColor[];
+          typography: BrandTypography;
+          voice_tone: string | null;
+          do_list: string[];
+          dont_list: string[];
+          guidelines_url: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          client_id: string;
+          name: string;
+          palette?: BrandColor[];
+          typography?: BrandTypography;
+          voice_tone?: string | null;
+          do_list?: string[];
+          dont_list?: string[];
+          guidelines_url?: string | null;
+        };
+        Update: Partial<
+          Database["public"]["Tables"]["brand_kits"]["Insert"]
+        >;
+      };
       clients: {
         Row: {
           id: string;

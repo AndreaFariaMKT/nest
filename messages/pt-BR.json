@@ -45,11 +45,13 @@
     "archive": "Arquivar",
     "confirmArchive": "Confirmar arquivamento",
     "comingSoon": "Em breve",
+    "configureBrandKit": "Configurar",
     "sections": {
       "details": "Detalhes",
       "notes": "Notas",
       "notesEmpty": "Sem notas ainda.",
       "brandKit": "Brand kit",
+      "brandKitEmpty": "Nenhum brand kit ainda.",
       "contracts": "Contratos",
       "tasks": "Tarefas"
     },
@@ -91,6 +93,41 @@
   "brandKits": {
     "title": "Brand Kits",
     "subtitle": "Identidade visual por cliente."
+  },
+  "brandKit": {
+    "title": "Brand kit",
+    "subtitle": "Paleta, tipografia e voz da marca desse cliente.",
+    "save": "Salvar brand kit",
+    "actions": {
+      "addColor": "Adicionar cor",
+      "removeColor": "Remover"
+    },
+    "sections": {
+      "palette": "Paleta",
+      "paletteEmpty": "Nenhuma cor ainda — adicione a primeira.",
+      "typography": "Tipografia"
+    },
+    "fields": {
+      "name": "Nome do kit",
+      "colorName": "Nome da cor",
+      "colorHex": "Hex",
+      "headings": "Fonte dos títulos",
+      "body": "Fonte do corpo",
+      "voiceTone": "Voz & tom",
+      "doList": "Fazer",
+      "dontList": "Não fazer",
+      "guidelinesUrl": "URL das diretrizes"
+    },
+    "placeholders": {
+      "voiceTone": "Conversa, confiante, sem jargão técnico.",
+      "oneLinePerItem": "Um item por linha"
+    },
+    "errors": {
+      "tooShort": "O nome precisa ter pelo menos 2 caracteres.",
+      "invalidHex": "Todas as cores precisam de um hex válido (ex: #1a1a1a).",
+      "invalidJson": "Formato da paleta inválido.",
+      "invalidShape": "Cada cor precisa ter nome + hex."
+    }
   },
   "reports": {
     "title": "Relatórios",

@@ -45,11 +45,13 @@
     "archive": "Archive",
     "confirmArchive": "Confirm archive",
     "comingSoon": "Coming soon",
+    "configureBrandKit": "Configure",
     "sections": {
       "details": "Details",
       "notes": "Notes",
       "notesEmpty": "No notes yet.",
       "brandKit": "Brand kit",
+      "brandKitEmpty": "No brand kit yet.",
       "contracts": "Contracts",
       "tasks": "Tasks"
     },
@@ -91,6 +93,41 @@
   "brandKits": {
     "title": "Brand Kits",
     "subtitle": "Visual identity per client."
+  },
+  "brandKit": {
+    "title": "Brand kit",
+    "subtitle": "Palette, typography and voice guidelines for this client.",
+    "save": "Save brand kit",
+    "actions": {
+      "addColor": "Add color",
+      "removeColor": "Remove"
+    },
+    "sections": {
+      "palette": "Palette",
+      "paletteEmpty": "No colors yet — add your first one.",
+      "typography": "Typography"
+    },
+    "fields": {
+      "name": "Kit name",
+      "colorName": "Color name",
+      "colorHex": "Hex",
+      "headings": "Headings font",
+      "body": "Body font",
+      "voiceTone": "Voice & tone",
+      "doList": "Do",
+      "dontList": "Don't",
+      "guidelinesUrl": "Guidelines URL"
+    },
+    "placeholders": {
+      "voiceTone": "Conversational, confident, never jargon-heavy.",
+      "oneLinePerItem": "One item per line"
+    },
+    "errors": {
+      "tooShort": "Name must be at least 2 characters.",
+      "invalidHex": "All colors need a valid hex (e.g. #1a1a1a).",
+      "invalidJson": "Palette format is invalid.",
+      "invalidShape": "Palette entries must include name + hex."
+    }
   },
   "reports": {
     "title": "Reports",
