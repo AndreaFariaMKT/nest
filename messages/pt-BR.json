@@ -96,8 +96,10 @@
       "notes": "Notas",
       "status": "Status",
       "slug": "Slug",
-      "createdAt": "Criado em"
+      "createdAt": "Criado em",
+      "currentCycle": "Ciclo atual"
     },
+    "cycleDaysLeft": "{count, plural, =0 {último dia} one {# dia restante} other {# dias restantes}}",
     "status": {
       "prospect": "Prospect",
       "active": "Ativo",

@@ -81,7 +81,12 @@ Goal: Andréa cadastra clientes, brand kits e contratos.
 
 Goal: operação diária migra do Notion pro Nest.
 
-- [ ] **Monthly cycles** — Cron mensal (`/api/cron/cycles`) cria um `cycle` novo pra cada cliente ativo; detail do cliente mostra ciclo atual
+- [x] Monthly cycles — cron + detail display
+  - `src/lib/cycles.ts` (`cycleBounds`, `currentYearMonth`, `isCycleActive`, `daysRemainingInCycle`) + 13 unit tests
+  - `/api/cron/cycles` (GET+POST) bearer-auth with `CRON_SECRET`, service-role client, idempotent upsert on `(client_id, year, month)`
+  - `vercel.json` cron: `0 3 1 * *` (03:00 UTC on day 1 every month)
+  - client detail Details card gets a Current cycle row with days-left plural ICU
+  - verified by curl: 401 unauth, 401 bad secret, 200 creates 22 rows, second call createdOrKept=0
 - [ ] **Tasks CRUD** — criar/editar/excluir, fields: title, description, status, priority, due_at, assignee, client, cycle
 - [ ] **Kanban board** — `/projects` com 4 colunas (todo/in_progress/review/done), drag-n-drop otimista, filtros por cliente/assignee
 - [ ] **Task templates** (opcional) — template "Ciclo mensal padrão" clona N tarefas ao criar novo ciclo

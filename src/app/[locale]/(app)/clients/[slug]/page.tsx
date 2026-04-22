@@ -6,6 +6,11 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/Card";
 import { createClient } from "@/lib/supabase/server";
 import { isOwner } from "@/lib/auth";
 import { formatCentsAsBrl, sumCents } from "@/lib/money";
+import {
+  currentYearMonth,
+  cycleBounds,
+  daysRemainingInCycle,
+} from "@/lib/cycles";
 import type { BrandColor, Database } from "@/types/database";
 import { ArchiveButton } from "./ArchiveButton";
 import {
@@ -122,6 +127,24 @@ export default async function ClientDetailPage({
     .order("name", { ascending: true });
   const catalog: CatalogService[] = (catalogData ?? []) as CatalogService[];
 
+  // Current cycle (created by the monthly cron; fall back to computed bounds
+  // if the cron hasn't run yet for this month)
+  const { year: cycleYear, month: cycleMonth } = currentYearMonth();
+  const fallback = cycleBounds(cycleYear, cycleMonth);
+  const { data: cycleRow } = await supabase
+    .from("cycles")
+    .select("year, month, starts_on, ends_on")
+    .eq("client_id", client.id)
+    .eq("year", cycleYear)
+    .eq("month", cycleMonth)
+    .maybeSingle();
+  const currentCycle = {
+    year: cycleRow?.year ?? cycleYear,
+    month: cycleRow?.month ?? cycleMonth,
+    endsOn: cycleRow?.ends_on ?? fallback.endsOn,
+  };
+  const daysLeft = daysRemainingInCycle({ endsOn: currentCycle.endsOn });
+
   return (
     <div className="mx-auto max-w-5xl">
       <div className="mb-8">
@@ -195,6 +218,18 @@ export default async function ClientDetailPage({
                 {new Intl.DateTimeFormat(locale, {
                   dateStyle: "medium",
                 }).format(new Date(client.created_at))}
+              </span>
+            </DetailRow>
+            <DetailRow label={t("fields.currentCycle")}>
+              <span>
+                {new Intl.DateTimeFormat(locale, {
+                  month: "long",
+                  year: "numeric",
+                }).format(new Date(`${currentCycle.year}-${String(currentCycle.month).padStart(2, "0")}-01`))}
+                <span className="text-muted-foreground">
+                  {" "}
+                  · {t("cycleDaysLeft", { count: daysLeft })}
+                </span>
               </span>
             </DetailRow>
           </CardContent>
