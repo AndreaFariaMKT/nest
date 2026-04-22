@@ -227,6 +227,13 @@
       "moveUp": "Mover pra cima",
       "moveDown": "Mover pra baixo"
     },
+    "creatives": {
+      "title": "Criativos",
+      "render": "Renderizar todos",
+      "empty": "Nenhum slide ainda.",
+      "notRendered": "não renderizado",
+      "hint": "Renderização usa Chromium local em 1080×1350. Renderizador serverless de produção entra no Sprint 11-12."
+    },
     "draftStatus": {
       "draft": "Rascunho",
       "text_review": "Revisão de texto",

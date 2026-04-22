@@ -227,6 +227,13 @@
       "moveUp": "Move up",
       "moveDown": "Move down"
     },
+    "creatives": {
+      "title": "Creatives",
+      "render": "Render all",
+      "empty": "No slides yet.",
+      "notRendered": "not rendered",
+      "hint": "Rendering uses local Chromium at 1080×1350. Production serverless renderer lands in Sprint 11-12."
+    },
     "draftStatus": {
       "draft": "Draft",
       "text_review": "Text review",

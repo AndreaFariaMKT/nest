@@ -154,6 +154,32 @@ export interface Database {
         };
         Update: Partial<Database["public"]["Tables"]["slides"]["Insert"]>;
       };
+      creatives: {
+        Row: {
+          id: string;
+          slide_id: string | null;
+          draft_id: string | null;
+          version: number;
+          image_url: string;
+          width: number | null;
+          height: number | null;
+          render_html: string | null;
+          render_css: string | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          slide_id?: string | null;
+          draft_id?: string | null;
+          version?: number;
+          image_url: string;
+          width?: number | null;
+          height?: number | null;
+          render_html?: string | null;
+          render_css?: string | null;
+        };
+        Update: Partial<Database["public"]["Tables"]["creatives"]["Insert"]>;
+      };
       transcripts: {
         Row: {
           id: string;

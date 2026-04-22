@@ -293,6 +293,124 @@ function parseHashtags(raw: string): string[] {
     .map((t) => (t.startsWith("#") ? t : `#${t}`));
 }
 
+// ───────────────────────────────────────────────────────────────────────────
+// Render creatives for all slides of a draft
+// ───────────────────────────────────────────────────────────────────────────
+
+export async function renderCreativesAction(
+  formData: FormData,
+): Promise<void> {
+  const draftId = (formData.get("draftId") ?? "").toString();
+  const locale = (formData.get("locale") ?? "pt-BR").toString();
+  if (!draftId) return;
+
+  // Lazy imports keep the slide-render bundle out of cold starts for every
+  // content-engine server action.
+  const [{ buildSlideHtml, buildSlidePath, renderSlideToPng }] = await Promise.all([
+    import("@/lib/slide-render"),
+  ]);
+
+  const supabase = await createSupabaseClient();
+
+  type JoinedDraft = {
+    id: string;
+    client_id: string;
+    transcript_id: string | null;
+    slides: Array<{
+      id: string;
+      position: number;
+      headline: string | null;
+      body: string | null;
+    }>;
+    client:
+      | { name: string; brand_kits: Array<{ palette: unknown; typography: unknown }> | null }
+      | Array<{
+          name: string;
+          brand_kits: Array<{ palette: unknown; typography: unknown }> | null;
+        }>
+      | null;
+  };
+
+  const { data } = await supabase
+    .from("content_drafts")
+    .select(
+      `id, client_id, transcript_id,
+       slides(id, position, headline, body),
+       client:clients(name, brand_kits(palette, typography))`,
+    )
+    .eq("id", draftId)
+    .maybeSingle();
+  if (!data) return;
+  const draft = data as unknown as JoinedDraft;
+  const client = pickOne(draft.client);
+  if (!client) return;
+
+  const brandKit = client.brand_kits?.[0] ?? null;
+  const brand = {
+    name: client.name,
+    palette: (brandKit?.palette as BrandColor[]) ?? [],
+    typography: (brandKit?.typography as BrandTypography) ?? null,
+  };
+
+  const slides = [...(draft.slides ?? [])].sort(
+    (a, b) => a.position - b.position,
+  );
+
+  for (const slide of slides) {
+    // Current highest version for this slide → +1
+    const { data: versions } = await supabase
+      .from("creatives")
+      .select("version")
+      .eq("slide_id", slide.id)
+      .order("version", { ascending: false })
+      .limit(1);
+    const nextVersion = ((versions?.[0]?.version as number | undefined) ?? 0) + 1;
+
+    const html = buildSlideHtml(
+      { headline: slide.headline, body: slide.body, position: slide.position },
+      brand,
+    );
+    let png: Buffer;
+    try {
+      png = await renderSlideToPng(html);
+    } catch (err) {
+      console.error("[render-creatives] render failed for slide", slide.id, err);
+      continue;
+    }
+
+    const path = buildSlidePath(draft.id, slide.id, nextVersion);
+    const { error: uploadError } = await supabase.storage
+      .from("creatives")
+      .upload(path, png, { contentType: "image/png", upsert: true });
+    if (uploadError) {
+      console.error("[render-creatives] upload failed", path, uploadError);
+      continue;
+    }
+
+    const { data: urlData } = supabase.storage
+      .from("creatives")
+      .getPublicUrl(path);
+
+    await supabase.from("creatives").insert({
+      slide_id: slide.id,
+      draft_id: draft.id,
+      version: nextVersion,
+      image_url: urlData.publicUrl,
+      width: 1080,
+      height: 1350,
+      render_html: html,
+    });
+  }
+
+  revalidatePath(`/${locale}/content-engine`);
+  revalidatePath(`/${locale}/content-engine/drafts/${draft.id}/edit`);
+  if (draft.transcript_id) {
+    revalidatePath(
+      `/${locale}/content-engine/transcripts/${draft.transcript_id}`,
+    );
+  }
+}
+
 export async function updateDraftAction(
   _prev: DraftEditState,
   formData: FormData,
