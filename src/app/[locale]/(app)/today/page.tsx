@@ -1,8 +1,34 @@
 import { setRequestLocale, getTranslations } from "next-intl/server";
+import { Link } from "@/i18n/routing";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/Card";
+import { Pill } from "@/components/ui/Pill";
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentProfile, isOwner } from "@/lib/auth";
 import { formatCentsAsBrl, sumCents } from "@/lib/money";
+import type { TaskPriority, TaskStatus } from "@/types/database";
+
+type TodayTask = {
+  id: string;
+  title: string;
+  priority: TaskPriority;
+  status: TaskStatus;
+  due_at: string | null;
+};
+
+const priorityTone = {
+  low: "muted",
+  medium: "default",
+  high: "warning",
+  urgent: "danger",
+} as const;
+
+function tomorrowUtcMidnight(): string {
+  const now = new Date();
+  const t = new Date(
+    Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() + 1, 0, 0, 0),
+  );
+  return t.toISOString();
+}
 
 export default async function TodayPage({
   params,
@@ -22,13 +48,13 @@ export default async function TodayPage({
     month: "long",
   }).format(new Date());
 
+  const supabase = await createClient();
+
   const ownerView = await isOwner();
   let activeClients = 0;
   let activeServices = 0;
   let mrrCents = 0;
   if (ownerView) {
-    const supabase = await createClient();
-
     const { count } = await supabase
       .from("clients")
       .select("id", { count: "exact", head: true })
@@ -47,9 +73,22 @@ export default async function TodayPage({
       .select("monthly_value_cents, starts_on, ends_on")
       .lte("starts_on", today)
       .or(`ends_on.is.null,ends_on.gte.${today}`);
-    mrrCents = sumCents(
-      (contracts ?? []).map((c) => c.monthly_value_cents),
-    );
+    mrrCents = sumCents((contracts ?? []).map((c) => c.monthly_value_cents));
+  }
+
+  // My tasks due today or earlier, still open.
+  let tasks: TodayTask[] = [];
+  if (profile) {
+    const { data } = await supabase
+      .from("tasks")
+      .select("id, title, priority, status, due_at")
+      .eq("assignee_id", profile.id)
+      .eq("is_template", false)
+      .neq("status", "done")
+      .or(`due_at.is.null,due_at.lte.${tomorrowUtcMidnight()}`)
+      .order("due_at", { ascending: true, nullsFirst: false })
+      .limit(10);
+    tasks = (data ?? []) as TodayTask[];
   }
 
   return (
@@ -77,10 +116,48 @@ export default async function TodayPage({
       ) : null}
 
       <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
-        <SkeletonCard
-          title={t("blocks.tasks.title")}
-          hint={t("blocks.tasks.hint")}
-        />
+        <Card data-testid="today-block">
+          <CardHeader>
+            <CardTitle className="text-base">{t("blocks.tasks.title")}</CardTitle>
+          </CardHeader>
+          <CardContent className="text-sm">
+            {tasks.length === 0 ? (
+              <p className="text-muted-foreground">
+                {t("blocks.tasks.empty")}
+              </p>
+            ) : (
+              <ul className="space-y-1.5">
+                {tasks.map((task) => (
+                  <li key={task.id} data-testid="today-task">
+                    <Link
+                      href={`/projects/${task.id}/edit`}
+                      className="group flex items-start justify-between gap-2 rounded-md px-2 py-1.5 hover:bg-muted"
+                    >
+                      <div className="min-w-0 flex-1">
+                        <span className="block truncate">{task.title}</span>
+                        {task.due_at ? (
+                          <span className="text-xs text-muted-foreground">
+                            {new Intl.DateTimeFormat(locale, {
+                              dateStyle: "short",
+                              timeStyle: "short",
+                            }).format(new Date(task.due_at))}
+                          </span>
+                        ) : null}
+                      </div>
+                      <Pill
+                        tone={priorityTone[task.priority]}
+                        className="shrink-0 text-[10px]"
+                      >
+                        {t(`blocks.tasks.priority.${task.priority}`)}
+                      </Pill>
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </CardContent>
+        </Card>
+
         <SkeletonCard
           title={t("blocks.meetings.title")}
           hint={t("blocks.meetings.hint")}

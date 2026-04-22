@@ -39,7 +39,14 @@
     "blocks": {
       "tasks": {
         "title": "Minhas tarefas hoje",
-        "hint": "Entra no Sprint 3 — tarefas atribuídas a você com vencimento pra hoje ou antes."
+        "hint": "Tarefas atribuídas a você com vencimento pra hoje ou antes.",
+        "empty": "Nada no seu prato agora.",
+        "priority": {
+          "low": "Baixa",
+          "medium": "Méd",
+          "high": "Alta",
+          "urgent": "Urg"
+        }
       },
       "meetings": {
         "title": "Reuniões da semana",

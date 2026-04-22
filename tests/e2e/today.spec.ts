@@ -1,6 +1,6 @@
 import { expect, test } from "@playwright/test";
 
-test("today page renders greeting + 3 placeholder blocks + owner stats", async ({
+test("today page renders greeting + 3 blocks + owner stats + real tasks", async ({
   page,
 }) => {
   await page.goto("/");
@@ -14,9 +14,21 @@ test("today page renders greeting + 3 placeholder blocks + owner stats", async (
   // Heading greets the dev user (full_name = "Dev Owner" → "Dev")
   await expect(page.getByRole("heading", { level: 1 })).toContainText(/Dev|Hi|Oi/i);
 
-  // Three placeholder blocks are always there
+  // Three blocks remain (Tasks, Meetings, Approvals)
   await expect(page.getByTestId("today-block")).toHaveCount(3);
 
   // Owner sees the three stat cards
   await expect(page.getByTestId("today-stat")).toHaveCount(3);
+
+  // At least one real task row (seed from the cycles/tasks slices) — OR the
+  // empty state — is rendered. Either is acceptable.
+  const rows = page.getByTestId("today-task");
+  const emptyCopy = page.getByText(
+    /nothing on your plate|nada no seu prato/i,
+  );
+  if ((await rows.count()) === 0) {
+    await expect(emptyCopy).toBeVisible();
+  } else {
+    await expect(rows.first()).toBeVisible();
+  }
 });

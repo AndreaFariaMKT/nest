@@ -39,7 +39,14 @@
     "blocks": {
       "tasks": {
         "title": "My tasks today",
-        "hint": "Wires up in Sprint 3 — tasks assigned to you with a due date of today or earlier."
+        "hint": "Tasks assigned to you with a due date of today or earlier.",
+        "empty": "Nothing on your plate right now.",
+        "priority": {
+          "low": "Low",
+          "medium": "Med",
+          "high": "High",
+          "urgent": "Urg"
+        }
       },
       "meetings": {
         "title": "Meetings this week",

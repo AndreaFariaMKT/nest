@@ -77,7 +77,7 @@ Goal: Andréa cadastra clientes, brand kits e contratos.
 
 ---
 
-### Sprint 3–4 · Projects, Tasks, Team
+### Sprint 3–4 · Projects, Tasks, Team · **done** (2026-04-22)
 
 Goal: operação diária migra do Notion pro Nest.
 
@@ -106,7 +106,7 @@ Goal: operação diária migra do Notion pro Nest.
   - `NotificationsBell` dropdown with per-item link, unread dot, "mark all read" action
   - `tasks/createTaskAction` + `updateTaskAction` emit `task.assigned` notifications when assignee ≠ created_by ≠ existing
   - mention + approval triggers deferred to later sprints (schema supports arbitrary `type` string)
-- [ ] **Today page · parte 1** — pull real de tarefas com `due_at <= tomorrow AND assignee = me`
+- [x] Today page · parte 1 — real task mini-list on /today (assignee = me, not done, due ≤ tomorrow) linking to edit; meetings/approvals still placeholders for Sprints 9 and 7
 
 **Entrega:** Factory substitui o Notion pra tracking operacional.
 
@@ -284,11 +284,11 @@ Atualizar a cada commit relevante. Baseline: Sprint 1–2 parcial.
 
 | Métrica | Valor atual | Meta v1 |
 |---|---|---|
-| Sprints concluídas | 1 / 6 | 6 |
-| Tabelas usadas (de 24) | 8 (profiles, clients, brand_kits, brand_assets, contracts, services, client_services, + storage bucket) | 24 |
+| Sprints concluídas | 2 / 6 | 6 |
+| Tabelas usadas (de 24) | 13 (profiles, clients, brand_kits, brand_assets, contracts, services, client_services, client_members, cycles, tasks, notifications + Storage bucket + vercel cron) | 24 |
 | Endpoints da API externa integrados | 0 | 5+ (Meta IG, Claude, Google Calendar, LinkedIn, TikTok) |
 | Cobertura i18n | 100% (duas locales pareadas) | 100% |
-| Testes automatizados | 35 unit + 6 E2E | ≥ 30 unit + 10 E2E |
+| Testes automatizados | 48 unit + 11 E2E | ≥ 30 unit + 10 E2E |
 | Tempo pra publicar 1 post (onboarding → IG) | N/A | < 15 min |
 
 ---
