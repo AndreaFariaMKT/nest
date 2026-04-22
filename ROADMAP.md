@@ -98,7 +98,7 @@ Goal: operação diária migra do Notion pro Nest.
   - TaskForm "Template" checkbox; kanban filters `is_template = false` by default, `?templates=1` to manage them
   - `/api/cron/cycles` now returns newly-inserted `(id, client_id)` rows, then inserts cloned tasks (matching global or per-client templates) with `cycle_id = new cycle, is_template = false, status = todo`
   - curl verified: fresh cycle for Nayara cloned the "3 carrosséis mensais" template (`clonedTasks: 1`)
-- [ ] **Team invite flow** — owner envia convite por email (Supabase Auth invite), novo usuário aceita → vira `role = staff`
+- [x] Team invite flow — /team lists members + owner-only invite form posting to `supabase.auth.admin.inviteUserByEmail`; new users land with `role=staff` via the existing `handle_new_user` trigger (Mailpit captures emails in local dev)
 - [ ] **Client assignments** (`client_members`) — owner atribui staff a clientes via UI no detalhe do cliente
 - [ ] **Notifications** — tabela + bell icon no TopBar + markup inline, dispara em: task atribuída, menção, aprovação pendente
 - [ ] **Today page · parte 1** — pull real de tarefas com `due_at <= tomorrow AND assignee = me`

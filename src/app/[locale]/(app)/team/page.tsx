@@ -1,6 +1,18 @@
 import { setRequestLocale, getTranslations } from "next-intl/server";
-import { PageHeader } from "@/components/ui/PageHeader";
-import { Placeholder } from "@/components/ui/Placeholder";
+import { notFound } from "next/navigation";
+import { Pill } from "@/components/ui/Pill";
+import { createClient } from "@/lib/supabase/server";
+import { isOwner } from "@/lib/auth";
+import type { Database, UserRole } from "@/types/database";
+import { InviteForm } from "./_components/InviteForm";
+
+type Profile = Database["public"]["Tables"]["profiles"]["Row"];
+
+const roleTone: Record<UserRole, "default" | "muted" | "warning"> = {
+  owner: "warning",
+  staff: "default",
+  client: "muted",
+};
 
 export default async function TeamPage({
   params,
@@ -9,13 +21,59 @@ export default async function TeamPage({
 }) {
   const { locale } = await params;
   setRequestLocale(locale);
+  // Owner-gate (RLS on profiles allows all authed reads, but only the owner
+  // needs to see this page — everyone else gets 404).
+  if (!(await isOwner())) notFound();
+
   const t = await getTranslations("team");
-  const tCommon = await getTranslations("common");
+
+  const supabase = await createClient();
+  const { data } = await supabase
+    .from("profiles")
+    .select("*")
+    .order("role", { ascending: true })
+    .order("full_name", { ascending: true });
+  const members = (data ?? []) as Profile[];
 
   return (
-    <>
-      <PageHeader title={t("title")} subtitle={t("subtitle")} />
-      <Placeholder>{tCommon("comingSoon")}</Placeholder>
-    </>
+    <div className="mx-auto max-w-3xl">
+      <div className="mb-8">
+        <h1 className="font-display text-4xl text-foreground">{t("title")}</h1>
+        <p className="mt-1 text-sm text-muted-foreground">{t("subtitle")}</p>
+      </div>
+
+      <section className="mb-10 rounded-lg border border-border bg-card p-5">
+        <h2 className="font-display text-xl">{t("inviteTitle")}</h2>
+        <p className="mb-4 text-sm text-muted-foreground">
+          {t("inviteSubtitle")}
+        </p>
+        <InviteForm locale={locale} />
+      </section>
+
+      <section>
+        <h2 className="mb-3 font-display text-xl">{t("membersTitle")}</h2>
+        <ul className="space-y-2">
+          {members.map((member) => (
+            <li
+              key={member.id}
+              className="flex items-center justify-between gap-3 rounded-md border border-border bg-card p-3 text-sm"
+              data-testid="team-member"
+            >
+              <div>
+                <div className="font-medium">
+                  {member.full_name ?? member.email}
+                </div>
+                <div className="text-xs text-muted-foreground">
+                  {member.email}
+                </div>
+              </div>
+              <Pill tone={roleTone[member.role]}>{t(`roles.${member.role}`)}</Pill>
+            </li>
+          ))}
+        </ul>
+      </section>
+    </div>
   );
 }
+
+export const dynamic = "force-dynamic";

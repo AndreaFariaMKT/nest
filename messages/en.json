@@ -277,7 +277,25 @@
   },
   "team": {
     "title": "Team",
-    "subtitle": "Members and permissions."
+    "subtitle": "Members and permissions.",
+    "inviteTitle": "Invite a teammate",
+    "inviteSubtitle": "They'll receive an email with a link to set their password.",
+    "invite": "Send invite",
+    "inviteSent": "Invite sent to {email}.",
+    "membersTitle": "Members",
+    "fields": {
+      "email": "Email",
+      "fullName": "Full name"
+    },
+    "roles": {
+      "owner": "Owner",
+      "staff": "Staff",
+      "client": "Client"
+    },
+    "errors": {
+      "invalid": "Enter a valid email address.",
+      "ownerOnly": "Only the owner can invite teammates."
+    }
   },
   "settings": {
     "title": "Settings",

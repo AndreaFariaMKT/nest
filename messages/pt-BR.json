@@ -277,7 +277,25 @@
   },
   "team": {
     "title": "Equipe",
-    "subtitle": "Membros e permissões."
+    "subtitle": "Membros e permissões.",
+    "inviteTitle": "Convidar integrante",
+    "inviteSubtitle": "A pessoa recebe um e-mail com um link pra definir a senha.",
+    "invite": "Enviar convite",
+    "inviteSent": "Convite enviado para {email}.",
+    "membersTitle": "Membros",
+    "fields": {
+      "email": "E-mail",
+      "fullName": "Nome completo"
+    },
+    "roles": {
+      "owner": "Owner",
+      "staff": "Equipe",
+      "client": "Cliente"
+    },
+    "errors": {
+      "invalid": "Informe um e-mail válido.",
+      "ownerOnly": "Apenas o owner pode convidar integrantes."
+    }
   },
   "settings": {
     "title": "Configurações",
