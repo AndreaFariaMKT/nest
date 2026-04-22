@@ -152,6 +152,10 @@
     "errors": {
       "tooShort": "Title must be at least 2 characters.",
       "invalid": "Enter a valid date/time."
+    },
+    "filters": {
+      "allClients": "All clients",
+      "allAssignees": "All assignees"
     }
   },
   "calendar": {

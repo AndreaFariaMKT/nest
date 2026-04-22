@@ -152,6 +152,10 @@
     "errors": {
       "tooShort": "O título precisa ter pelo menos 2 caracteres.",
       "invalid": "Informe uma data/hora válida."
+    },
+    "filters": {
+      "allClients": "Todos os clientes",
+      "allAssignees": "Todos responsáveis"
     }
   },
   "calendar": {

@@ -169,3 +169,35 @@ export async function deleteTaskAction(formData: FormData): Promise<void> {
   await supabase.from("tasks").delete().eq("id", id);
   revalidatePath(`/${locale}/projects`);
 }
+
+export async function updateTaskStatusAction(
+  formData: FormData,
+): Promise<void> {
+  const id = (formData.get("id") ?? "").toString();
+  const rawStatus = (formData.get("status") ?? "").toString();
+  const locale = (formData.get("locale") ?? "pt-BR").toString();
+  if (!id || !(TASK_STATUSES as string[]).includes(rawStatus)) return;
+  const status = rawStatus as TaskStatus;
+
+  const supabase = await createSupabaseClient();
+  const { data: existing } = await supabase
+    .from("tasks")
+    .select("status, completed_at")
+    .eq("id", id)
+    .maybeSingle();
+  if (!existing) return;
+
+  let completedAt = existing.completed_at;
+  if (status === "done" && existing.status !== "done") {
+    completedAt = new Date().toISOString();
+  } else if (status !== "done" && existing.status === "done") {
+    completedAt = null;
+  }
+
+  await supabase
+    .from("tasks")
+    .update({ status, completed_at: completedAt })
+    .eq("id", id);
+
+  revalidatePath(`/${locale}/projects`);
+}

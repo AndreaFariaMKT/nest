@@ -21,9 +21,12 @@ test("owner creates a task and it shows up in the list", async ({ page }) => {
   await expect(page).toHaveURL(/\/projects\/[0-9a-f-]+\/edit$/);
   await expect(page.locator("#title")).toHaveValue(taskTitle);
 
-  // Go back to list, row with the title is there
+  // Back on the kanban, the new task appears in the To-do column
   await page.goto("/en/projects");
   await expect(
-    page.getByTestId("task-row").filter({ hasText: taskTitle }),
+    page
+      .getByTestId("kanban-column-todo")
+      .getByTestId("kanban-task")
+      .filter({ hasText: taskTitle }),
   ).toBeVisible();
 });
