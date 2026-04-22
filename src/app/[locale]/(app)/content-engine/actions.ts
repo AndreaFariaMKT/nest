@@ -297,6 +297,48 @@ function parseHashtags(raw: string): string[] {
 // Render creatives for all slides of a draft
 // ───────────────────────────────────────────────────────────────────────────
 
+// ───────────────────────────────────────────────────────────────────────────
+// Approve a draft (status → "approved")
+// ───────────────────────────────────────────────────────────────────────────
+
+export async function approveDraftAction(formData: FormData): Promise<void> {
+  const draftId = (formData.get("draftId") ?? "").toString();
+  const locale = (formData.get("locale") ?? "pt-BR").toString();
+  if (!draftId) return;
+
+  const supabase = await createSupabaseClient();
+  const { data: existing } = await supabase
+    .from("content_drafts")
+    .select("transcript_id, status")
+    .eq("id", draftId)
+    .maybeSingle();
+  if (!existing) return;
+
+  // Idempotent — skip if already approved or past approval.
+  const terminal = ["approved", "scheduled", "published", "archived"];
+  if (!terminal.includes(existing.status)) {
+    await supabase
+      .from("content_drafts")
+      .update({ status: "approved" })
+      .eq("id", draftId);
+  }
+
+  revalidatePath(`/${locale}/content-engine`);
+  revalidatePath(`/${locale}/content-engine/drafts/${draftId}/edit`);
+  if (existing.transcript_id) {
+    revalidatePath(
+      `/${locale}/content-engine/transcripts/${existing.transcript_id}`,
+    );
+    redirect(
+      localePath(
+        locale,
+        `/content-engine/transcripts/${existing.transcript_id}`,
+      ),
+    );
+  }
+  redirect(localePath(locale, "/content-engine"));
+}
+
 export async function renderCreativesAction(
   formData: FormData,
 ): Promise<void> {

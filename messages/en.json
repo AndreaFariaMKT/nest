@@ -222,6 +222,7 @@
     "draftActions": {
       "editLink": "Edit",
       "save": "Save draft",
+      "approve": "Approve for scheduling",
       "addSlide": "Add slide",
       "removeSlide": "Remove slide",
       "moveUp": "Move up",

@@ -4,7 +4,10 @@ import { Link } from "@/i18n/routing";
 import { createClient } from "@/lib/supabase/server";
 import type { Database } from "@/types/database";
 import { DraftEditForm, type InitialSlide } from "./DraftEditForm";
-import { renderCreativesAction } from "../../../actions";
+import {
+  approveDraftAction,
+  renderCreativesAction,
+} from "../../../actions";
 
 type Draft = Database["public"]["Tables"]["content_drafts"]["Row"];
 type Slide = Database["public"]["Tables"]["slides"]["Row"];
@@ -53,25 +56,47 @@ export default async function DraftEditPage({
       imageUrl: latestBySlide.get(s.id)?.image_url ?? null,
     }));
 
+  const canApprove = [
+    "draft",
+    "text_review",
+    "creative_review",
+    "client_review",
+  ].includes(draft.status);
+
   return (
     <div className="mx-auto max-w-3xl">
-      <div className="mb-8">
-        <Link
-          href={
-            draft.transcript_id
-              ? `/content-engine/transcripts/${draft.transcript_id}`
-              : "/content-engine"
-          }
-          className="text-sm text-muted-foreground hover:text-foreground"
-        >
-          ← {t("transcriptTitle")}
-        </Link>
-        <h1 className="mt-2 font-display text-4xl text-foreground">
-          {t("draftEditTitle")}
-        </h1>
-        <p className="mt-1 text-sm text-muted-foreground">
-          {t("draftEditSubtitle")}
-        </p>
+      <div className="mb-8 flex items-start justify-between gap-4">
+        <div>
+          <Link
+            href={
+              draft.transcript_id
+                ? `/content-engine/transcripts/${draft.transcript_id}`
+                : "/content-engine"
+            }
+            className="text-sm text-muted-foreground hover:text-foreground"
+          >
+            ← {t("transcriptTitle")}
+          </Link>
+          <h1 className="mt-2 font-display text-4xl text-foreground">
+            {t("draftEditTitle")}
+          </h1>
+          <p className="mt-1 text-sm text-muted-foreground">
+            {t("draftEditSubtitle")}
+          </p>
+        </div>
+        {canApprove ? (
+          <form action={approveDraftAction}>
+            <input type="hidden" name="draftId" value={draft.id} />
+            <input type="hidden" name="locale" value={locale} />
+            <button
+              type="submit"
+              className="inline-flex h-10 items-center rounded-md bg-emerald-600 px-4 text-sm font-medium text-white hover:bg-emerald-700"
+              data-testid="approve-draft"
+            >
+              {t("draftActions.approve")}
+            </button>
+          </form>
+        ) : null}
       </div>
       <section className="mb-8 rounded-lg border border-border bg-card p-5">
         <div className="mb-3 flex items-baseline justify-between gap-4">

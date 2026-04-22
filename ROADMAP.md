@@ -126,7 +126,7 @@ Goal: primeiro post Factory publicado pelo Nest.
   - manual test: 7 drafts (pillars: Autoconhecimento, Conexão pessoal, etc.), 10 hashtags each, 7 slides each
 - [x] Text editor — `/content-engine/drafts/[id]/edit`: full draft editor (title, pillar, status, hook, caption, hashtags) + interactive slide list (add/remove + ↑↓ reorder); on save, `updateDraftAction` replaces all slides atomically
 - [x] Creative editor v1 — Playwright HTML→PNG at 1080×1350 into Supabase Storage (shipped in `c83cac4`; 7 slides rendered with brand styling + Portuguese text in manual verification)
-- [ ] **Approval workflow** — botão "Approve for scheduling" muda status pra `approved`
+- [x] Approval workflow — `approveDraftAction` + "Approve for scheduling" button on the draft editor header; gated by status (pre-approval states only); idempotent
 - [ ] **Instagram Graph API** — `src/lib/instagram.ts` com `createCarouselContainer` + `publish`, credenciais em env, endpoint `/api/instagram/publish`
 - [ ] **Scheduling** — `/content-engine/[id]/schedule` escolhe data/hora + plataformas; cria `scheduled_posts`
 - [ ] **Cron publisher** — `/api/cron/publish` (Vercel Cron, a cada 5 min) pega `scheduled_posts` com `scheduled_for <= now()` e `status = pending` → publica → grava `published_posts` + métrica inicial

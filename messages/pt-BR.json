@@ -222,6 +222,7 @@
     "draftActions": {
       "editLink": "Editar",
       "save": "Salvar draft",
+      "approve": "Aprovar pra agendamento",
       "addSlide": "Adicionar slide",
       "removeSlide": "Remover slide",
       "moveUp": "Mover pra cima",
