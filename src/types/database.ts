@@ -100,6 +100,26 @@ export interface Database {
           Database["public"]["Tables"]["client_services"]["Insert"]
         >;
       };
+      transcripts: {
+        Row: {
+          id: string;
+          meeting_id: string | null;
+          language: string;
+          content: string;
+          source: string | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          meeting_id?: string | null;
+          language?: string;
+          content: string;
+          source?: string | null;
+        };
+        Update: Partial<
+          Database["public"]["Tables"]["transcripts"]["Insert"]
+        >;
+      };
       contracts: {
         Row: {
           id: string;

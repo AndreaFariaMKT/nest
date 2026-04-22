@@ -187,7 +187,31 @@
   },
   "contentEngine": {
     "title": "Motor de Conteúdo",
-    "subtitle": "Transcrição → carrosséis → criativos → publicação."
+    "subtitle": "Transcrição → carrosséis → criativos → publicação.",
+    "new": "Nova transcrição",
+    "newTitle": "Nova transcrição",
+    "newSubtitle": "Cole o texto ou envie um arquivo .txt / .vtt. Linhas de tempo do WebVTT são removidas automaticamente.",
+    "createSubmit": "Criar transcrição",
+    "empty": "Nenhuma transcrição ainda. Faça o primeiro upload pra começar.",
+    "wordCount": "{count, plural, one {# palavra} other {# palavras}}",
+    "fields": {
+      "client": "Cliente",
+      "pickClient": "Escolha um cliente…",
+      "pasteTranscript": "Colar transcrição",
+      "orUpload": "…ou envie um arquivo",
+      "language": "Idioma"
+    },
+    "placeholders": {
+      "paste": "Cole a transcrição crua aqui. Linhas de tempo WEBVTT e tags de falante são tratadas automaticamente."
+    },
+    "assets": {
+      "hint": "Até 2 MB · .txt ou .vtt"
+    },
+    "errors": {
+      "required": "Campo obrigatório.",
+      "tooShort": "Transcrição muito curta — cole pelo menos algumas frases.",
+      "tooLarge": "Arquivo acima do limite de 2 MB."
+    }
   },
   "brandKits": {
     "title": "Brand Kits",

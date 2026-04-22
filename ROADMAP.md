@@ -117,7 +117,7 @@ Goal: operação diária migra do Notion pro Nest.
 Goal: primeiro post Factory publicado pelo Nest.
 
 - [x] Claude API wrapper — model router + cached-brand system helper + adaptive thinking + streaming via `.finalMessage()` (shipped in `aa56d73`)
-- [ ] **Transcript upload** — `/content-engine/new` aceita colar texto ou upload `.txt/.vtt`; extrai e cria `transcripts` row (meeting_id null se avulso)
+- [x] Transcript upload — `/content-engine/new` (paste or .txt/.vtt upload) · `src/lib/vtt.ts` strips WEBVTT headers + timing lines + `<v Name>` tags · creates an ad-hoc `meetings` row so `transcripts` can hang off it (real meetings come in Sprint 9) · list at `/content-engine` shows client + language + word count
 - [ ] **Generate carousels** — server action chama Claude com brand kit do cliente + últimos `content_drafts` (evita repetição), produz 3-8 `content_drafts` com `slides[]` sugeridos
 - [ ] **Text editor** — `/content-engine/[id]` mostra draft editável: título, pilar, hook, caption, hashtags, slides (posição + headline + body)
 - [ ] **Creative editor v1** — cada slide renderizado via template Playwright (server-side HTML→PNG), URL vai pro Supabase Storage (bucket `creatives`)

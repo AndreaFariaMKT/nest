@@ -187,7 +187,31 @@
   },
   "contentEngine": {
     "title": "Content Engine",
-    "subtitle": "Transcription → carousels → creatives → publish."
+    "subtitle": "Transcription → carousels → creatives → publish.",
+    "new": "New transcript",
+    "newTitle": "New transcript",
+    "newSubtitle": "Paste text or upload a .txt / .vtt file. The engine will clean up timing lines automatically.",
+    "createSubmit": "Create transcript",
+    "empty": "No transcripts yet. Upload one to get started.",
+    "wordCount": "{count, plural, one {# word} other {# words}}",
+    "fields": {
+      "client": "Client",
+      "pickClient": "Pick a client…",
+      "pasteTranscript": "Paste transcript",
+      "orUpload": "…or upload a file",
+      "language": "Language"
+    },
+    "placeholders": {
+      "paste": "Paste the raw transcript here. WEBVTT timing lines and speaker tags are handled automatically."
+    },
+    "assets": {
+      "hint": "Up to 2 MB · .txt or .vtt"
+    },
+    "errors": {
+      "required": "This field is required.",
+      "tooShort": "Transcript is too short — paste at least a couple of sentences.",
+      "tooLarge": "File is over the 2 MB limit."
+    }
   },
   "brandKits": {
     "title": "Brand Kits",
