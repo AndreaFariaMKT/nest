@@ -303,6 +303,11 @@
       "ownerOnly": "Apenas o owner pode convidar integrantes."
     }
   },
+  "notifications": {
+    "title": "Notificações",
+    "empty": "Tudo em dia.",
+    "markAllRead": "Marcar todas como lidas"
+  },
   "settings": {
     "title": "Configurações",
     "language": "Idioma",

@@ -5,6 +5,7 @@ import { redirect } from "next/navigation";
 import type { Route } from "next";
 import { createClient as createSupabaseClient } from "@/lib/supabase/server";
 import { currentYearMonth } from "@/lib/cycles";
+import { notifyUser } from "@/lib/notifications";
 import type { TaskPriority, TaskStatus } from "@/types/database";
 import { TASK_PRIORITIES, TASK_STATUSES } from "@/types/database";
 
@@ -114,6 +115,20 @@ export async function createTaskAction(
 
   if (error) return { error: error.message };
 
+  // Notify the assignee (skip for self-assign and templates).
+  if (
+    !form.isTemplate &&
+    form.assigneeId &&
+    form.assigneeId !== (user?.id ?? null)
+  ) {
+    await notifyUser({
+      userId: form.assigneeId,
+      type: "task.assigned",
+      title: `Nova tarefa: ${form.title}`,
+      link: `/projects/${data.id}/edit`,
+    });
+  }
+
   revalidatePath(`/${form.locale}/projects`);
   redirect(localePath(form.locale, `/projects/${data.id}/edit`));
 }
@@ -131,9 +146,12 @@ export async function updateTaskAction(
   }
 
   const supabase = await createSupabaseClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
   const { data: existing } = await supabase
     .from("tasks")
-    .select("status, completed_at, client_id")
+    .select("status, completed_at, client_id, assignee_id")
     .eq("id", id)
     .maybeSingle();
   if (!existing) return { error: "Task not found." };
@@ -166,6 +184,21 @@ export async function updateTaskAction(
 
   const { error } = await supabase.from("tasks").update(update).eq("id", id);
   if (error) return { error: error.message };
+
+  // Notify on assignee handoff (skip for self-assign and templates).
+  if (
+    !form.isTemplate &&
+    form.assigneeId &&
+    form.assigneeId !== existing.assignee_id &&
+    form.assigneeId !== (user?.id ?? null)
+  ) {
+    await notifyUser({
+      userId: form.assigneeId,
+      type: "task.assigned",
+      title: `Tarefa atribuída: ${form.title}`,
+      link: `/projects/${id}/edit`,
+    });
+  }
 
   revalidatePath(`/${form.locale}/projects`);
   revalidatePath(`/${form.locale}/projects/${id}/edit`);

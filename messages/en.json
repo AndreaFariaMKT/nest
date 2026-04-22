@@ -303,6 +303,11 @@
       "ownerOnly": "Only the owner can invite teammates."
     }
   },
+  "notifications": {
+    "title": "Notifications",
+    "empty": "You're all caught up.",
+    "markAllRead": "Mark all as read"
+  },
   "settings": {
     "title": "Settings",
     "language": "Language",

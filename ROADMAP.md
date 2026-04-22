@@ -100,7 +100,12 @@ Goal: operação diária migra do Notion pro Nest.
   - curl verified: fresh cycle for Nayara cloned the "3 carrosséis mensais" template (`clonedTasks: 1`)
 - [x] Team invite flow — /team lists members + owner-only invite form posting to `supabase.auth.admin.inviteUserByEmail`; new users land with `role=staff` via the existing `handle_new_user` trigger (Mailpit captures emails in local dev)
 - [x] Client assignments — `ClientMembersCard` on client detail (owner-only): attach/detach staff via `client_members` rows; candidate list filtered to `role = staff`
-- [ ] **Notifications** — tabela + bell icon no TopBar + markup inline, dispara em: task atribuída, menção, aprovação pendente
+- [x] Notifications — TopBar bell + dropdown + task-assigned trigger
+  - `notifyUser()` helper via service-role client bypasses the own-only RLS on notifications
+  - TopBar is now a server component fetching last 10 + unread count for `auth.uid()`
+  - `NotificationsBell` dropdown with per-item link, unread dot, "mark all read" action
+  - `tasks/createTaskAction` + `updateTaskAction` emit `task.assigned` notifications when assignee ≠ created_by ≠ existing
+  - mention + approval triggers deferred to later sprints (schema supports arbitrary `type` string)
 - [ ] **Today page · parte 1** — pull real de tarefas com `due_at <= tomorrow AND assignee = me`
 
 **Entrega:** Factory substitui o Notion pra tracking operacional.

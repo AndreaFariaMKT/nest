@@ -27,7 +27,7 @@ export default async function AppLayout({
     <div className="flex min-h-screen">
       <Sidebar />
       <div className="flex flex-1 flex-col">
-        <TopBar />
+        <TopBar locale={locale} />
         <main className="flex-1 px-8 py-8">{children}</main>
       </div>
     </div>
