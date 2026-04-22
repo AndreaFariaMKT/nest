@@ -117,6 +117,12 @@ Goal: operação diária migra do Notion pro Nest.
 Goal: primeiro post Factory publicado pelo Nest.
 
 - [ ] **Claude API wrapper** — `src/lib/claude.ts` com prompt caching helper, retry + rate limit, model router (`sonnet-4-6` default, `opus-4-7` refine, `haiku-4-5` extração)
+  - `@anthropic-ai/sdk` dep + `src/lib/claude.ts` wrapper (model router + systemWithCachedBrand + generate)
+  - Adaptive thinking toggle (sonnet/opus only; haiku = false)
+  - Streaming gated via `stream: true` param (uses `.finalMessage()` helper per skill guidance)
+  - Typed error pass-through — caller catches `Anthropic.RateLimitError` etc.
+  - `/api/debug/claude` bearer-gated endpoint (CRON_SECRET) for smoke verification
+  - unit tests for pure helpers (`modelFor`, `systemWithCachedBrand`)
 - [ ] **Transcript upload** — `/content-engine/new` aceita colar texto ou upload `.txt/.vtt`; extrai e cria `transcripts` row (meeting_id null se avulso)
 - [ ] **Generate carousels** — server action chama Claude com brand kit do cliente + últimos `content_drafts` (evita repetição), produz 3-8 `content_drafts` com `slides[]` sugeridos
 - [ ] **Text editor** — `/content-engine/[id]` mostra draft editável: título, pilar, hook, caption, hashtags, slides (posição + headline + body)
