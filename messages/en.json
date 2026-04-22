@@ -29,7 +29,27 @@
   },
   "today": {
     "title": "Today",
-    "subtitle": "What needs your attention right now."
+    "greeting": "Hi, {name}",
+    "subtitle": "Here's where the studio stands right now.",
+    "stats": {
+      "activeClients": "Active clients",
+      "activeServices": "Active services",
+      "monthlyRevenue": "Monthly revenue"
+    },
+    "blocks": {
+      "tasks": {
+        "title": "My tasks today",
+        "hint": "Wires up in Sprint 3 — tasks assigned to you with a due date of today or earlier."
+      },
+      "meetings": {
+        "title": "Meetings this week",
+        "hint": "Wires up in Sprint 9 — Google Calendar sync + transcripts."
+      },
+      "approvals": {
+        "title": "Pending approvals",
+        "hint": "Wires up in Sprint 7 — public approval links waiting on client response."
+      }
+    }
   },
   "clients": {
     "title": "Clients",

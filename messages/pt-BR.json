@@ -29,7 +29,27 @@
   },
   "today": {
     "title": "Hoje",
-    "subtitle": "O que precisa da sua atenção agora."
+    "greeting": "Oi, {name}",
+    "subtitle": "Um panorama de onde o studio está agora.",
+    "stats": {
+      "activeClients": "Clientes ativos",
+      "activeServices": "Serviços ativos",
+      "monthlyRevenue": "Receita mensal"
+    },
+    "blocks": {
+      "tasks": {
+        "title": "Minhas tarefas hoje",
+        "hint": "Entra no Sprint 3 — tarefas atribuídas a você com vencimento pra hoje ou antes."
+      },
+      "meetings": {
+        "title": "Reuniões da semana",
+        "hint": "Entra no Sprint 9 — sincronização com Google Calendar + transcrições."
+      },
+      "approvals": {
+        "title": "Aprovações pendentes",
+        "hint": "Entra no Sprint 7 — links públicos de aprovação aguardando resposta do cliente."
+      }
+    }
   },
   "clients": {
     "title": "Clientes",

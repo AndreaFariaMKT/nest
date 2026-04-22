@@ -43,7 +43,7 @@ Brand assets upload · contracts · services catalog · projects/tasks · team �
 
 Each sprint is 2 weeks. Sub-bullets are slices (≈ 1 commit each, each shippable on its own). Checkbox discipline: the slice is done when it passes `tsc --noEmit`, renders without errors in Preview, persists correctly in the DB, and has translations for both locales.
 
-### Sprint 1–2 · Foundation + Clients · **in progress**
+### Sprint 1–2 · Foundation + Clients · **done** (2026-04-22)
 
 Goal: Andréa cadastra clientes, brand kits e contratos.
 
@@ -71,7 +71,7 @@ Goal: Andréa cadastra clientes, brand kits e contratos.
   - Sidebar gains a Services entry (ShieldCheck-style icon)
   - Playwright smoke: create service → new client → attach → row visible
 - [x] Global /brand-kits index — grid of all kits with 8-swatch preview + typography line, card links to each client's edit page
-- [ ] **Today page skeleton** — "Minhas tarefas hoje" + "Reuniões da semana" + "Aprovações pendentes" (todos placeholders até Sprint 3/5/7)
+- [x] Today page skeleton — greeting + date, owner stats (active clients · active services · MRR), and 3 placeholder blocks (tasks/meetings/approvals) with Sprint-of-origin hints
 
 **Entrega da sprint:** Factory usa o Nest pra gerenciar sua própria base de clientes + contratos + visuais.
 
@@ -266,11 +266,11 @@ Atualizar a cada commit relevante. Baseline: Sprint 1–2 parcial.
 
 | Métrica | Valor atual | Meta v1 |
 |---|---|---|
-| Sprints concluídas | 0 / 6 | 6 |
-| Tabelas usadas (de 24) | 3 (profiles, clients, brand_kits) | 24 |
+| Sprints concluídas | 1 / 6 | 6 |
+| Tabelas usadas (de 24) | 8 (profiles, clients, brand_kits, brand_assets, contracts, services, client_services, + storage bucket) | 24 |
 | Endpoints da API externa integrados | 0 | 5+ (Meta IG, Claude, Google Calendar, LinkedIn, TikTok) |
 | Cobertura i18n | 100% (duas locales pareadas) | 100% |
-| Testes automatizados | 0 | ≥ 30 unit + 10 E2E |
+| Testes automatizados | 35 unit + 6 E2E | ≥ 30 unit + 10 E2E |
 | Tempo pra publicar 1 post (onboarding → IG) | N/A | < 15 min |
 
 ---

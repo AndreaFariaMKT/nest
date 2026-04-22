@@ -21,5 +21,8 @@ test("dev owner can sign in and reach /today", async ({ page }) => {
     .click();
 
   await expect(page).toHaveURL(/\/today$/);
-  await expect(page.getByRole("heading", { level: 1, name: /hoje|today/i })).toBeVisible();
+  // Today page now greets the user by first name (see app/(app)/today).
+  await expect(
+    page.getByRole("heading", { level: 1, name: /hi|oi|today|hoje/i }),
+  ).toBeVisible();
 });
