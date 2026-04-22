@@ -69,6 +69,13 @@ export const ChartIcon = (p: IconProps) => (
   </svg>
 );
 
+export const ServicesIcon = (p: IconProps) => (
+  <svg {...base} {...p}>
+    <path d="M12 3l8 4v5c0 4.5-3.5 8-8 9-4.5-1-8-4.5-8-9V7z" />
+    <path d="M9 11l2 2 4-4" />
+  </svg>
+);
+
 export const TeamIcon = (p: IconProps) => (
   <svg {...base} {...p}>
     <circle cx="12" cy="8" r="3" />

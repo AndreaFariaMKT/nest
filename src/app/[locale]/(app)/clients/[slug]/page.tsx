@@ -8,6 +8,11 @@ import { isOwner } from "@/lib/auth";
 import { formatCentsAsBrl, sumCents } from "@/lib/money";
 import type { BrandColor, Database } from "@/types/database";
 import { ArchiveButton } from "./ArchiveButton";
+import {
+  ClientServicesCard,
+  type ActiveAssignment,
+  type CatalogService,
+} from "./_components/ClientServicesCard";
 
 type Client = Database["public"]["Tables"]["clients"]["Row"];
 type BrandKitPreview = Pick<
@@ -71,6 +76,51 @@ export default async function ClientDetailPage({
         .map((c) => c.monthly_value_cents),
     );
   }
+
+  const { data: csData } = await supabase
+    .from("client_services")
+    .select(
+      "service_id, started_on, ended_on, services(id, name, default_monthly_cents)",
+    )
+    .eq("client_id", client.id)
+    .is("ended_on", null);
+
+  type CsRow = {
+    service_id: string;
+    started_on: string;
+    services:
+      | {
+          id: string;
+          name: string;
+          default_monthly_cents: number | null;
+        }
+      | null
+      | Array<{
+          id: string;
+          name: string;
+          default_monthly_cents: number | null;
+        }>;
+  };
+  const activeServices: ActiveAssignment[] = (
+    (csData ?? []) as unknown as CsRow[]
+  )
+    .map((r) => {
+      const svc = Array.isArray(r.services) ? r.services[0] : r.services;
+      if (!svc) return null;
+      return {
+        serviceId: svc.id,
+        serviceName: svc.name,
+        defaultMonthlyCents: svc.default_monthly_cents,
+        startedOn: r.started_on,
+      };
+    })
+    .filter((x): x is ActiveAssignment => x !== null);
+
+  const { data: catalogData } = await supabase
+    .from("services")
+    .select("id, name")
+    .order("name", { ascending: true });
+  const catalog: CatalogService[] = (catalogData ?? []) as CatalogService[];
 
   return (
     <div className="mx-auto max-w-5xl">
@@ -218,6 +268,22 @@ export default async function ClientDetailPage({
             </CardContent>
           </Card>
         ) : null}
+
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base">{t("sections.services")}</CardTitle>
+          </CardHeader>
+          <CardContent className="text-sm">
+            <ClientServicesCard
+              locale={locale}
+              clientId={client.id}
+              clientSlug={client.slug}
+              active={activeServices}
+              catalog={catalog}
+              canWrite={ownerView}
+            />
+          </CardContent>
+        </Card>
 
         <Card>
           <CardHeader>

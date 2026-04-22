@@ -11,6 +11,41 @@ export type BrandTypography = { headings: string; body: string };
 export interface Database {
   public: {
     Tables: {
+      services: {
+        Row: {
+          id: string;
+          name: string;
+          slug: string;
+          description: string | null;
+          default_monthly_cents: number | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          name: string;
+          slug: string;
+          description?: string | null;
+          default_monthly_cents?: number | null;
+        };
+        Update: Partial<Database["public"]["Tables"]["services"]["Insert"]>;
+      };
+      client_services: {
+        Row: {
+          client_id: string;
+          service_id: string;
+          started_on: string;
+          ended_on: string | null;
+        };
+        Insert: {
+          client_id: string;
+          service_id: string;
+          started_on?: string;
+          ended_on?: string | null;
+        };
+        Update: Partial<
+          Database["public"]["Tables"]["client_services"]["Insert"]
+        >;
+      };
       contracts: {
         Row: {
           id: string;

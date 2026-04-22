@@ -64,7 +64,12 @@ Goal: Andréa cadastra clientes, brand kits e contratos.
   - `ContractForm` shared (title, BRL input, starts/ends, auto-renew, document, notes)
   - owner-only Contracts card on detail page with active MRR summary
   - playwright smoke: owner creates contract → list shows R$ 4.500,00 + title
-- [ ] **Services catalog** — `/services` com templates (Social Media Essential, Premium, Mentoria); client_services para atribuir a um cliente
+- [x] Services catalog — `/services` + per-client assignments
+  - `/services` list + `new` + `[id]/edit` (owner-only writes, all authenticated read)
+  - `ServiceForm` with name + default monthly BRL + description, auto-slug collision resolver
+  - Services card on client detail: active assignments (non-ended) + owner-only attach dropdown + detach-with-`ended_on`
+  - Sidebar gains a Services entry (ShieldCheck-style icon)
+  - Playwright smoke: create service → new client → attach → row visible
 - [ ] **Global /brand-kits index** — lista todos os kits ativos com preview, atalho pra edit
 - [ ] **Today page skeleton** — "Minhas tarefas hoje" + "Reuniões da semana" + "Aprovações pendentes" (todos placeholders até Sprint 3/5/7)
 

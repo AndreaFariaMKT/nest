@@ -6,6 +6,7 @@
     "today": "Today",
     "clients": "Clients",
     "projects": "Projects",
+    "services": "Services",
     "calendar": "Calendar",
     "meetings": "Meetings",
     "contentEngine": "Content Engine",
@@ -46,6 +47,12 @@
     "confirmArchive": "Confirm archive",
     "comingSoon": "Coming soon",
     "configureBrandKit": "Configure",
+    "actions": {
+      "attachService": "Attach",
+      "detachService": "Detach",
+      "pickService": "Pick a service…",
+      "catalogEmpty": "No services in the catalog yet."
+    },
     "sections": {
       "details": "Details",
       "notes": "Notes",
@@ -57,6 +64,9 @@
       "manageContracts": "Manage",
       "mrrLabel": "MRR {mrr}",
       "autoRenew": "auto-renew",
+      "services": "Services",
+      "servicesEmpty": "No services assigned.",
+      "readonly": "read-only",
       "tasks": "Tasks"
     },
     "fields": {
@@ -97,6 +107,25 @@
   "brandKits": {
     "title": "Brand Kits",
     "subtitle": "Visual identity per client."
+  },
+  "services": {
+    "title": "Services",
+    "subtitle": "Offer catalog — attach to clients from their detail page.",
+    "new": "New service",
+    "newTitle": "New service",
+    "editTitle": "Edit service",
+    "createSubmit": "Create service",
+    "saveSubmit": "Save service",
+    "empty": "No services yet. Create the first template.",
+    "fields": {
+      "name": "Name",
+      "description": "Description",
+      "defaultMonthly": "Default monthly (BRL)"
+    },
+    "errors": {
+      "tooShort": "Name must be at least 2 characters.",
+      "invalid": "Enter a valid BRL amount (e.g. 4500 or 4500,50)."
+    }
   },
   "contracts": {
     "title": "Contracts",

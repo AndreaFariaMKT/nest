@@ -10,6 +10,7 @@ import {
   MeetingsIcon,
   PaletteIcon,
   ProjectsIcon,
+  ServicesIcon,
   TeamIcon,
 } from "@/components/icons/NavIcons";
 
@@ -17,6 +18,7 @@ const items = [
   { href: "/today", icon: HomeIcon, key: "today" },
   { href: "/clients", icon: ClientsIcon, key: "clients" },
   { href: "/projects", icon: ProjectsIcon, key: "projects" },
+  { href: "/services", icon: ServicesIcon, key: "services" },
   { href: "/calendar", icon: CalendarIcon, key: "calendar" },
   { href: "/meetings", icon: MeetingsIcon, key: "meetings" },
   { href: "/content-engine", icon: ContentIcon, key: "contentEngine" },

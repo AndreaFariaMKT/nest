@@ -6,6 +6,7 @@
     "today": "Hoje",
     "clients": "Clientes",
     "projects": "Projetos",
+    "services": "Serviços",
     "calendar": "Calendário",
     "meetings": "Reuniões",
     "contentEngine": "Motor de Conteúdo",
@@ -46,6 +47,12 @@
     "confirmArchive": "Confirmar arquivamento",
     "comingSoon": "Em breve",
     "configureBrandKit": "Configurar",
+    "actions": {
+      "attachService": "Anexar",
+      "detachService": "Remover",
+      "pickService": "Escolha um serviço…",
+      "catalogEmpty": "Nenhum serviço no catálogo ainda."
+    },
     "sections": {
       "details": "Detalhes",
       "notes": "Notas",
@@ -57,6 +64,9 @@
       "manageContracts": "Gerenciar",
       "mrrLabel": "MRR {mrr}",
       "autoRenew": "renovação automática",
+      "services": "Serviços",
+      "servicesEmpty": "Nenhum serviço atribuído.",
+      "readonly": "somente leitura",
       "tasks": "Tarefas"
     },
     "fields": {
@@ -97,6 +107,25 @@
   "brandKits": {
     "title": "Brand Kits",
     "subtitle": "Identidade visual por cliente."
+  },
+  "services": {
+    "title": "Serviços",
+    "subtitle": "Catálogo de ofertas — anexe aos clientes a partir da página do cliente.",
+    "new": "Novo serviço",
+    "newTitle": "Novo serviço",
+    "editTitle": "Editar serviço",
+    "createSubmit": "Criar serviço",
+    "saveSubmit": "Salvar serviço",
+    "empty": "Nenhum serviço ainda. Crie o primeiro template.",
+    "fields": {
+      "name": "Nome",
+      "description": "Descrição",
+      "defaultMonthly": "Valor mensal padrão (BRL)"
+    },
+    "errors": {
+      "tooShort": "O nome precisa ter pelo menos 2 caracteres.",
+      "invalid": "Informe um valor válido (ex: 4500 ou 4500,50)."
+    }
   },
   "contracts": {
     "title": "Contratos",
