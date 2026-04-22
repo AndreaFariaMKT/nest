@@ -4,6 +4,27 @@
 
 export type ClientStatus = "prospect" | "active" | "paused" | "archived";
 export type UserRole = "owner" | "staff" | "client";
+export type TaskStatus =
+  | "todo"
+  | "in_progress"
+  | "blocked"
+  | "review"
+  | "done";
+export type TaskPriority = "low" | "medium" | "high" | "urgent";
+
+export const TASK_STATUSES: TaskStatus[] = [
+  "todo",
+  "in_progress",
+  "blocked",
+  "review",
+  "done",
+];
+export const TASK_PRIORITIES: TaskPriority[] = [
+  "low",
+  "medium",
+  "high",
+  "urgent",
+];
 
 export type BrandColor = { name: string; hex: string };
 export type BrandTypography = { headings: string; body: string };
@@ -11,6 +32,37 @@ export type BrandTypography = { headings: string; body: string };
 export interface Database {
   public: {
     Tables: {
+      tasks: {
+        Row: {
+          id: string;
+          client_id: string | null;
+          cycle_id: string | null;
+          assignee_id: string | null;
+          created_by: string | null;
+          title: string;
+          description: string | null;
+          status: TaskStatus;
+          priority: TaskPriority;
+          due_at: string | null;
+          completed_at: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          client_id?: string | null;
+          cycle_id?: string | null;
+          assignee_id?: string | null;
+          created_by?: string | null;
+          title: string;
+          description?: string | null;
+          status?: TaskStatus;
+          priority?: TaskPriority;
+          due_at?: string | null;
+          completed_at?: string | null;
+        };
+        Update: Partial<Database["public"]["Tables"]["tasks"]["Insert"]>;
+      };
       services: {
         Row: {
           id: string;

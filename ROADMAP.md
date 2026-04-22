@@ -87,7 +87,11 @@ Goal: operação diária migra do Notion pro Nest.
   - `vercel.json` cron: `0 3 1 * *` (03:00 UTC on day 1 every month)
   - client detail Details card gets a Current cycle row with days-left plural ICU
   - verified by curl: 401 unauth, 401 bad secret, 200 creates 22 rows, second call createdOrKept=0
-- [ ] **Tasks CRUD** — criar/editar/excluir, fields: title, description, status, priority, due_at, assignee, client, cycle
+- [x] Tasks CRUD
+  - `/projects` list (due + status/priority pills, clients/assignee inline) — kanban slice replaces this view next
+  - `/projects/new` + `/projects/[id]/edit` with shared `TaskForm` (status, priority, datetime-local, assignee + client dropdowns; cycle auto-resolved from client's current cycle)
+  - server actions: create, update, delete; `completed_at` auto-stamps on transition to `done` and clears on rollback
+  - tests: 48/48 unit + 7/7 smoke (incl. new tasks smoke)
 - [ ] **Kanban board** — `/projects` com 4 colunas (todo/in_progress/review/done), drag-n-drop otimista, filtros por cliente/assignee
 - [ ] **Task templates** (opcional) — template "Ciclo mensal padrão" clona N tarefas ao criar novo ciclo
 - [ ] **Team invite flow** — owner envia convite por email (Supabase Auth invite), novo usuário aceita → vira `role = staff`

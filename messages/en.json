@@ -114,6 +114,46 @@
     "title": "Projects",
     "subtitle": "Monthly cycles and ongoing work."
   },
+  "tasks": {
+    "title": "Projects",
+    "subtitle": "Tasks across cycles and clients.",
+    "new": "New task",
+    "newTitle": "New task",
+    "editTitle": "Edit task",
+    "createSubmit": "Create task",
+    "saveSubmit": "Save task",
+    "delete": "Delete",
+    "confirmDelete": "Confirm delete",
+    "empty": "No tasks yet. Create the first one.",
+    "fields": {
+      "title": "Title",
+      "description": "Description",
+      "status": "Status",
+      "priority": "Priority",
+      "dueAt": "Due at",
+      "assignee": "Assignee",
+      "unassigned": "Unassigned",
+      "client": "Client",
+      "internal": "Internal"
+    },
+    "status": {
+      "todo": "To do",
+      "in_progress": "In progress",
+      "blocked": "Blocked",
+      "review": "In review",
+      "done": "Done"
+    },
+    "priority": {
+      "low": "Low",
+      "medium": "Medium",
+      "high": "High",
+      "urgent": "Urgent"
+    },
+    "errors": {
+      "tooShort": "Title must be at least 2 characters.",
+      "invalid": "Enter a valid date/time."
+    }
+  },
   "calendar": {
     "title": "Calendar",
     "subtitle": "Synced with Google Calendar."

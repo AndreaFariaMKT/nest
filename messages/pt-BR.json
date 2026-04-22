@@ -114,6 +114,46 @@
     "title": "Projetos",
     "subtitle": "Ciclos mensais e trabalhos em andamento."
   },
+  "tasks": {
+    "title": "Projetos",
+    "subtitle": "Tarefas por ciclo e cliente.",
+    "new": "Nova tarefa",
+    "newTitle": "Nova tarefa",
+    "editTitle": "Editar tarefa",
+    "createSubmit": "Criar tarefa",
+    "saveSubmit": "Salvar tarefa",
+    "delete": "Excluir",
+    "confirmDelete": "Confirmar exclusão",
+    "empty": "Nenhuma tarefa ainda. Crie a primeira.",
+    "fields": {
+      "title": "Título",
+      "description": "Descrição",
+      "status": "Status",
+      "priority": "Prioridade",
+      "dueAt": "Prazo",
+      "assignee": "Responsável",
+      "unassigned": "Sem responsável",
+      "client": "Cliente",
+      "internal": "Interno"
+    },
+    "status": {
+      "todo": "A fazer",
+      "in_progress": "Em andamento",
+      "blocked": "Bloqueada",
+      "review": "Em revisão",
+      "done": "Concluída"
+    },
+    "priority": {
+      "low": "Baixa",
+      "medium": "Média",
+      "high": "Alta",
+      "urgent": "Urgente"
+    },
+    "errors": {
+      "tooShort": "O título precisa ter pelo menos 2 caracteres.",
+      "invalid": "Informe uma data/hora válida."
+    }
+  },
   "calendar": {
     "title": "Calendário",
     "subtitle": "Sincronizado com o Google Calendar."
