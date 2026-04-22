@@ -45,6 +45,7 @@ export interface Database {
           priority: TaskPriority;
           due_at: string | null;
           completed_at: string | null;
+          is_template: boolean;
           created_at: string;
           updated_at: string;
         };
@@ -60,6 +61,7 @@ export interface Database {
           priority?: TaskPriority;
           due_at?: string | null;
           completed_at?: string | null;
+          is_template?: boolean;
         };
         Update: Partial<Database["public"]["Tables"]["tasks"]["Insert"]>;
       };

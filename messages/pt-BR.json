@@ -125,6 +125,10 @@
     "delete": "Excluir",
     "confirmDelete": "Confirmar exclusão",
     "empty": "Nenhuma tarefa ainda. Crie a primeira.",
+    "templatesTitle": "Templates de tarefa",
+    "templatesSubtitle": "Blueprints de tarefa clonadas a cada novo ciclo mensal.",
+    "manageTemplates": "Templates",
+    "backToKanban": "Voltar ao kanban",
     "fields": {
       "title": "Título",
       "description": "Descrição",
@@ -134,7 +138,9 @@
       "assignee": "Responsável",
       "unassigned": "Sem responsável",
       "client": "Cliente",
-      "internal": "Interno"
+      "internal": "Interno",
+      "isTemplate": "Template",
+      "isTemplateHint": "(clonado em cada novo ciclo)"
     },
     "status": {
       "todo": "A fazer",

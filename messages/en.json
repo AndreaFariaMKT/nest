@@ -125,6 +125,10 @@
     "delete": "Delete",
     "confirmDelete": "Confirm delete",
     "empty": "No tasks yet. Create the first one.",
+    "templatesTitle": "Task templates",
+    "templatesSubtitle": "Blueprint tasks cloned into each new monthly cycle.",
+    "manageTemplates": "Templates",
+    "backToKanban": "Back to kanban",
     "fields": {
       "title": "Title",
       "description": "Description",
@@ -134,7 +138,9 @@
       "assignee": "Assignee",
       "unassigned": "Unassigned",
       "client": "Client",
-      "internal": "Internal"
+      "internal": "Internal",
+      "isTemplate": "Template",
+      "isTemplateHint": "(cloned into each new cycle)"
     },
     "status": {
       "todo": "To do",

@@ -56,15 +56,69 @@ async function handler(request: NextRequest) {
       onConflict: "client_id,year,month",
       ignoreDuplicates: true,
     })
-    .select("id");
+    .select("id, client_id");
 
   if (upsertError) {
     return NextResponse.json({ error: upsertError.message }, { status: 500 });
   }
 
+  // For each freshly-created cycle, clone matching templates into real tasks.
+  // Templates with client_id = null apply to every client.
+  const newCycles = (data ?? []) as { id: string; client_id: string }[];
+  let clonedTasks = 0;
+
+  if (newCycles.length > 0) {
+    const clientIds = Array.from(new Set(newCycles.map((c) => c.client_id)));
+
+    const { data: templatesData } = await supabase
+      .from("tasks")
+      .select(
+        "client_id, title, description, priority, assignee_id, due_at",
+      )
+      .eq("is_template", true)
+      .or(`client_id.is.null,client_id.in.(${clientIds.join(",")})`);
+
+    const templates = templatesData ?? [];
+
+    if (templates.length > 0) {
+      const clones: Record<string, unknown>[] = [];
+      for (const cycle of newCycles) {
+        for (const tpl of templates) {
+          if (tpl.client_id !== null && tpl.client_id !== cycle.client_id) {
+            continue;
+          }
+          clones.push({
+            client_id: cycle.client_id,
+            cycle_id: cycle.id,
+            title: tpl.title,
+            description: tpl.description,
+            status: "todo",
+            priority: tpl.priority,
+            assignee_id: tpl.assignee_id,
+            due_at: tpl.due_at,
+            is_template: false,
+          });
+        }
+      }
+      if (clones.length > 0) {
+        const { error: cloneError } = await supabase
+          .from("tasks")
+          .insert(clones);
+        if (cloneError) {
+          return NextResponse.json(
+            { error: cloneError.message },
+            { status: 500 },
+          );
+        }
+        clonedTasks = clones.length;
+      }
+    }
+  }
+
   return NextResponse.json({
-    createdOrKept: data?.length ?? 0,
+    createdOrKept: newCycles.length,
     total: rows.length,
+    clonedTasks,
     year,
     month,
   });

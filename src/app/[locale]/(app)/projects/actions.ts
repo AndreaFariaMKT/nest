@@ -38,6 +38,7 @@ function readForm(formData: FormData) {
   const clientId =
     (formData.get("client_id") ?? "").toString().trim() || null;
   const locale = (formData.get("locale") ?? "pt-BR").toString();
+  const isTemplate = formData.get("is_template") === "on";
 
   return {
     title,
@@ -49,6 +50,7 @@ function readForm(formData: FormData) {
     assigneeId,
     clientId,
     locale,
+    isTemplate,
   };
 }
 
@@ -83,7 +85,11 @@ export async function createTaskAction(
     data: { user },
   } = await supabase.auth.getUser();
 
-  const cycleId = await resolveCurrentCycle(supabase, form.clientId);
+  // Templates never get a cycle: they live outside the cycle system and
+  // the cycles cron clones them into real tasks when a new cycle is created.
+  const cycleId = form.isTemplate
+    ? null
+    : await resolveCurrentCycle(supabase, form.clientId);
 
   const { error, data } = await supabase
     .from("tasks")
@@ -96,8 +102,12 @@ export async function createTaskAction(
       assignee_id: form.assigneeId,
       client_id: form.clientId,
       cycle_id: cycleId,
+      is_template: form.isTemplate,
       created_by: user?.id ?? null,
-      completed_at: form.status === "done" ? new Date().toISOString() : null,
+      completed_at:
+        !form.isTemplate && form.status === "done"
+          ? new Date().toISOString()
+          : null,
     })
     .select("id")
     .single();
@@ -149,9 +159,10 @@ export async function updateTaskAction(
     due_at: form.dueAt,
     assignee_id: form.assigneeId,
     client_id: form.clientId,
-    completed_at: completedAt,
+    is_template: form.isTemplate,
+    completed_at: form.isTemplate ? null : completedAt,
   };
-  if (cycleId !== undefined) update.cycle_id = cycleId;
+  if (cycleId !== undefined) update.cycle_id = form.isTemplate ? null : cycleId;
 
   const { error } = await supabase.from("tasks").update(update).eq("id", id);
   if (error) return { error: error.message };

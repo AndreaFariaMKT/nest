@@ -171,6 +171,20 @@ export function TaskForm({
         </select>
       </div>
 
+      <label className="flex items-center gap-2 text-sm">
+        <input
+          type="checkbox"
+          name="is_template"
+          defaultChecked={initial?.is_template ?? false}
+          className="h-4 w-4"
+          data-testid="task-template-checkbox"
+        />
+        <span>{t("fields.isTemplate")}</span>
+        <span className="text-xs text-muted-foreground">
+          {t("fields.isTemplateHint")}
+        </span>
+      </label>
+
       {state.error ? (
         <p className="text-sm text-destructive">{state.error}</p>
       ) : null}

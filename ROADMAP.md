@@ -93,7 +93,11 @@ Goal: operação diária migra do Notion pro Nest.
   - server actions: create, update, delete; `completed_at` auto-stamps on transition to `done` and clears on rollback
   - tests: 48/48 unit + 7/7 smoke (incl. new tasks smoke)
 - [x] Kanban board — 5 columns with native HTML5 DnD + useOptimistic snap + URL-param filters (shipped in `aeef233`)
-- [ ] **Task templates** (opcional) — template "Ciclo mensal padrão" clona N tarefas ao criar novo ciclo
+- [x] Task templates — cron clone mechanism
+  - migration 004 (`tasks.is_template` bool + partial index)
+  - TaskForm "Template" checkbox; kanban filters `is_template = false` by default, `?templates=1` to manage them
+  - `/api/cron/cycles` now returns newly-inserted `(id, client_id)` rows, then inserts cloned tasks (matching global or per-client templates) with `cycle_id = new cycle, is_template = false, status = todo`
+  - curl verified: fresh cycle for Nayara cloned the "3 carrosséis mensais" template (`clonedTasks: 1`)
 - [ ] **Team invite flow** — owner envia convite por email (Supabase Auth invite), novo usuário aceita → vira `role = staff`
 - [ ] **Client assignments** (`client_members`) — owner atribui staff a clientes via UI no detalhe do cliente
 - [ ] **Notifications** — tabela + bell icon no TopBar + markup inline, dispara em: task atribuída, menção, aprovação pendente

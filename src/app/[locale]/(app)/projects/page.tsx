@@ -43,6 +43,10 @@ export default async function ProjectsPage({
   const currentAssignee = (
     Array.isArray(sp.assignee) ? sp.assignee[0] : sp.assignee
   ) ?? "";
+  const templatesParam = Array.isArray(sp.templates)
+    ? sp.templates[0]
+    : sp.templates;
+  const showingTemplates = templatesParam === "1";
 
   const supabase = await createClient();
 
@@ -51,6 +55,7 @@ export default async function ProjectsPage({
     .select(
       "*, client:clients(name), assignee:profiles!tasks_assignee_id_fkey(full_name, email)",
     )
+    .eq("is_template", showingTemplates)
     .order("due_at", { ascending: true, nullsFirst: false })
     .order("created_at", { ascending: false });
   if (currentClient) query = query.eq("client_id", currentClient);
@@ -94,9 +99,21 @@ export default async function ProjectsPage({
 
   return (
     <div className="mx-auto max-w-7xl">
-      <div className="mb-8">
-        <h1 className="font-display text-4xl text-foreground">{t("title")}</h1>
-        <p className="mt-1 text-sm text-muted-foreground">{t("subtitle")}</p>
+      <div className="mb-8 flex items-start justify-between gap-4">
+        <div>
+          <h1 className="font-display text-4xl text-foreground">
+            {showingTemplates ? t("templatesTitle") : t("title")}
+          </h1>
+          <p className="mt-1 text-sm text-muted-foreground">
+            {showingTemplates ? t("templatesSubtitle") : t("subtitle")}
+          </p>
+        </div>
+        <a
+          href={showingTemplates ? "/en/projects" : "/en/projects?templates=1"}
+          className="inline-flex h-10 items-center rounded-md border border-input bg-background px-3 text-sm text-muted-foreground hover:bg-muted"
+        >
+          {showingTemplates ? t("backToKanban") : t("manageTemplates")}
+        </a>
       </div>
       <KanbanBoard
         locale={locale}
