@@ -204,6 +204,39 @@
       "generate": "Generate",
       "viewDrafts": "View drafts"
     },
+    "draftEditTitle": "Edit draft",
+    "draftEditSubtitle": "Refine the text before rendering creatives.",
+    "draftFields": {
+      "title": "Title",
+      "pillar": "Content pillar",
+      "status": "Status",
+      "hook": "Hook",
+      "caption": "Caption",
+      "hashtags": "Hashtags",
+      "hashtagsHint": "Comma- or newline-separated. `#` is added if missing.",
+      "slides": "Slides",
+      "slideN": "Slide {n}",
+      "slideHeadline": "Slide headline",
+      "slideBody": "Slide body"
+    },
+    "draftActions": {
+      "editLink": "Edit",
+      "save": "Save draft",
+      "addSlide": "Add slide",
+      "removeSlide": "Remove slide",
+      "moveUp": "Move up",
+      "moveDown": "Move down"
+    },
+    "draftStatus": {
+      "draft": "Draft",
+      "text_review": "Text review",
+      "creative_review": "Creative review",
+      "client_review": "Client review",
+      "approved": "Approved",
+      "scheduled": "Scheduled",
+      "published": "Published",
+      "archived": "Archived"
+    },
     "fields": {
       "client": "Client",
       "pickClient": "Pick a client…",

@@ -247,3 +247,117 @@ function pickOne<T>(v: T | T[] | null): T | null {
   if (!v) return null;
   return Array.isArray(v) ? v[0] ?? null : v;
 }
+
+// ───────────────────────────────────────────────────────────────────────────
+// Edit a draft (fields + slides)
+// ───────────────────────────────────────────────────────────────────────────
+
+export type DraftEditState = {
+  error?: string;
+  fieldErrors?: Partial<Record<"title", string>>;
+};
+
+type SlideSnapshot = {
+  headline: string | null;
+  body: string | null;
+};
+
+function parseSlidesPayload(raw: string): SlideSnapshot[] {
+  try {
+    const parsed: unknown = JSON.parse(raw);
+    if (!Array.isArray(parsed)) return [];
+    return parsed
+      .map((s): SlideSnapshot | null => {
+        if (!s || typeof s !== "object") return null;
+        const row = s as Record<string, unknown>;
+        const headline =
+          typeof row.headline === "string" ? row.headline.trim() : "";
+        const body = typeof row.body === "string" ? row.body.trim() : "";
+        if (!headline && !body) return null;
+        return {
+          headline: headline || null,
+          body: body || null,
+        };
+      })
+      .filter((x): x is SlideSnapshot => x !== null);
+  } catch {
+    return [];
+  }
+}
+
+function parseHashtags(raw: string): string[] {
+  return raw
+    .split(/[,\n]/)
+    .map((t) => t.trim())
+    .filter((t) => t.length > 0)
+    .map((t) => (t.startsWith("#") ? t : `#${t}`));
+}
+
+export async function updateDraftAction(
+  _prev: DraftEditState,
+  formData: FormData,
+): Promise<DraftEditState> {
+  const draftId = (formData.get("draftId") ?? "").toString();
+  const locale = (formData.get("locale") ?? "pt-BR").toString();
+  if (!draftId) return { error: "Missing draft id." };
+
+  const title = (formData.get("title") ?? "").toString().trim();
+  if (title.length < 2) return { fieldErrors: { title: "tooShort" } };
+
+  const pillar = (formData.get("pillar") ?? "").toString().trim() || null;
+  const hook = (formData.get("hook") ?? "").toString().trim() || null;
+  const caption = (formData.get("caption") ?? "").toString().trim() || null;
+  const hashtags = parseHashtags((formData.get("hashtags") ?? "").toString());
+  const status = (formData.get("status") ?? "draft").toString();
+  const slides = parseSlidesPayload(
+    (formData.get("slides") ?? "[]").toString(),
+  );
+
+  const supabase = await createSupabaseClient();
+
+  const { data: draft } = await supabase
+    .from("content_drafts")
+    .select("id, transcript_id")
+    .eq("id", draftId)
+    .maybeSingle();
+  if (!draft) return { error: "Draft not found." };
+
+  const { error: updateError } = await supabase
+    .from("content_drafts")
+    .update({
+      title,
+      pillar,
+      hook,
+      caption,
+      hashtags,
+      status,
+    })
+    .eq("id", draftId);
+  if (updateError) return { error: updateError.message };
+
+  // Replace slides atomically: delete + insert.
+  // (Creatives reference slide_id ON DELETE CASCADE — safe; creatives aren't
+  // live yet. We'll refine this to sync-by-id once the creative editor lands.)
+  await supabase.from("slides").delete().eq("draft_id", draftId);
+  if (slides.length > 0) {
+    const inserts = slides.map((s, index) => ({
+      draft_id: draftId,
+      position: index + 1,
+      headline: s.headline,
+      body: s.body,
+    }));
+    const { error: insertError } = await supabase.from("slides").insert(inserts);
+    if (insertError) return { error: insertError.message };
+  }
+
+  revalidatePath(`/${locale}/content-engine`);
+  if (draft.transcript_id) {
+    revalidatePath(
+      `/${locale}/content-engine/transcripts/${draft.transcript_id}`,
+    );
+    redirect(
+      localePath(locale, `/content-engine/transcripts/${draft.transcript_id}`),
+    );
+  }
+  redirect(localePath(locale, "/content-engine"));
+}

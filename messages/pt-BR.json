@@ -204,6 +204,39 @@
       "generate": "Gerar",
       "viewDrafts": "Ver drafts"
     },
+    "draftEditTitle": "Editar draft",
+    "draftEditSubtitle": "Refine o texto antes de renderizar os criativos.",
+    "draftFields": {
+      "title": "Título",
+      "pillar": "Pilar",
+      "status": "Status",
+      "hook": "Gancho",
+      "caption": "Legenda",
+      "hashtags": "Hashtags",
+      "hashtagsHint": "Separadas por vírgula ou nova linha. `#` é adicionado se faltar.",
+      "slides": "Slides",
+      "slideN": "Slide {n}",
+      "slideHeadline": "Título do slide",
+      "slideBody": "Corpo do slide"
+    },
+    "draftActions": {
+      "editLink": "Editar",
+      "save": "Salvar draft",
+      "addSlide": "Adicionar slide",
+      "removeSlide": "Remover slide",
+      "moveUp": "Mover pra cima",
+      "moveDown": "Mover pra baixo"
+    },
+    "draftStatus": {
+      "draft": "Rascunho",
+      "text_review": "Revisão de texto",
+      "creative_review": "Revisão de criativo",
+      "client_review": "Revisão do cliente",
+      "approved": "Aprovado",
+      "scheduled": "Agendado",
+      "published": "Publicado",
+      "archived": "Arquivado"
+    },
     "fields": {
       "client": "Cliente",
       "pickClient": "Escolha um cliente…",

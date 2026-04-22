@@ -82,7 +82,16 @@ export default async function TranscriptDetailPage({
                         </p>
                       ) : null}
                     </div>
-                    <Pill tone="muted">{draft.status}</Pill>
+                    <div className="flex shrink-0 items-center gap-2">
+                      <Pill tone="muted">{draft.status}</Pill>
+                      <Link
+                        href={`/content-engine/drafts/${draft.id}/edit`}
+                        className="text-xs text-muted-foreground hover:text-foreground"
+                        data-testid="edit-draft"
+                      >
+                        {t("draftActions.editLink")}
+                      </Link>
+                    </div>
                   </header>
                   {draft.hook ? (
                     <p className="mb-3 text-sm italic">{draft.hook}</p>

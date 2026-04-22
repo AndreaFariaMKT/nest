@@ -124,7 +124,7 @@ Goal: primeiro post Factory publicado pelo Nest.
   - server action streams via `.finalMessage()` and bulk-inserts drafts + slides
   - "Generate" button on each transcript row triggers the action; redirects to `/content-engine/transcripts/[id]`
   - manual test: 7 drafts (pillars: Autoconhecimento, Conexão pessoal, etc.), 10 hashtags each, 7 slides each
-- [ ] **Text editor** — `/content-engine/[id]` mostra draft editável: título, pilar, hook, caption, hashtags, slides (posição + headline + body)
+- [x] Text editor — `/content-engine/drafts/[id]/edit`: full draft editor (title, pillar, status, hook, caption, hashtags) + interactive slide list (add/remove + ↑↓ reorder); on save, `updateDraftAction` replaces all slides atomically
 - [ ] **Creative editor v1** — cada slide renderizado via template Playwright (server-side HTML→PNG), URL vai pro Supabase Storage (bucket `creatives`)
 - [ ] **Approval workflow** — botão "Approve for scheduling" muda status pra `approved`
 - [ ] **Instagram Graph API** — `src/lib/instagram.ts` com `createCarouselContainer` + `publish`, credenciais em env, endpoint `/api/instagram/publish`
