@@ -1,0 +1,27 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(mkdir -p *)",
+      "Bash(lsof -ti:*)",
+      "Bash(pg_isready *)",
+      "Bash(curl -s http://localhost:*)",
+      "Bash(curl -sL http://localhost:*)",
+      "Bash(curl -sI http://localhost:*)",
+      "Bash(curl -s http://127.0.0.1:*)",
+      "Bash(curl -sL http://127.0.0.1:*)",
+      "Bash(psql \"postgresql://postgres:postgres@127.0.0.1:54322/postgres\" *)",
+      "mcp__Claude_Preview__preview_stop",
+      "mcp__Claude_Preview__preview_screenshot",
+      "mcp__Claude_Preview__preview_snapshot",
+      "mcp__Claude_Preview__preview_inspect",
+      "mcp__Claude_Preview__preview_fill",
+      "mcp__Claude_Preview__preview_click",
+      "mcp__Claude_Preview__preview_eval",
+      "mcp__Claude_Preview__preview_resize",
+      "mcp__Claude_Preview__preview_console_logs",
+      "mcp__Claude_Preview__preview_list",
+      "mcp__Claude_Preview__preview_network",
+      "mcp__Claude_Preview__preview_logs"
+    ]
+  }
+}
