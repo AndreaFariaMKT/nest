@@ -125,12 +125,7 @@ Goal: primeiro post Factory publicado pelo Nest.
   - "Generate" button on each transcript row triggers the action; redirects to `/content-engine/transcripts/[id]`
   - manual test: 7 drafts (pillars: Autoconhecimento, Conexão pessoal, etc.), 10 hashtags each, 7 slides each
 - [x] Text editor — `/content-engine/drafts/[id]/edit`: full draft editor (title, pillar, status, hook, caption, hashtags) + interactive slide list (add/remove + ↑↓ reorder); on save, `updateDraftAction` replaces all slides atomically
-- [ ] **Creative editor v1** — cada slide renderizado via template Playwright (server-side HTML→PNG), URL vai pro Supabase Storage (bucket `creatives`)
-  - migration 005: `creatives` bucket (public, 10 MB, image/png) with owner-only write RLS
-  - `src/lib/slide-render.ts` — pure `buildSlideHtml(slide, brand)` + runtime `renderSlideToPng(html)` via chromium
-  - `renderCreativesAction` iterates slides, uploads PNGs, inserts rows in `creatives`
-  - draft edit page gets "Render creatives" button + thumbnail strip per slide
-  - local-only v1 (production serverless renderer via sparticuz-chromium comes in Sprint 11-12)
+- [x] Creative editor v1 — Playwright HTML→PNG at 1080×1350 into Supabase Storage (shipped in `c83cac4`; 7 slides rendered with brand styling + Portuguese text in manual verification)
 - [ ] **Approval workflow** — botão "Approve for scheduling" muda status pra `approved`
 - [ ] **Instagram Graph API** — `src/lib/instagram.ts` com `createCarouselContainer` + `publish`, credenciais em env, endpoint `/api/instagram/publish`
 - [ ] **Scheduling** — `/content-engine/[id]/schedule` escolhe data/hora + plataformas; cria `scheduled_posts`
