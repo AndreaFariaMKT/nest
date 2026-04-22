@@ -9,6 +9,7 @@ import { Label } from "@/components/ui/Label";
 import { Textarea } from "@/components/ui/Textarea";
 import type { BrandColor, Database } from "@/types/database";
 import { upsertBrandKitAction, type BrandKitFormState } from "./actions";
+import { BrandAssets, type BrandAssetListItem } from "./BrandAssets";
 
 type BrandKit = Database["public"]["Tables"]["brand_kits"]["Row"];
 
@@ -20,12 +21,14 @@ export function BrandKitForm({
   clientSlug,
   defaultName,
   initial,
+  assets,
 }: {
   locale: string;
   clientId: string;
   clientSlug: string;
   defaultName: string;
   initial: BrandKit | null;
+  assets: BrandAssetListItem[];
 }) {
   const t = useTranslations("brandKit");
   const tCommon = useTranslations("common");
@@ -65,7 +68,17 @@ export function BrandKitForm({
   }
 
   return (
-    <form action={formAction} className="space-y-8">
+    <div className="space-y-10">
+      {/* Assets live outside the main form — uploads use their own server actions
+          so they don't interact with the React Hook state above. */}
+      <BrandAssets
+        locale={locale}
+        clientId={clientId}
+        clientSlug={clientSlug}
+        assets={assets}
+      />
+
+      <form action={formAction} className="space-y-8">
       <input type="hidden" name="locale" value={locale} />
       <input type="hidden" name="clientId" value={clientId} />
       <input type="hidden" name="clientSlug" value={clientSlug} />
@@ -255,6 +268,7 @@ export function BrandKitForm({
           {isPending ? tCommon("loading") : t("save")}
         </Button>
       </div>
-    </form>
+      </form>
+    </div>
   );
 }

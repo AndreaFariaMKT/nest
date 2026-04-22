@@ -51,7 +51,12 @@ Goal: Andréa cadastra clientes, brand kits e contratos.
 - [x] Clients CRUD (list, create, detail, edit, archive)
 - [x] Brand Kit Phase A (palette, typography, voice, do/don't, guidelines)
 - [x] Testing harness — Vitest (unit) + Playwright (smoke): configs, first tests (slugify + login happy path), `test` / `test:e2e` scripts, ignores. Prerequisite for autonomous mode per `docs/autonomous-protocol.md` §5
-- [ ] **Brand Kit Phase B · asset uploads** — bucket `brand-assets` (public), drag-n-drop logos/fotos/ilustrações, grid com remove, link direto na página do kit
+- [x] Brand Kit Phase B · asset uploads — bucket `brand-assets` (public), upload + grid + remove, thumbnails on detail
+  - migrations 002 + 003 (fix RLS bug where `split_part(name)` resolved to `brand_kits.name`)
+  - `src/lib/brand-assets.ts` + 15 unit tests (detect kind, validate file, build path)
+  - `uploadBrandAssetAction` (lazy-creates kit) + `deleteBrandAssetAction`
+  - `BrandAssets.tsx` — file input, aspect-square thumb grid, kind pill, remove-on-blur
+  - playwright smoke: login → new client → brand kit → upload tiny PNG → thumbnail
 - [ ] **Contracts** (owner-only) — CRUD simples: título, valor mensal (BRL), datas, auto-renew flag, link pro documento; aparece como card no detalhe do cliente só se `role = owner`
 - [ ] **Services catalog** — `/services` com templates (Social Media Essential, Premium, Mentoria); client_services para atribuir a um cliente
 - [ ] **Global /brand-kits index** — lista todos os kits ativos com preview, atalho pra edit

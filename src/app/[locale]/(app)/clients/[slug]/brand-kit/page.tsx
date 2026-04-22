@@ -4,9 +4,11 @@ import { Link } from "@/i18n/routing";
 import { createClient } from "@/lib/supabase/server";
 import type { Database } from "@/types/database";
 import { BrandKitForm } from "./BrandKitForm";
+import type { BrandAssetListItem } from "./BrandAssets";
 
 type Client = Database["public"]["Tables"]["clients"]["Row"];
 type BrandKit = Database["public"]["Tables"]["brand_kits"]["Row"];
+type BrandAssetRow = Database["public"]["Tables"]["brand_assets"]["Row"];
 
 export default async function ClientBrandKitPage({
   params,
@@ -35,6 +37,25 @@ export default async function ClientBrandKitPage({
 
   const kit = (kitData ?? null) as BrandKit | null;
 
+  let assets: BrandAssetListItem[] = [];
+  if (kit) {
+    const { data: rawAssets } = await supabase
+      .from("brand_assets")
+      .select("id, kind, label, storage_path, mime_type")
+      .eq("brand_kit_id", kit.id)
+      .order("created_at", { ascending: false });
+
+    assets = ((rawAssets ?? []) as Pick<
+      BrandAssetRow,
+      "id" | "kind" | "label" | "storage_path" | "mime_type"
+    >[]).map((asset) => ({
+      ...asset,
+      publicUrl: supabase.storage
+        .from("brand-assets")
+        .getPublicUrl(asset.storage_path).data.publicUrl,
+    }));
+  }
+
   return (
     <div className="mx-auto max-w-3xl">
       <div className="mb-8">
@@ -56,7 +77,10 @@ export default async function ClientBrandKitPage({
         clientSlug={client.slug}
         defaultName={kit?.name ?? client.name}
         initial={kit}
+        assets={assets}
       />
     </div>
   );
 }
+
+export const dynamic = "force-dynamic";

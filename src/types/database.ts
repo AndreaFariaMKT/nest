@@ -11,6 +11,34 @@ export type BrandTypography = { headings: string; body: string };
 export interface Database {
   public: {
     Tables: {
+      brand_assets: {
+        Row: {
+          id: string;
+          brand_kit_id: string;
+          kind: string;
+          label: string | null;
+          storage_path: string;
+          mime_type: string | null;
+          width: number | null;
+          height: number | null;
+          metadata: Record<string, unknown>;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          brand_kit_id: string;
+          kind: string;
+          label?: string | null;
+          storage_path: string;
+          mime_type?: string | null;
+          width?: number | null;
+          height?: number | null;
+          metadata?: Record<string, unknown>;
+        };
+        Update: Partial<
+          Database["public"]["Tables"]["brand_assets"]["Insert"]
+        >;
+      };
       brand_kits: {
         Row: {
           id: string;

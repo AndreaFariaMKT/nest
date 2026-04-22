@@ -100,9 +100,16 @@
     "save": "Salvar brand kit",
     "actions": {
       "addColor": "Adicionar cor",
-      "removeColor": "Remover"
+      "removeColor": "Remover",
+      "uploadAsset": "Enviar",
+      "removeAsset": "Remover asset"
+    },
+    "assets": {
+      "hint": "Até 5 MB por arquivo · PNG, JPEG, GIF, WebP, SVG"
     },
     "sections": {
+      "assets": "Assets",
+      "assetsEmpty": "Nenhum asset enviado ainda.",
       "palette": "Paleta",
       "paletteEmpty": "Nenhuma cor ainda — adicione a primeira.",
       "typography": "Tipografia"
