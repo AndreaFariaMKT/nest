@@ -260,6 +260,12 @@
         "block": "Block"
       }
     },
+    "adapt": {
+      "title": "Adapt for another platform",
+      "hint": "Generates a new draft with the tone tuned for each platform.",
+      "linkedin": "Adapt for LinkedIn",
+      "tiktok": "Adapt for TikTok"
+    },
     "approvalLink": {
       "title": "Client approval link",
       "generate": "Generate link",

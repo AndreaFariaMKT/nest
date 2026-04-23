@@ -22,6 +22,14 @@ import {
   type RewriteBrand,
 } from "@/lib/carousel-rewrite";
 import {
+  AdaptParseError,
+  buildAdaptSystem,
+  buildAdaptUser,
+  parseAdaptPayload,
+  type AdaptBrand,
+  type AdaptPlatform,
+} from "@/lib/carousel-adapt";
+import {
   buildDraftEmbedText,
   embedBatch,
   embedText,
@@ -659,6 +667,178 @@ export async function checkComplianceAction(formData: FormData): Promise<void> {
     );
   }
   redirect(localePath(locale, `/content-engine/drafts/${draftId}/edit`));
+}
+
+// ───────────────────────────────────────────────────────────────────────────
+// Adapt a draft for a different platform (LinkedIn / TikTok)
+// ───────────────────────────────────────────────────────────────────────────
+
+export async function adaptDraftAction(formData: FormData): Promise<void> {
+  const draftId = (formData.get("draftId") ?? "").toString();
+  const locale = (formData.get("locale") ?? "pt-BR").toString();
+  const platformRaw = (formData.get("platform") ?? "").toString();
+  if (!draftId) return;
+  if (platformRaw !== "linkedin" && platformRaw !== "tiktok") return;
+  const platform: AdaptPlatform = platformRaw;
+
+  const supabase = await createSupabaseClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  type JoinedDraft = {
+    id: string;
+    client_id: string;
+    transcript_id: string | null;
+    title: string;
+    pillar: string | null;
+    hook: string | null;
+    caption: string | null;
+    hashtags: string[];
+    slides: Array<{
+      position: number;
+      headline: string | null;
+      body: string | null;
+    }>;
+    transcript:
+      | { language: string }
+      | Array<{ language: string }>
+      | null;
+  };
+
+  const { data } = await supabase
+    .from("content_drafts")
+    .select(
+      `id, client_id, transcript_id, title, pillar, hook, caption, hashtags,
+       slides(position, headline, body),
+       transcript:transcripts(language)`,
+    )
+    .eq("id", draftId)
+    .maybeSingle();
+  if (!data) return;
+  const draft = data as unknown as JoinedDraft;
+
+  const language = pickOne(draft.transcript)?.language ?? "pt-BR";
+
+  const orderedSlides = [...(draft.slides ?? [])].sort(
+    (a, b) => a.position - b.position,
+  );
+  if (orderedSlides.length === 0) return;
+
+  const { data: kit } = await supabase
+    .from("brand_kits")
+    .select("name, palette, typography, voice_tone, do_list, dont_list")
+    .eq("client_id", draft.client_id)
+    .maybeSingle();
+  const { data: client } = await supabase
+    .from("clients")
+    .select("name")
+    .eq("id", draft.client_id)
+    .single();
+  const brand: AdaptBrand | null = client
+    ? {
+        name: kit?.name ?? client.name,
+        palette: (kit?.palette as BrandColor[]) ?? [],
+        typography: (kit?.typography as BrandTypography) ?? null,
+        voiceTone: kit?.voice_tone ?? null,
+        doList: kit?.do_list ?? [],
+        dontList: kit?.dont_list ?? [],
+      }
+    : null;
+
+  const snapshot = {
+    title: draft.title,
+    pillar: draft.pillar,
+    hook: draft.hook,
+    caption: draft.caption,
+    hashtags: draft.hashtags ?? [],
+    slides: orderedSlides.map((s) => ({
+      position: s.position,
+      headline: s.headline,
+      body: s.body,
+    })),
+  };
+
+  const systemText = buildAdaptSystem(brand, language, platform);
+  const userText = buildAdaptUser(snapshot, language, platform);
+
+  let result;
+  try {
+    result = await generate({
+      kind: "content",
+      system: [
+        {
+          type: "text",
+          text: systemText,
+          cache_control: { type: "ephemeral" },
+        },
+      ],
+      messages: [{ role: "user", content: userText }],
+      maxTokens: 16_000,
+    });
+  } catch (err) {
+    console.error("[adapt-draft] claude call failed", err);
+    return;
+  }
+
+  let payload;
+  try {
+    payload = parseAdaptPayload(result.text, orderedSlides.length);
+  } catch (err) {
+    const msg = err instanceof AdaptParseError ? err.message : "parse failed";
+    console.error("[adapt-draft] parse error:", msg, result.text.slice(-300));
+    return;
+  }
+
+  // Insert the adapted draft as a sibling row, with a pillar suffix to make
+  // it findable. status = "draft" so Andréa can review before approval.
+  const adaptedPillar = draft.pillar
+    ? `${draft.pillar} · ${platform}`
+    : platform;
+  const { data: inserted } = await supabase
+    .from("content_drafts")
+    .insert({
+      client_id: draft.client_id,
+      transcript_id: draft.transcript_id,
+      title: payload.title,
+      pillar: adaptedPillar,
+      hook: payload.hook,
+      caption: payload.caption,
+      hashtags: payload.hashtags,
+      status: "draft",
+      created_by: user?.id ?? null,
+    })
+    .select("id")
+    .single();
+  if (!inserted) return;
+
+  const slidesToInsert = payload.slides.map((s, i) => ({
+    draft_id: inserted.id,
+    position: i + 1,
+    headline: s.headline || null,
+    body: s.body || null,
+  }));
+  if (slidesToInsert.length > 0) {
+    await supabase.from("slides").insert(slidesToInsert);
+  }
+
+  await supabase.from("ai_edits").insert({
+    draft_id: inserted.id,
+    prompt: `[adapt:${platform}] from draft ${draft.id}`,
+    response: `Adapted for ${platform} from "${draft.title}".`,
+    model: "claude-sonnet-4-6",
+    tokens_in: result.usage.inputTokens,
+    tokens_out: result.usage.outputTokens,
+    created_by: user?.id ?? null,
+  });
+
+  revalidatePath(`/${locale}/content-engine`);
+  if (draft.transcript_id) {
+    revalidatePath(
+      `/${locale}/content-engine/transcripts/${draft.transcript_id}`,
+    );
+  }
+  redirect(localePath(locale, `/content-engine/drafts/${inserted.id}/edit`));
 }
 
 // ───────────────────────────────────────────────────────────────────────────

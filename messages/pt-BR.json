@@ -260,6 +260,12 @@
         "block": "Bloqueio"
       }
     },
+    "adapt": {
+      "title": "Adaptar para outra plataforma",
+      "hint": "Gera um novo draft com o tom ajustado pra cada plataforma.",
+      "linkedin": "Adaptar para LinkedIn",
+      "tiktok": "Adaptar para TikTok"
+    },
     "approvalLink": {
       "title": "Link de aprovação do cliente",
       "generate": "Gerar link",

@@ -14,6 +14,7 @@ function complianceTone(
   return "success";
 }
 import {
+  adaptDraftAction,
   aiRewriteDraftAction,
   approveDraftAction,
   checkComplianceAction,
@@ -337,6 +338,44 @@ export default async function DraftEditPage({
               ))}
             </ul>
           ) : null}
+        </section>
+      ) : null}
+
+      {initialSlides.length > 0 ? (
+        <section
+          className="mb-8 rounded-lg border border-border bg-card p-5"
+          data-testid="adapt-panel"
+        >
+          <div className="mb-3 flex items-baseline justify-between gap-4">
+            <h2 className="font-display text-xl">{t("adapt.title")}</h2>
+            <p className="text-xs text-muted-foreground">{t("adapt.hint")}</p>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            <form action={adaptDraftAction}>
+              <input type="hidden" name="draftId" value={draft.id} />
+              <input type="hidden" name="locale" value={locale} />
+              <input type="hidden" name="platform" value="linkedin" />
+              <button
+                type="submit"
+                className="inline-flex h-9 items-center rounded-md border border-input bg-background px-3 text-xs font-medium hover:bg-muted"
+                data-testid="adapt-linkedin"
+              >
+                {t("adapt.linkedin")}
+              </button>
+            </form>
+            <form action={adaptDraftAction}>
+              <input type="hidden" name="draftId" value={draft.id} />
+              <input type="hidden" name="locale" value={locale} />
+              <input type="hidden" name="platform" value="tiktok" />
+              <button
+                type="submit"
+                className="inline-flex h-9 items-center rounded-md border border-input bg-background px-3 text-xs font-medium hover:bg-muted"
+                data-testid="adapt-tiktok"
+              >
+                {t("adapt.tiktok")}
+              </button>
+            </form>
+          </div>
         </section>
       ) : null}
 

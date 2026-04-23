@@ -158,7 +158,11 @@ Goal: fluxo completo pra Nayara.
   - Aprovar / Pedir mudanças buttons → `approveViaTokenAction` / `rejectViaTokenAction` write `approved_at` or `rejected_at` + `client_comment` via service-role client (bypasses owner-only RLS); idempotent (no-op if already answered/expired)
   - notification sent to draft creator when client responds; E2E verified (approve → thanks page → approvals row updated → `approval.response` notification inserted with "Cliente aprovou …" title)
 - [ ] **Reels / vídeo** — `content_drafts` extension: `video_script` field, upload do vídeo final pelo usuário, fluxo de agendamento adaptado
-- [ ] **Adaptações multi-plataforma** — action "adapt for LinkedIn/TikTok" cria drafts derivados com tone/length ajustado
+- [x] **Adaptações multi-plataforma** — action "adapt for LinkedIn/TikTok" cria drafts derivados com tone/length ajustado
+  - `src/lib/carousel-adapt.ts` — `buildAdaptSystem` / `buildAdaptUser` / `parseAdaptPayload` + `AdaptParseError`; platform rules inline (LinkedIn: longer, pro, 3-5 industry tags; TikTok: punchy, voiceover-script, 6-word headlines)
+  - `adaptDraftAction` (content-engine/actions.ts) — clones the source draft as a NEW `content_drafts` row with pillar suffix `· linkedin` / `· tiktok`, status = draft, `ai_edits` audit row tracks the derivation
+  - Draft editor exposes 2 buttons (Adapt for LinkedIn / TikTok) on the "Adapt for another platform" panel; redirects to the new draft's edit page
+  - 13 unit tests for the pure helpers; manually verified end-to-end — LinkedIn adaptation produces a new 7-slide draft with professional caption + 5 industry hashtags
 - [ ] **Stories auto-gen** — a partir de um carrossel aprovado, 3 stories com links/stickers
 
 **Entrega:** fluxo completo (transcrição → IG+LinkedIn+TikTok + stories + aprovação do cliente) para Nayara.
