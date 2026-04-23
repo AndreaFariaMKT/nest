@@ -252,6 +252,12 @@
   "contentEngine": {
     "title": "Motor de Conteúdo",
     "subtitle": "Transcrição → carrosséis → criativos → publicação.",
+    "pagination": {
+      "prev": "Anterior",
+      "next": "Próximo",
+      "pageOf": "Página {page} de {total}",
+      "range": "{from}–{to} de {total}"
+    },
     "new": "Nova transcrição",
     "newTitle": "Nova transcrição",
     "newSubtitle": "Cole o texto ou envie um arquivo .txt / .vtt. Linhas de tempo do WebVTT são removidas automaticamente.",

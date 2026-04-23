@@ -252,6 +252,12 @@
   "contentEngine": {
     "title": "Content Engine",
     "subtitle": "Transcription → carousels → creatives → publish.",
+    "pagination": {
+      "prev": "Previous",
+      "next": "Next",
+      "pageOf": "Page {page} of {total}",
+      "range": "{from}–{to} of {total}"
+    },
     "new": "New transcript",
     "newTitle": "New transcript",
     "newSubtitle": "Paste text or upload a .txt / .vtt file. The engine will clean up timing lines automatically.",
