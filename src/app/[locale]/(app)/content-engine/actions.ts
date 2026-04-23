@@ -662,6 +662,51 @@ export async function checkComplianceAction(formData: FormData): Promise<void> {
 }
 
 // ───────────────────────────────────────────────────────────────────────────
+// Public approval link — mint a token, insert an `approvals` row, 14-day TTL
+// ───────────────────────────────────────────────────────────────────────────
+
+function generateToken(): string {
+  const buf = new Uint8Array(32);
+  crypto.getRandomValues(buf);
+  return Array.from(buf)
+    .map((b) => b.toString(16).padStart(2, "0"))
+    .join("");
+}
+
+export async function generateApprovalLinkAction(
+  formData: FormData,
+): Promise<void> {
+  const draftId = (formData.get("draftId") ?? "").toString();
+  const locale = (formData.get("locale") ?? "pt-BR").toString();
+  if (!draftId) return;
+
+  const supabase = await createSupabaseClient();
+
+  const { data: draft } = await supabase
+    .from("content_drafts")
+    .select("id, transcript_id")
+    .eq("id", draftId)
+    .maybeSingle();
+  if (!draft) return;
+
+  const token = generateToken();
+  const expiresAt = new Date(Date.now() + 14 * 24 * 60 * 60 * 1000); // 14 days
+
+  const { error } = await supabase.from("approvals").insert({
+    draft_id: draftId,
+    token,
+    expires_at: expiresAt.toISOString(),
+  });
+  if (error) {
+    console.error("[approval-link] insert failed", error);
+    return;
+  }
+
+  revalidatePath(`/${locale}/content-engine/drafts/${draftId}/edit`);
+  redirect(localePath(locale, `/content-engine/drafts/${draftId}/edit`));
+}
+
+// ───────────────────────────────────────────────────────────────────────────
 // Schedule a post (draft must be approved)
 // ───────────────────────────────────────────────────────────────────────────
 

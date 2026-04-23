@@ -152,7 +152,11 @@ Goal: fluxo completo pra Nayara.
   - `checkComplianceAction` — calls Claude (kind: extract → haiku for cost), parses + saves JSONB
   - UI block on draft editor: "Run compliance check" + report panel (severity pill + findings list)
   - industry-aware: Claude applies CVM rules when client.industry ~ "financ|invest", OAB for "jurid|adv", LGPD always
-- [ ] **Public approval link** — `/a/[token]` (sem auth) mostra carrossel pro cliente aprovar/comentar/rejeitar; `approvals` table atualizada via service role
+- [x] **Public approval link** — `/a/[token]` (sem auth) mostra carrossel pro cliente aprovar/comentar/rejeitar; `approvals` table atualizada via service role
+  - `generateApprovalLinkAction` on draft edit — random 32-byte hex token → inserts `approvals` row (14-day TTL), shows latest 5 links inline with status pill + copy-ready URL
+  - public route at `src/app/a/[token]/page.tsx` (outside the locale group + (app) guard) — renders carousel preview (client name + creatives grid + caption + hashtags); middleware matcher excludes `/a/*`
+  - Aprovar / Pedir mudanças buttons → `approveViaTokenAction` / `rejectViaTokenAction` write `approved_at` or `rejected_at` + `client_comment` via service-role client (bypasses owner-only RLS); idempotent (no-op if already answered/expired)
+  - notification sent to draft creator when client responds; E2E verified (approve → thanks page → approvals row updated → `approval.response` notification inserted with "Cliente aprovou …" title)
 - [ ] **Reels / vídeo** — `content_drafts` extension: `video_script` field, upload do vídeo final pelo usuário, fluxo de agendamento adaptado
 - [ ] **Adaptações multi-plataforma** — action "adapt for LinkedIn/TikTok" cria drafts derivados com tone/length ajustado
 - [ ] **Stories auto-gen** — a partir de um carrossel aprovado, 3 stories com links/stickers

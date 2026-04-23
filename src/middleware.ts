@@ -11,5 +11,6 @@ export default async function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/((?!api|_next|_vercel|.*\\..*).*)"],
+  // Exclude /a/* — public approval links live outside the locale prefix
+  matcher: ["/((?!api|a/|_next|_vercel|.*\\..*).*)"],
 };

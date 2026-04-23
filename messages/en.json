@@ -260,6 +260,19 @@
         "block": "Block"
       }
     },
+    "approvalLink": {
+      "title": "Client approval link",
+      "generate": "Generate link",
+      "empty": "No link yet. Generate one to share with the client.",
+      "hint": "Links expire in 14 days. The client approves or requests changes straight from the URL — no login required.",
+      "createdAt": "Created {when}",
+      "status": {
+        "pending": "Pending",
+        "approved": "Approved",
+        "rejected": "Changes requested",
+        "expired": "Expired"
+      }
+    },
     "draftStatus": {
       "draft": "Draft",
       "text_review": "Text review",

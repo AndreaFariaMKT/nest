@@ -17,6 +17,7 @@ import {
   aiRewriteDraftAction,
   approveDraftAction,
   checkComplianceAction,
+  generateApprovalLinkAction,
   renderCreativesAction,
   scheduleDraftAction,
 } from "../../../actions";
@@ -31,6 +32,16 @@ type Scheduled = Pick<
 type AiEdit = Pick<
   Database["public"]["Tables"]["ai_edits"]["Row"],
   "id" | "prompt" | "response" | "created_at"
+>;
+type Approval = Pick<
+  Database["public"]["Tables"]["approvals"]["Row"],
+  | "id"
+  | "token"
+  | "expires_at"
+  | "approved_at"
+  | "rejected_at"
+  | "client_comment"
+  | "created_at"
 >;
 
 function suggestedScheduledFor(): string {
@@ -126,6 +137,36 @@ export default async function DraftEditPage({
     .order("created_at", { ascending: false })
     .limit(5);
   const aiEdits = (aiEditRows ?? []) as AiEdit[];
+
+  // Approval links — show latest first so Andréa can grab the active URL
+  const { data: approvalRows } = await supabase
+    .from("approvals")
+    .select(
+      "id, token, expires_at, approved_at, rejected_at, client_comment, created_at",
+    )
+    .eq("draft_id", id)
+    .order("created_at", { ascending: false })
+    .limit(5);
+  const approvals = (approvalRows ?? []) as Approval[];
+  const appUrl =
+    process.env.NEXT_PUBLIC_APP_URL?.replace(/\/$/, "") ??
+    "http://localhost:3000";
+  function approvalStatus(a: Approval): "approved" | "rejected" | "expired" | "pending" {
+    if (a.approved_at) return "approved";
+    if (a.rejected_at) return "rejected";
+    if (a.expires_at && new Date(a.expires_at).getTime() < Date.now()) {
+      return "expired";
+    }
+    return "pending";
+  }
+  function approvalTone(
+    s: "approved" | "rejected" | "expired" | "pending",
+  ): "success" | "warning" | "danger" | "default" {
+    if (s === "approved") return "success";
+    if (s === "rejected") return "danger";
+    if (s === "expired") return "warning";
+    return "default";
+  }
 
   return (
     <div className="mx-auto max-w-3xl">
@@ -296,6 +337,75 @@ export default async function DraftEditPage({
               ))}
             </ul>
           ) : null}
+        </section>
+      ) : null}
+
+      {initialSlides.length > 0 ? (
+        <section
+          className="mb-8 rounded-lg border border-border bg-card p-5"
+          data-testid="approval-links"
+        >
+          <div className="mb-3 flex items-baseline justify-between gap-4">
+            <h2 className="font-display text-xl">{t("approvalLink.title")}</h2>
+            <form action={generateApprovalLinkAction}>
+              <input type="hidden" name="draftId" value={draft.id} />
+              <input type="hidden" name="locale" value={locale} />
+              <button
+                type="submit"
+                className="inline-flex h-9 items-center rounded-md bg-primary px-3 text-xs font-medium text-primary-foreground hover:bg-primary/90"
+                data-testid="generate-approval-link"
+              >
+                {t("approvalLink.generate")}
+              </button>
+            </form>
+          </div>
+          {approvals.length === 0 ? (
+            <p className="text-sm text-muted-foreground">
+              {t("approvalLink.empty")}
+            </p>
+          ) : (
+            <ul className="space-y-2">
+              {approvals.map((a) => {
+                const status = approvalStatus(a);
+                const url = `${appUrl}/a/${a.token}?locale=${locale}`;
+                return (
+                  <li
+                    key={a.id}
+                    className="rounded-md border border-border bg-background p-3 text-sm"
+                    data-testid="approval-link-row"
+                  >
+                    <div className="flex items-center gap-2">
+                      <Pill tone={approvalTone(status)}>
+                        {t(`approvalLink.status.${status}`)}
+                      </Pill>
+                      <span className="text-xs text-muted-foreground">
+                        {t("approvalLink.createdAt", {
+                          when: new Intl.DateTimeFormat(locale, {
+                            dateStyle: "short",
+                            timeStyle: "short",
+                          }).format(new Date(a.created_at)),
+                        })}
+                      </span>
+                    </div>
+                    <code
+                      className="mt-2 block w-full select-all overflow-x-auto rounded bg-muted px-2 py-1 text-xs"
+                      data-testid="approval-link-url"
+                    >
+                      {url}
+                    </code>
+                    {a.client_comment ? (
+                      <p className="mt-2 italic text-muted-foreground">
+                        “{a.client_comment}”
+                      </p>
+                    ) : null}
+                  </li>
+                );
+              })}
+            </ul>
+          )}
+          <p className="mt-3 text-xs text-muted-foreground">
+            {t("approvalLink.hint")}
+          </p>
         </section>
       ) : null}
 

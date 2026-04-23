@@ -184,6 +184,28 @@ export interface Database {
           Database["public"]["Tables"]["scheduled_posts"]["Insert"]
         >;
       };
+      approvals: {
+        Row: {
+          id: string;
+          draft_id: string;
+          token: string;
+          expires_at: string | null;
+          approved_at: string | null;
+          rejected_at: string | null;
+          client_comment: string | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          draft_id: string;
+          token: string;
+          expires_at?: string | null;
+          approved_at?: string | null;
+          rejected_at?: string | null;
+          client_comment?: string | null;
+        };
+        Update: Partial<Database["public"]["Tables"]["approvals"]["Insert"]>;
+      };
       creatives: {
         Row: {
           id: string;

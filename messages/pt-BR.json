@@ -260,6 +260,19 @@
         "block": "Bloqueio"
       }
     },
+    "approvalLink": {
+      "title": "Link de aprovação do cliente",
+      "generate": "Gerar link",
+      "empty": "Nenhum link gerado ainda. Gere um pra enviar ao cliente.",
+      "hint": "Links expiram em 14 dias. Cliente aprova ou pede mudanças direto pela URL — sem login.",
+      "createdAt": "Gerado {when}",
+      "status": {
+        "pending": "Pendente",
+        "approved": "Aprovado",
+        "rejected": "Mudanças pedidas",
+        "expired": "Expirado"
+      }
+    },
     "draftStatus": {
       "draft": "Rascunho",
       "text_review": "Revisão de texto",
