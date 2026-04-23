@@ -68,6 +68,15 @@ Creates a `cycles` row for every active client for the current (year, month) via
 { "createdOrKept": 4, "total": 4, "clonedTasks": 1, "year": 2026, "month": 4 }
 ```
 
+### `GET|POST /api/cron/meta-refresh`
+**Schedule**: `0 4 * * *` (daily at 04:00 UTC)
+
+Refreshes Meta's Long-Lived Token before the 60-day expiry. Additional env required: `META_APP_ID`, `META_APP_SECRET`.
+
+**Response 503** — Meta creds missing. Body: `{ error: "meta_creds_missing", missing: [...] }`.
+
+**Response 501** — Meta creds present but refresh wiring not yet shipped. Body includes a pointer to `src/app/api/cron/meta-refresh/route.ts`.
+
 ### `GET|POST /api/cron/publish`
 **Schedule**: `*/5 * * * *` (every 5 min)
 

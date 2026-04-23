@@ -88,6 +88,7 @@ All cron endpoints use bearer auth: `Authorization: Bearer <CRON_SECRET>`.
 |---|---|---|
 | `POST /api/cron/cycles` | `0 3 1 * *` | Creates a `cycles` row for every active client for the current month + clones matching templates into `tasks` |
 | `GET /api/cron/publish` | `*/5 * * * *` | Processes due `scheduled_posts` (up to 10) → `publishCarousel()` → writes `published_posts` + flips statuses |
+| `GET /api/cron/meta-refresh` | `0 4 * * *` | Refreshes the Meta long-lived token (60-day expiry). Currently 503 until Meta creds land; 501 afterwards until the refresh body is wired. |
 
 ### Manual test locally
 
