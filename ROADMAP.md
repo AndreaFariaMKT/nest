@@ -190,7 +190,15 @@ Goal: Andréa agenda reuniões no Nest e puxa transcrições automaticamente.
 
 - [ ] **Google OAuth** — `/api/google/*` com consent screen, store refresh token em `profiles.google_*` (migration nova)
 - [ ] **Calendar sync** — listar eventos próximos 30 dias, criar/editar evento no Nest → espelha no Calendar (+ Meet link gerado)
-- [ ] **Meetings CRUD** — `/meetings` lista, `/meetings/new` agenda com cliente + participantes
+- [x] **Meetings CRUD** — `/meetings` lista, `/meetings/new` agenda com cliente + participantes
+  - `MeetingStatus` + `MEETING_STATUSES` + `meetings` table added to `src/types/database.ts`
+  - `src/app/[locale]/(app)/meetings/actions.ts` — `createMeetingAction`, `updateMeetingAction`, `deleteMeetingAction` (server actions, validated, redirect-after-write)
+  - `MeetingForm` shared component (title + datetime-local × 2 + client dropdown + status + Meet URL)
+  - `/meetings` list splits upcoming/past, status pill per row
+  - `/meetings/[id]` detail page with client link, Meet URL, linked transcripts section
+  - `/meetings/[id]/edit` reuses the shared form with pre-filled values
+  - i18n strings (status, fields, sections, actions, errors) for both locales
+  - Google OAuth integration still deferred (credential blocker) — the Meet URL is a manual field for now; the cron-backed auto-creation lands when Google creds arrive
 - [ ] **Calendar view** — `/calendar` visual com drag-to-reschedule, clique pra abrir meeting
 - [ ] **Transcript pull job** — cron checa reuniões concluídas, baixa transcrição via Meet API, cria `transcripts` row, extrai tarefas via Claude (haiku) e cria `tasks`
 - [ ] **Meeting detail** — mostra transcrição + tarefas geradas + botão "Gerar carrossel a partir dessa reunião"

@@ -183,7 +183,44 @@
   },
   "meetings": {
     "title": "Reuniões",
-    "subtitle": "Próximas chamadas e transcrições anteriores."
+    "subtitle": "Próximas chamadas e transcrições anteriores.",
+    "new": "Nova reunião",
+    "newTitle": "Nova reunião",
+    "editTitle": "Editar reunião",
+    "createSubmit": "Criar reunião",
+    "saveSubmit": "Salvar reunião",
+    "transcriptWords": "palavras",
+    "sections": {
+      "upcoming": "Próximas",
+      "upcomingEmpty": "Nenhuma reunião agendada.",
+      "past": "Passadas",
+      "pastEmpty": "Nenhuma reunião encerrada ainda.",
+      "transcripts": "Transcrições",
+      "transcriptsEmpty": "Nenhuma transcrição ligada a essa reunião. Importe no Motor de Conteúdo."
+    },
+    "actions": {
+      "edit": "Editar",
+      "delete": "Excluir"
+    },
+    "status": {
+      "scheduled": "Agendada",
+      "completed": "Concluída",
+      "cancelled": "Cancelada"
+    },
+    "fields": {
+      "title": "Título",
+      "startsAt": "Início",
+      "endsAt": "Término",
+      "client": "Cliente",
+      "noClient": "Sem cliente",
+      "status": "Status",
+      "meetUrl": "Link do Google Meet",
+      "meetHint": "Opcional. Quando a integração do Google entrar no Sprint 9-10, esse link passa a ser criado automaticamente."
+    },
+    "errors": {
+      "required": "Campo obrigatório.",
+      "tooShort": "Título muito curto."
+    }
   },
   "contentEngine": {
     "title": "Motor de Conteúdo",

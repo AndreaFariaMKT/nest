@@ -4,6 +4,13 @@
 
 export type ClientStatus = "prospect" | "active" | "paused" | "archived";
 export type UserRole = "owner" | "staff" | "client";
+export type MeetingStatus = "scheduled" | "completed" | "cancelled";
+
+export const MEETING_STATUSES: MeetingStatus[] = [
+  "scheduled",
+  "completed",
+  "cancelled",
+];
 export type TaskStatus =
   | "todo"
   | "in_progress"
@@ -261,6 +268,33 @@ export interface Database {
           created_by?: string | null;
         };
         Update: Partial<Database["public"]["Tables"]["ai_edits"]["Insert"]>;
+      };
+      meetings: {
+        Row: {
+          id: string;
+          client_id: string | null;
+          title: string;
+          starts_at: string;
+          ends_at: string | null;
+          status: MeetingStatus;
+          google_event_id: string | null;
+          google_meet_url: string | null;
+          created_by: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          client_id?: string | null;
+          title: string;
+          starts_at: string;
+          ends_at?: string | null;
+          status?: MeetingStatus;
+          google_event_id?: string | null;
+          google_meet_url?: string | null;
+          created_by?: string | null;
+        };
+        Update: Partial<Database["public"]["Tables"]["meetings"]["Insert"]>;
       };
       transcripts: {
         Row: {

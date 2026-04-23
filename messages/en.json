@@ -183,7 +183,44 @@
   },
   "meetings": {
     "title": "Meetings",
-    "subtitle": "Upcoming calls and past transcripts."
+    "subtitle": "Upcoming calls and past transcripts.",
+    "new": "New meeting",
+    "newTitle": "New meeting",
+    "editTitle": "Edit meeting",
+    "createSubmit": "Create meeting",
+    "saveSubmit": "Save meeting",
+    "transcriptWords": "words",
+    "sections": {
+      "upcoming": "Upcoming",
+      "upcomingEmpty": "No meetings scheduled.",
+      "past": "Past",
+      "pastEmpty": "No completed meetings yet.",
+      "transcripts": "Transcripts",
+      "transcriptsEmpty": "No transcripts linked to this meeting yet. Import one from the Content Engine."
+    },
+    "actions": {
+      "edit": "Edit",
+      "delete": "Delete"
+    },
+    "status": {
+      "scheduled": "Scheduled",
+      "completed": "Completed",
+      "cancelled": "Cancelled"
+    },
+    "fields": {
+      "title": "Title",
+      "startsAt": "Starts",
+      "endsAt": "Ends",
+      "client": "Client",
+      "noClient": "No client",
+      "status": "Status",
+      "meetUrl": "Google Meet link",
+      "meetHint": "Optional. Once the Google integration lands in Sprint 9-10, this link is created automatically."
+    },
+    "errors": {
+      "required": "Required field.",
+      "tooShort": "Title is too short."
+    }
   },
   "contentEngine": {
     "title": "Content Engine",
