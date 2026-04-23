@@ -78,6 +78,18 @@ const GROUPS: Record<string, Group> = {
       { name: "GOOGLE_OAUTH_CLIENT_SECRET", required: true },
     ],
   },
+  sentry: {
+    label: "Sentry (error tracking)",
+    optional: true,
+    vars: [
+      {
+        name: "SENTRY_DSN",
+        required: true,
+        validate: (v) => /^https?:\/\/[^@]+@[^/]+\/\d+$/.test(v),
+        reason: "must be a standard Sentry DSN (https://key@host/project)",
+      },
+    ],
+  },
 };
 
 export type EnvIssue = {
@@ -237,6 +249,14 @@ export const env = {
       return !!(
         read("GOOGLE_OAUTH_CLIENT_ID") && read("GOOGLE_OAUTH_CLIENT_SECRET")
       );
+    },
+  },
+  sentry: {
+    get dsn() {
+      return read("SENTRY_DSN") ?? null;
+    },
+    get ok() {
+      return !!read("SENTRY_DSN");
     },
   },
 };

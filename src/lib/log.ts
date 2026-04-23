@@ -76,6 +76,25 @@ function emit(level: LogLevel, area: string, msg: string, ctx: LogContext) {
     ...((redact(ctx) ?? {}) as LogContext),
   };
 
+  // Mirror errors to Sentry when DSN is set. Fire-and-forget; never block
+  // the log caller on Sentry I/O. Import is dynamic so the log module
+  // stays tree-shakable in runtimes that don't use Sentry.
+  if (level === "error" && process.env.SENTRY_DSN) {
+    import("./sentry")
+      .then(({ captureMessage }) => {
+        const err = ctx.err;
+        void captureMessage(`${area}: ${msg}`, {
+          level: "error",
+          tags: { area },
+          extra: {
+            ...(redact(ctx) as Record<string, unknown>),
+            err: typeof err === "string" ? err : err instanceof Error ? err.message : undefined,
+          },
+        });
+      })
+      .catch(() => {});
+  }
+
   if (isProd()) {
     // Single-line JSON — optimized for log aggregators.
     const line = JSON.stringify(payload);
