@@ -505,6 +505,7 @@
     "listEmpty": "No reports yet. Generate one from a client's detail page.",
     "monthlyTitle": "Recap · {period}",
     "generatedAt": "Generated {when}",
+    "downloadPdf": "Download PDF",
     "sections": {
       "summary": "Summary",
       "highlights": "Highlights",

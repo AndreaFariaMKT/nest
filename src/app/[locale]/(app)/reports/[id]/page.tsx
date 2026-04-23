@@ -62,18 +62,29 @@ export default async function ReportDetailPage({
             ← {client.name}
           </Link>
         ) : null}
-        <h1 className="mt-2 font-display text-4xl text-foreground">
-          {t("monthlyTitle", { period: label })}
-        </h1>
-        <p className="mt-1 text-xs text-muted-foreground">
-          {t("generatedAt", {
-            when: new Intl.DateTimeFormat(locale, {
-              dateStyle: "medium",
-              timeStyle: "short",
-            }).format(new Date(report.generated_at)),
-          })}
-          {report.model ? ` · ${report.model}` : ""}
-        </p>
+        <div className="flex items-start justify-between gap-4">
+          <div>
+            <h1 className="font-display text-4xl text-foreground">
+              {t("monthlyTitle", { period: label })}
+            </h1>
+            <p className="mt-1 text-xs text-muted-foreground">
+              {t("generatedAt", {
+                when: new Intl.DateTimeFormat(locale, {
+                  dateStyle: "medium",
+                  timeStyle: "short",
+                }).format(new Date(report.generated_at)),
+              })}
+              {report.model ? ` · ${report.model}` : ""}
+            </p>
+          </div>
+          <a
+            href={`/api/reports/${report.id}/pdf`}
+            className="inline-flex h-10 items-center rounded-md border border-input bg-background px-4 text-sm font-medium hover:bg-muted"
+            data-testid="report-pdf-download"
+          >
+            {t("downloadPdf")}
+          </a>
+        </div>
       </div>
 
       {content.input?.counts ? (
