@@ -162,7 +162,13 @@ Goal: fluxo completo pra Nayara.
   - public route at `src/app/a/[token]/page.tsx` (outside the locale group + (app) guard) — renders carousel preview (client name + creatives grid + caption + hashtags); middleware matcher excludes `/a/*`
   - Aprovar / Pedir mudanças buttons → `approveViaTokenAction` / `rejectViaTokenAction` write `approved_at` or `rejected_at` + `client_comment` via service-role client (bypasses owner-only RLS); idempotent (no-op if already answered/expired)
   - notification sent to draft creator when client responds; E2E verified (approve → thanks page → approvals row updated → `approval.response` notification inserted with "Cliente aprovou …" title)
-- [ ] **Reels / vídeo** — `content_drafts` extension: `video_script` field, upload do vídeo final pelo usuário, fluxo de agendamento adaptado
+- [x] **Reels / vídeo** — `content_drafts` extension: `video_script` field, upload do vídeo final pelo usuário, fluxo de agendamento adaptado
+  - migration 008: `content_drafts.video_script text` + `video_url text` (nullable)
+  - `src/lib/reel-script.ts` — `buildReelSystem` / `buildReelUser` / `parseReelPayload` + `ReelParseError`; prompt enforces 30-60s voiceover, hook-line in first 3s, one shot per line, single CTA, clamped duration estimate
+  - `generateReelScriptAction` (content-engine/actions.ts) — generates a Reel draft (no slides) with pillar suffix `· reel`; persists `video_script` in the new column and `hook` = script's hook_line
+  - Draft editor exposes a "Generate Reel script" button in the Adapt panel + a new "Reel script" section that renders the script as a preformatted block when the draft has a `video_script`
+  - 12 unit tests for the pure helpers; E2E verified — 797-char script generated with hook "Passei anos pedindo permissão pra fazer o que meu coração já sabia que era certo" + 10 hashtags
+  - Video file upload + scheduling wiring deferred to a later slice once the renderer (Sprint 11-12) is production-ready
 - [x] **Adaptações multi-plataforma** — action "adapt for LinkedIn/TikTok" cria drafts derivados com tone/length ajustado
   - `src/lib/carousel-adapt.ts` — `buildAdaptSystem` / `buildAdaptUser` / `parseAdaptPayload` + `AdaptParseError`; platform rules inline (LinkedIn: longer, pro, 3-5 industry tags; TikTok: punchy, voiceover-script, 6-word headlines)
   - `adaptDraftAction` (content-engine/actions.ts) — clones the source draft as a NEW `content_drafts` row with pillar suffix `· linkedin` / `· tiktok`, status = draft, `ai_edits` audit row tracks the derivation

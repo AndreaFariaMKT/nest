@@ -37,6 +37,13 @@ import {
   type StoryBrand,
 } from "@/lib/story-gen";
 import {
+  buildReelSystem,
+  buildReelUser,
+  parseReelPayload,
+  ReelParseError,
+  type ReelBrand,
+} from "@/lib/reel-script";
+import {
   buildDraftEmbedText,
   embedBatch,
   embedText,
@@ -1018,6 +1025,166 @@ export async function generateStoriesAction(
     draft_id: inserted.id,
     prompt: `[stories:${count}] from draft ${draft.id}`,
     response: `Generated ${count} stories from "${draft.title}".`,
+    model: "claude-sonnet-4-6",
+    tokens_in: result.usage.inputTokens,
+    tokens_out: result.usage.outputTokens,
+    created_by: user?.id ?? null,
+  });
+
+  revalidatePath(`/${locale}/content-engine`);
+  if (draft.transcript_id) {
+    revalidatePath(
+      `/${locale}/content-engine/transcripts/${draft.transcript_id}`,
+    );
+  }
+  redirect(localePath(locale, `/content-engine/drafts/${inserted.id}/edit`));
+}
+
+// ───────────────────────────────────────────────────────────────────────────
+// Generate a Reel / short-form video script from a carousel
+// ───────────────────────────────────────────────────────────────────────────
+
+export async function generateReelScriptAction(
+  formData: FormData,
+): Promise<void> {
+  const draftId = (formData.get("draftId") ?? "").toString();
+  const locale = (formData.get("locale") ?? "pt-BR").toString();
+  if (!draftId) return;
+
+  const supabase = await createSupabaseClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  type JoinedDraft = {
+    id: string;
+    client_id: string;
+    transcript_id: string | null;
+    title: string;
+    pillar: string | null;
+    hook: string | null;
+    caption: string | null;
+    hashtags: string[];
+    slides: Array<{
+      position: number;
+      headline: string | null;
+      body: string | null;
+    }>;
+    transcript:
+      | { language: string }
+      | Array<{ language: string }>
+      | null;
+  };
+
+  const { data } = await supabase
+    .from("content_drafts")
+    .select(
+      `id, client_id, transcript_id, title, pillar, hook, caption, hashtags,
+       slides(position, headline, body),
+       transcript:transcripts(language)`,
+    )
+    .eq("id", draftId)
+    .maybeSingle();
+  if (!data) return;
+  const draft = data as unknown as JoinedDraft;
+
+  const language = pickOne(draft.transcript)?.language ?? "pt-BR";
+
+  const orderedSlides = [...(draft.slides ?? [])].sort(
+    (a, b) => a.position - b.position,
+  );
+  if (orderedSlides.length === 0) return;
+
+  const { data: kit } = await supabase
+    .from("brand_kits")
+    .select("name, palette, typography, voice_tone, do_list, dont_list")
+    .eq("client_id", draft.client_id)
+    .maybeSingle();
+  const { data: client } = await supabase
+    .from("clients")
+    .select("name")
+    .eq("id", draft.client_id)
+    .single();
+  const brand: ReelBrand | null = client
+    ? {
+        name: kit?.name ?? client.name,
+        palette: (kit?.palette as BrandColor[]) ?? [],
+        typography: (kit?.typography as BrandTypography) ?? null,
+        voiceTone: kit?.voice_tone ?? null,
+        doList: kit?.do_list ?? [],
+        dontList: kit?.dont_list ?? [],
+      }
+    : null;
+
+  const snapshot = {
+    title: draft.title,
+    pillar: draft.pillar,
+    hook: draft.hook,
+    caption: draft.caption,
+    hashtags: draft.hashtags ?? [],
+    slides: orderedSlides.map((s) => ({
+      position: s.position,
+      headline: s.headline,
+      body: s.body,
+    })),
+  };
+
+  const systemText = buildReelSystem(brand, language);
+  const userText = buildReelUser(snapshot, language);
+
+  let result;
+  try {
+    result = await generate({
+      kind: "content",
+      system: [
+        {
+          type: "text",
+          text: systemText,
+          cache_control: { type: "ephemeral" },
+        },
+      ],
+      messages: [{ role: "user", content: userText }],
+      maxTokens: 8_000,
+    });
+  } catch (err) {
+    console.error("[reel-script] claude call failed", err);
+    return;
+  }
+
+  let payload;
+  try {
+    payload = parseReelPayload(result.text);
+  } catch (err) {
+    const msg = err instanceof ReelParseError ? err.message : "parse failed";
+    console.error("[reel-script] parse error:", msg, result.text.slice(-300));
+    return;
+  }
+
+  // Reels are a NEW content_drafts row (no slides) carrying video_script +
+  // hashtags + caption. pillar suffix "· reel" makes them filterable later.
+  const reelPillar = draft.pillar ? `${draft.pillar} · reel` : "reel";
+  const { data: inserted } = await supabase
+    .from("content_drafts")
+    .insert({
+      client_id: draft.client_id,
+      transcript_id: draft.transcript_id,
+      title: payload.title,
+      pillar: reelPillar,
+      hook: payload.hookLine,
+      caption: payload.caption,
+      hashtags: payload.hashtags,
+      status: "draft",
+      video_script: payload.script,
+      created_by: user?.id ?? null,
+    })
+    .select("id")
+    .single();
+  if (!inserted) return;
+
+  await supabase.from("ai_edits").insert({
+    draft_id: inserted.id,
+    prompt: `[reel] from draft ${draft.id}`,
+    response: `Reel script generated (est ${payload.estimatedDurationSec}s) from "${draft.title}".`,
     model: "claude-sonnet-4-6",
     tokens_in: result.usage.inputTokens,
     tokens_out: result.usage.outputTokens,

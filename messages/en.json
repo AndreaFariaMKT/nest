@@ -265,7 +265,12 @@
       "hint": "Generates a new draft with the tone tuned for each platform.",
       "linkedin": "Adapt for LinkedIn",
       "tiktok": "Adapt for TikTok",
-      "stories": "Generate Stories (3)"
+      "stories": "Generate Stories (3)",
+      "reel": "Generate Reel script"
+    },
+    "reel": {
+      "title": "Reel script",
+      "hint": "The client records this in one take. Hook in the first 3 seconds, CTA at the end. One line per shot."
     },
     "approvalLink": {
       "title": "Client approval link",

@@ -112,6 +112,8 @@ export interface Database {
           hashtags: string[];
           status: string;
           compliance_report: Record<string, unknown> | null;
+          video_script: string | null;
+          video_url: string | null;
           created_by: string | null;
           created_at: string;
           updated_at: string;
@@ -126,6 +128,8 @@ export interface Database {
           caption?: string | null;
           hashtags?: string[];
           status?: string;
+          video_script?: string | null;
+          video_url?: string | null;
           created_by?: string | null;
         };
         Update: Partial<

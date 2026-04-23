@@ -19,6 +19,7 @@ import {
   approveDraftAction,
   checkComplianceAction,
   generateApprovalLinkAction,
+  generateReelScriptAction,
   generateStoriesAction,
   renderCreativesAction,
   scheduleDraftAction,
@@ -388,7 +389,33 @@ export default async function DraftEditPage({
                 {t("adapt.stories")}
               </button>
             </form>
+            <form action={generateReelScriptAction}>
+              <input type="hidden" name="draftId" value={draft.id} />
+              <input type="hidden" name="locale" value={locale} />
+              <button
+                type="submit"
+                className="inline-flex h-9 items-center rounded-md border border-input bg-background px-3 text-xs font-medium hover:bg-muted"
+                data-testid="generate-reel"
+              >
+                {t("adapt.reel")}
+              </button>
+            </form>
           </div>
+        </section>
+      ) : null}
+
+      {draft.video_script ? (
+        <section
+          className="mb-8 rounded-lg border border-border bg-card p-5"
+          data-testid="reel-script"
+        >
+          <h2 className="mb-3 font-display text-xl">{t("reel.title")}</h2>
+          <pre className="whitespace-pre-wrap break-words rounded-md bg-muted p-3 font-sans text-sm leading-relaxed">
+            {draft.video_script}
+          </pre>
+          <p className="mt-3 text-xs text-muted-foreground">
+            {t("reel.hint")}
+          </p>
         </section>
       ) : null}
 

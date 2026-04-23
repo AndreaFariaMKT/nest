@@ -265,7 +265,12 @@
       "hint": "Gera um novo draft com o tom ajustado pra cada plataforma.",
       "linkedin": "Adaptar para LinkedIn",
       "tiktok": "Adaptar para TikTok",
-      "stories": "Gerar Stories (3)"
+      "stories": "Gerar Stories (3)",
+      "reel": "Gerar roteiro de Reel"
+    },
+    "reel": {
+      "title": "Roteiro do Reel",
+      "hint": "Cliente grava em uma tomada. Hook nos primeiros 3 segundos, CTA no final. Uma linha = uma tomada."
     },
     "approvalLink": {
       "title": "Link de aprovação do cliente",
