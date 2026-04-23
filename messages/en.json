@@ -328,7 +328,12 @@
     },
     "reel": {
       "title": "Reel script",
-      "hint": "The client records this in one take. Hook in the first 3 seconds, CTA at the end. One line per shot."
+      "hint": "The client records this in one take. Hook in the first 3 seconds, CTA at the end. One line per shot.",
+      "videoUpload": "Upload recorded video",
+      "videoReplace": "Replace video",
+      "videoEmpty": "No video uploaded yet. Once the client records, upload it here.",
+      "videoSizeHint": "MP4, MOV, or WebM up to 500 MB.",
+      "viewRaw": "Open video in new tab"
     },
     "approvalLink": {
       "title": "Client approval link",

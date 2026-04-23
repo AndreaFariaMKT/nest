@@ -1041,6 +1041,73 @@ export async function generateStoriesAction(
 }
 
 // ───────────────────────────────────────────────────────────────────────────
+// Upload the final Reel video file → Supabase Storage → set video_url
+// ───────────────────────────────────────────────────────────────────────────
+
+const MAX_REEL_VIDEO_BYTES = 500 * 1024 * 1024; // 500 MB matches migration 011
+const ALLOWED_REEL_MIME = new Set([
+  "video/mp4",
+  "video/quicktime",
+  "video/webm",
+]);
+
+export async function uploadReelVideoAction(
+  formData: FormData,
+): Promise<void> {
+  const draftId = (formData.get("draftId") ?? "").toString();
+  const locale = (formData.get("locale") ?? "pt-BR").toString();
+  const file = formData.get("video");
+  if (!draftId) return;
+  if (!(file instanceof File) || file.size === 0) return;
+  if (file.size > MAX_REEL_VIDEO_BYTES) {
+    console.error("[reel-video] upload too large", file.size);
+    return;
+  }
+  if (!ALLOWED_REEL_MIME.has(file.type)) {
+    console.error("[reel-video] disallowed mime", file.type);
+    return;
+  }
+
+  const supabase = await createSupabaseClient();
+  const { data: draft } = await supabase
+    .from("content_drafts")
+    .select("id, transcript_id")
+    .eq("id", draftId)
+    .maybeSingle();
+  if (!draft) return;
+
+  const extGuess = file.name.split(".").pop()?.toLowerCase();
+  const ext = extGuess && /^[a-z0-9]{2,5}$/.test(extGuess) ? extGuess : "mp4";
+  const path = `${draft.id}/${draft.id}-v${Date.now()}.${ext}`;
+  const bytes = new Uint8Array(await file.arrayBuffer());
+
+  const { error: uploadError } = await supabase.storage
+    .from("reel-videos")
+    .upload(path, bytes, { contentType: file.type, upsert: false });
+  if (uploadError) {
+    console.error("[reel-video] upload failed", uploadError);
+    return;
+  }
+
+  const { data: urlData } = supabase.storage
+    .from("reel-videos")
+    .getPublicUrl(path);
+
+  await supabase
+    .from("content_drafts")
+    .update({ video_url: urlData.publicUrl } as never)
+    .eq("id", draftId);
+
+  revalidatePath(`/${locale}/content-engine/drafts/${draftId}/edit`);
+  if (draft.transcript_id) {
+    revalidatePath(
+      `/${locale}/content-engine/transcripts/${draft.transcript_id}`,
+    );
+  }
+  redirect(localePath(locale, `/content-engine/drafts/${draftId}/edit`));
+}
+
+// ───────────────────────────────────────────────────────────────────────────
 // Generate a Reel / short-form video script from a carousel
 // ───────────────────────────────────────────────────────────────────────────
 

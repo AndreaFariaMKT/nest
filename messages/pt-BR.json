@@ -328,7 +328,12 @@
     },
     "reel": {
       "title": "Roteiro do Reel",
-      "hint": "Cliente grava em uma tomada. Hook nos primeiros 3 segundos, CTA no final. Uma linha = uma tomada."
+      "hint": "Cliente grava em uma tomada. Hook nos primeiros 3 segundos, CTA no final. Uma linha = uma tomada.",
+      "videoUpload": "Subir vídeo gravado",
+      "videoReplace": "Substituir vídeo",
+      "videoEmpty": "Nenhum vídeo subido ainda. Quando o cliente gravar, sobe aqui.",
+      "videoSizeHint": "MP4, MOV ou WebM até 500 MB.",
+      "viewRaw": "Abrir vídeo em nova aba"
     },
     "approvalLink": {
       "title": "Link de aprovação do cliente",

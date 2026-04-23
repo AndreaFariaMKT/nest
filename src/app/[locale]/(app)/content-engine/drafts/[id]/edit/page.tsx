@@ -23,6 +23,7 @@ import {
   generateStoriesAction,
   renderCreativesAction,
   scheduleDraftAction,
+  uploadReelVideoAction,
 } from "../../../actions";
 
 type Draft = Database["public"]["Tables"]["content_drafts"]["Row"];
@@ -416,6 +417,62 @@ export default async function DraftEditPage({
           <p className="mt-3 text-xs text-muted-foreground">
             {t("reel.hint")}
           </p>
+
+          <div className="mt-6 border-t border-border pt-4">
+            <h3 className="mb-2 text-sm font-medium text-foreground">
+              {t("reel.videoUpload")}
+            </h3>
+            {draft.video_url ? (
+              <div className="mb-3 space-y-2">
+                {/* eslint-disable-next-line jsx-a11y/media-has-caption */}
+                <video
+                  src={draft.video_url}
+                  controls
+                  className="w-full rounded-md border border-border bg-black"
+                  data-testid="reel-video-player"
+                />
+                <a
+                  href={draft.video_url}
+                  target="_blank"
+                  rel="noreferrer noopener"
+                  className="inline-block text-xs text-primary hover:underline"
+                >
+                  {t("reel.viewRaw")}
+                </a>
+              </div>
+            ) : (
+              <p className="mb-3 text-xs text-muted-foreground">
+                {t("reel.videoEmpty")}
+              </p>
+            )}
+            <form
+              action={uploadReelVideoAction}
+              className="flex flex-wrap items-center gap-2"
+            >
+              <input type="hidden" name="draftId" value={draft.id} />
+              <input type="hidden" name="locale" value={locale} />
+              <input
+                type="file"
+                name="video"
+                required
+                accept="video/mp4,video/quicktime,video/webm"
+                className="text-xs file:mr-2 file:rounded-md file:border file:border-input file:bg-background file:px-3 file:py-1.5 file:text-xs file:font-medium hover:file:bg-muted"
+                data-testid="reel-video-input"
+              />
+              <button
+                type="submit"
+                className="inline-flex h-9 items-center rounded-md bg-primary px-3 text-xs font-medium text-primary-foreground hover:bg-primary/90"
+                data-testid="reel-video-submit"
+              >
+                {draft.video_url
+                  ? t("reel.videoReplace")
+                  : t("reel.videoUpload")}
+              </button>
+            </form>
+            <p className="mt-2 text-[10px] text-muted-foreground">
+              {t("reel.videoSizeHint")}
+            </p>
+          </div>
         </section>
       ) : null}
 
