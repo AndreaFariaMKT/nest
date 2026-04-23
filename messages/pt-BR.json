@@ -472,6 +472,27 @@
       "invalidShape": "Cada cor precisa ter nome + hex."
     }
   },
+  "adminUsage": {
+    "title": "Uso do Claude",
+    "subtitle": "Consumo de IA por cliente nos últimos {days} dias. Custos estimados pelas tabelas da Anthropic.",
+    "range": "{days}d",
+    "empty": "Nenhuma chamada Claude registrada nessa janela.",
+    "note": "Conta apenas as chamadas que caem em ai_edits (reescritas, compliance, adaptações, stories, roteiros de reel, relatórios mensais). A geração a partir de transcrição ainda não loga aqui.",
+    "totals": {
+      "calls": "Chamadas",
+      "inputTokens": "Tokens de entrada",
+      "outputTokens": "Tokens de saída",
+      "cost": "Custo estimado"
+    },
+    "table": {
+      "client": "Cliente",
+      "model": "Modelo",
+      "calls": "Chamadas",
+      "inputTokens": "Entrada",
+      "outputTokens": "Saída",
+      "cost": "Custo"
+    }
+  },
   "reports": {
     "title": "Relatórios",
     "subtitle": "Recaps mensais escritos pelo Claude, por cliente. Gráficos de métricas entram quando o Meta sincronizar.",

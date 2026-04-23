@@ -472,6 +472,27 @@
       "invalidShape": "Palette entries must include name + hex."
     }
   },
+  "adminUsage": {
+    "title": "Claude usage",
+    "subtitle": "AI spend across all clients over the last {days} days. Costs are estimated from published Anthropic rates.",
+    "range": "{days}d",
+    "empty": "No Claude calls recorded in this window.",
+    "note": "Counts only Claude calls that land in ai_edits (draft rewrites, compliance checks, adaptations, stories, reel scripts, monthly reports). Generation from transcript does not log here yet.",
+    "totals": {
+      "calls": "Calls",
+      "inputTokens": "Input tokens",
+      "outputTokens": "Output tokens",
+      "cost": "Estimated cost"
+    },
+    "table": {
+      "client": "Client",
+      "model": "Model",
+      "calls": "Calls",
+      "inputTokens": "Input",
+      "outputTokens": "Output",
+      "cost": "Cost"
+    }
+  },
   "reports": {
     "title": "Reports",
     "subtitle": "Claude-written monthly recaps per client. Metrics charts land once Meta integration ships.",
