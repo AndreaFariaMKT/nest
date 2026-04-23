@@ -415,6 +415,7 @@ export interface Database {
           website: string | null;
           notes: string | null;
           primary_contact_id: string | null;
+          portal_token: string | null;
           created_at: string;
           updated_at: string;
         };
@@ -428,6 +429,7 @@ export interface Database {
           website?: string | null;
           notes?: string | null;
           primary_contact_id?: string | null;
+          portal_token?: string | null;
         };
         Update: Partial<Database["public"]["Tables"]["clients"]["Insert"]>;
       };

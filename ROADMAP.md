@@ -224,7 +224,13 @@ Goal: v1.0 em produção.
 - [ ] **Metrics collection** — cron diário pega métricas de todos `published_posts` via Graph API; insere time-series em `post_metrics`
 - [ ] **KPI dashboard** — `/reports` com filtro por cliente + período, gráficos (reach, impressions, engagement rate, saves, follows)
 - [ ] **Monthly report generator** — Claude analisa métricas do mês + gera 5-10 bullets de insight + recomendações pro próximo ciclo; exporta PDF via Playwright
-- [ ] **Client portal** — `/portal/[client_slug]` (token-based, sem conta) mostra: próximos posts agendados, posts publicados + métricas leves, aprovações pendentes
+- [x] **Client portal** — `/portal/[client_slug]` (token-based, sem conta) mostra: próximos posts agendados, posts publicados + métricas leves, aprovações pendentes
+  - migration 009: `clients.portal_token text` + unique partial index (null allowed, non-null must be unique)
+  - `generatePortalTokenAction` + `revokePortalTokenAction` (32-byte hex token) on `clients/actions.ts`
+  - Owner-only "Client portal" card on `/clients/[slug]` with generate / rotate / revoke controls + copyable URL
+  - Public route at `src/app/p/[token]/page.tsx` (outside `[locale]` + auth); middleware matcher updated to skip `/p/*`
+  - Service-role client fetches client-scoped `scheduled_posts`, `approvals` (not yet answered + not expired), and `published_posts` (last 10 each)
+  - Landed at `/p/[token]` instead of `/portal/[slug]` to match the `/a/[token]` pattern (shorter URL, no slug-in-URL coupling); metrics bars on published posts land once Meta metrics collection ships (Sprint 11-12)
 - [ ] **LinkedIn publishing** — `src/lib/linkedin.ts` + pipeline de agendamento análogo ao IG (requer Company Page)
 - [ ] **TikTok publishing** — `src/lib/tiktok.ts` + upload de vídeo via init API (conta Business)
 - [ ] **Production deploy** — Vercel (app) + Supabase Cloud (DB), DNS, SSL, env secrets, first smoke test

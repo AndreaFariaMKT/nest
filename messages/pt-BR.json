@@ -105,10 +105,15 @@
       "meetings": "Reuniões",
       "meetingsEmpty": "Nenhuma reunião ligada a esse cliente ainda.",
       "upcoming": "Próximas",
-      "past": "Passadas"
+      "past": "Passadas",
+      "portal": "Portal do cliente",
+      "portalEmpty": "Nenhum link gerado. Crie um pra deixar o cliente acompanhar posts + aprovações sem precisar de login."
     },
     "actions": {
-      "newMeeting": "Nova reunião"
+      "newMeeting": "Nova reunião",
+      "generatePortalToken": "Gerar link do portal",
+      "rotatePortalToken": "Trocar token",
+      "revokePortalToken": "Revogar"
     },
     "fields": {
       "name": "Nome",

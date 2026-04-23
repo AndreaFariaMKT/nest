@@ -12,6 +12,10 @@ import {
   daysRemainingInCycle,
 } from "@/lib/cycles";
 import type { BrandColor, Database } from "@/types/database";
+import {
+  generatePortalTokenAction,
+  revokePortalTokenAction,
+} from "../actions";
 import { ArchiveButton } from "./ArchiveButton";
 import {
   ClientServicesCard,
@@ -402,6 +406,79 @@ export default async function ClientDetailPage({
                 members={assignedMembers}
                 candidates={memberCandidates}
               />
+            </CardContent>
+          </Card>
+        ) : null}
+
+        {ownerView ? (
+          <Card data-testid="portal-card">
+            <CardHeader>
+              <CardTitle className="text-base">
+                {t("sections.portal")}
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="text-sm">
+              {client.portal_token ? (
+                <div className="space-y-3">
+                  <code className="block select-all overflow-x-auto rounded bg-muted px-2 py-1.5 text-xs">
+                    {(process.env.NEXT_PUBLIC_APP_URL?.replace(/\/$/, "") ??
+                      "http://localhost:3000") +
+                      `/p/${client.portal_token}`}
+                  </code>
+                  <div className="flex gap-2">
+                    <form action={generatePortalTokenAction}>
+                      <input
+                        type="hidden"
+                        name="clientId"
+                        value={client.id}
+                      />
+                      <input type="hidden" name="slug" value={client.slug} />
+                      <input type="hidden" name="locale" value={locale} />
+                      <button
+                        type="submit"
+                        className="inline-flex h-8 items-center rounded-md border border-input bg-background px-3 text-xs font-medium hover:bg-muted"
+                        data-testid="portal-rotate"
+                      >
+                        {t("actions.rotatePortalToken")}
+                      </button>
+                    </form>
+                    <form action={revokePortalTokenAction}>
+                      <input
+                        type="hidden"
+                        name="clientId"
+                        value={client.id}
+                      />
+                      <input type="hidden" name="slug" value={client.slug} />
+                      <input type="hidden" name="locale" value={locale} />
+                      <button
+                        type="submit"
+                        className="inline-flex h-8 items-center rounded-md border border-destructive/40 bg-background px-3 text-xs font-medium text-destructive hover:bg-destructive/10"
+                        data-testid="portal-revoke"
+                      >
+                        {t("actions.revokePortalToken")}
+                      </button>
+                    </form>
+                  </div>
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  <p className="text-muted-foreground">
+                    {t("sections.portalEmpty")}
+                  </p>
+                  <form action={generatePortalTokenAction}>
+                    <input type="hidden" name="clientId" value={client.id} />
+                    <input type="hidden" name="slug" value={client.slug} />
+                    <input type="hidden" name="locale" value={locale} />
+                    <button
+                      type="submit"
+                      className="inline-flex h-8 items-center rounded-md bg-primary px-3 text-xs font-medium text-primary-foreground hover:bg-primary/90"
+                      data-testid="portal-generate"
+                    >
+                      {t("actions.generatePortalToken")}
+                    </button>
+                  </form>
+                </div>
+              )}
             </CardContent>
           </Card>
         ) : null}

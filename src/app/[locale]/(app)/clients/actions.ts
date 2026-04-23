@@ -139,3 +139,52 @@ export async function archiveClientAction(formData: FormData): Promise<void> {
   revalidatePath(`/${locale}/clients`);
   redirect(localePath(locale, "/clients"));
 }
+
+// ───────────────────────────────────────────────────────────────────────────
+// Portal token — mint / rotate a token for /p/[token] read-only access
+// ───────────────────────────────────────────────────────────────────────────
+
+function generatePortalToken(): string {
+  const buf = new Uint8Array(32);
+  crypto.getRandomValues(buf);
+  return Array.from(buf)
+    .map((b) => b.toString(16).padStart(2, "0"))
+    .join("");
+}
+
+export async function generatePortalTokenAction(
+  formData: FormData,
+): Promise<void> {
+  const clientId = (formData.get("clientId") ?? "").toString();
+  const slug = (formData.get("slug") ?? "").toString();
+  const locale = (formData.get("locale") ?? "pt-BR").toString();
+  if (!clientId || !slug) return;
+
+  const token = generatePortalToken();
+  const supabase = await createSupabaseClient();
+  await supabase
+    .from("clients")
+    .update({ portal_token: token })
+    .eq("id", clientId);
+
+  revalidatePath(`/${locale}/clients/${slug}`);
+  redirect(localePath(locale, `/clients/${slug}`));
+}
+
+export async function revokePortalTokenAction(
+  formData: FormData,
+): Promise<void> {
+  const clientId = (formData.get("clientId") ?? "").toString();
+  const slug = (formData.get("slug") ?? "").toString();
+  const locale = (formData.get("locale") ?? "pt-BR").toString();
+  if (!clientId || !slug) return;
+
+  const supabase = await createSupabaseClient();
+  await supabase
+    .from("clients")
+    .update({ portal_token: null })
+    .eq("id", clientId);
+
+  revalidatePath(`/${locale}/clients/${slug}`);
+  redirect(localePath(locale, `/clients/${slug}`));
+}
