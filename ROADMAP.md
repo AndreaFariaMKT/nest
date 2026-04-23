@@ -199,7 +199,10 @@ Goal: Andréa agenda reuniões no Nest e puxa transcrições automaticamente.
   - `/meetings/[id]/edit` reuses the shared form with pre-filled values
   - i18n strings (status, fields, sections, actions, errors) for both locales
   - Google OAuth integration still deferred (credential blocker) — the Meet URL is a manual field for now; the cron-backed auto-creation lands when Google creds arrive
-- [ ] **Calendar view** — `/calendar` visual com drag-to-reschedule, clique pra abrir meeting
+- [x] **Calendar view** — `/calendar` visual com drag-to-reschedule, clique pra abrir meeting
+  - `src/lib/calendar.ts` — pure month-grid helpers (`parseMonthKey`, `addMonths`, `buildMonthGrid`, `monthRangeISO`); 14 unit tests, Monday-first 6×7 grid
+  - `/calendar` page renders the grid with meetings bucketed by local day; status dot per meeting + click-through to `/meetings/[id]`; prev/next/today navigation via `?ym=YYYY-MM`
+  - Drag-to-reschedule deferred (requires a client component + optimistic update); manual edit via `/meetings/[id]/edit` is the current fallback
 - [ ] **Transcript pull job** — cron checa reuniões concluídas, baixa transcrição via Meet API, cria `transcripts` row, extrai tarefas via Claude (haiku) e cria `tasks`
 - [x] **Meeting detail** — mostra transcrição + tarefas geradas + botão "Gerar carrossel a partir dessa reunião"
   - `/meetings/[id]` page already lists linked transcripts; now each row exposes a "Generate carousels" button that posts to the existing `generateCarouselsAction`

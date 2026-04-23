@@ -180,7 +180,11 @@
   },
   "calendar": {
     "title": "Calendário",
-    "subtitle": "Sincronizado com o Google Calendar."
+    "subtitle": "Reuniões do Nest. Sincronização com o Google Calendar entra em Sprint 9-10.",
+    "newMeeting": "Nova reunião",
+    "prev": "Anterior",
+    "next": "Próximo",
+    "today": "Hoje"
   },
   "meetings": {
     "title": "Reuniões",

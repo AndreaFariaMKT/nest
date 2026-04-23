@@ -180,7 +180,11 @@
   },
   "calendar": {
     "title": "Calendar",
-    "subtitle": "Synced with Google Calendar."
+    "subtitle": "Meetings tracked in Nest. Google Calendar sync lands in Sprint 9-10.",
+    "newMeeting": "New meeting",
+    "prev": "Previous",
+    "next": "Next",
+    "today": "Today"
   },
   "meetings": {
     "title": "Meetings",
