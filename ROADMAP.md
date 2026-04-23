@@ -129,7 +129,12 @@ Goal: primeiro post Factory publicado pelo Nest.
 - [x] Approval workflow — `approveDraftAction` + "Approve for scheduling" button on the draft editor header; gated by status (pre-approval states only); idempotent
 - [x] Instagram Graph API — `src/lib/instagram.ts` (Graph v21.0) + `/api/instagram/publish` endpoint. Real API verification deferred until META creds land; code path tested manually: 401 without bearer, 503 with missing Meta env + structured `missing[]` list. 8 unit tests for URL builders + env guard.
 - [x] Scheduling — inline scheduler on the draft editor (visible when status ∈ {approved, scheduled}): datetime-local picker + platform select → `scheduleDraftAction` inserts `scheduled_posts` with `status='pending'` and flips `content_drafts.status` to `scheduled`. Existing scheduled posts rendered in the card for quick audit.
-- [ ] **Cron publisher** — `/api/cron/publish` (Vercel Cron, a cada 5 min) pega `scheduled_posts` com `scheduled_for <= now()` e `status = pending` → publica → grava `published_posts` + métrica inicial
+- [x] **Cron publisher** — `/api/cron/publish` (Vercel Cron, a cada 5 min) pega `scheduled_posts` com `scheduled_for <= now()` e `status = pending` → publica → grava `published_posts` + métrica inicial
+  - `/api/cron/publish` route (GET + POST) bearer-gated with `CRON_SECRET`; returns 503 + `missing[]` when Meta creds absent so Vercel logs surface the blocker cleanly
+  - Picks up to 10 due rows ordered by `scheduled_for`; per row: gather latest creatives → `publishCarousel()` → insert `published_posts` + flip `scheduled_posts.status='published'` + `content_drafts.status='published'`; on failure increment `attempt_count` and record `last_error`, flip to `failed` after 3 attempts
+  - Skips LinkedIn/TikTok rows for now (wrappers come in Sprint 11-12) with `platform_unsupported:<p>` reason
+  - `vercel.json` cron schedule: `*/5 * * * *`
+  - curl verified: 401 unauth, 401 bad bearer, 503 creds missing (structured `missing[]`); success + failure paths unblocked by Meta creds
 
 **Entrega:** Andréa publica primeiro post da Factory via Nest.
 
