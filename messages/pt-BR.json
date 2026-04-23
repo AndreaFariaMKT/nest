@@ -469,7 +469,8 @@
   },
   "reports": {
     "title": "Relatórios",
-    "subtitle": "Análise de desempenho entre plataformas.",
+    "subtitle": "Recaps mensais escritos pelo Claude, por cliente. Gráficos de métricas entram quando o Meta sincronizar.",
+    "listEmpty": "Nenhum relatório ainda. Gere um pela página de detalhe do cliente.",
     "monthlyTitle": "Recap · {period}",
     "generatedAt": "Gerado em {when}",
     "sections": {

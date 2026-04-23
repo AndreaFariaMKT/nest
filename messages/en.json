@@ -469,7 +469,8 @@
   },
   "reports": {
     "title": "Reports",
-    "subtitle": "Performance analytics across platforms.",
+    "subtitle": "Claude-written monthly recaps per client. Metrics charts land once Meta integration ships.",
+    "listEmpty": "No reports yet. Generate one from a client's detail page.",
     "monthlyTitle": "Recap · {period}",
     "generatedAt": "Generated {when}",
     "sections": {
