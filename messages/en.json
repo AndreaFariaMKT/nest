@@ -83,7 +83,12 @@
       "attachMember": "Attach",
       "detachMember": "Remove",
       "pickMember": "Pick a teammate…",
-      "noStaff": "No staff members to assign — invite someone from /team."
+      "noStaff": "No staff members to assign — invite someone from /team.",
+      "newMeeting": "New meeting",
+      "generatePortalToken": "Generate portal link",
+      "rotatePortalToken": "Rotate token",
+      "revokePortalToken": "Revoke",
+      "generateMonthlyReport": "Generate this month's report"
     },
     "sections": {
       "details": "Details",
@@ -110,13 +115,6 @@
       "portalEmpty": "No portal link yet. Generate one to let the client see upcoming posts and pending approvals without a login.",
       "reports": "Monthly report",
       "reportsHint": "Generate a Claude-written monthly recap — highlights, lessons, and next-month pillars."
-    },
-    "actions": {
-      "newMeeting": "New meeting",
-      "generatePortalToken": "Generate portal link",
-      "rotatePortalToken": "Rotate token",
-      "revokePortalToken": "Revoke",
-      "generateMonthlyReport": "Generate this month's report"
     },
     "fields": {
       "name": "Name",

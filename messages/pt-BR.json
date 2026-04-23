@@ -83,7 +83,12 @@
       "attachMember": "Anexar",
       "detachMember": "Remover",
       "pickMember": "Escolha um integrante…",
-      "noStaff": "Ninguém na equipe pra atribuir — convide alguém em /team."
+      "noStaff": "Ninguém na equipe pra atribuir — convide alguém em /team.",
+      "newMeeting": "Nova reunião",
+      "generatePortalToken": "Gerar link do portal",
+      "rotatePortalToken": "Trocar token",
+      "revokePortalToken": "Revogar",
+      "generateMonthlyReport": "Gerar relatório do mês"
     },
     "sections": {
       "details": "Detalhes",
@@ -110,13 +115,6 @@
       "portalEmpty": "Nenhum link gerado. Crie um pra deixar o cliente acompanhar posts + aprovações sem precisar de login.",
       "reports": "Relatório mensal",
       "reportsHint": "Gera um recap mensal escrito pelo Claude — destaques, aprendizados e pilares pro próximo ciclo."
-    },
-    "actions": {
-      "newMeeting": "Nova reunião",
-      "generatePortalToken": "Gerar link do portal",
-      "rotatePortalToken": "Trocar token",
-      "revokePortalToken": "Revogar",
-      "generateMonthlyReport": "Gerar relatório do mês"
     },
     "fields": {
       "name": "Nome",
