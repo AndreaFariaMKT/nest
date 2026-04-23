@@ -5,6 +5,7 @@ import {
   readCredentials,
   InstagramApiError,
 } from "@/lib/instagram";
+import { log } from "@/lib/log";
 
 export const dynamic = "force-dynamic";
 
@@ -125,8 +126,10 @@ async function handler(request: NextRequest) {
   }
   const due = (dueData ?? []) as ScheduledRow[];
   if (due.length === 0) {
+    log.debug("cron.publish", "queue empty");
     return NextResponse.json({ processed: 0, published: 0, failed: 0 });
   }
+  log.info("cron.publish", "run started", { dueCount: due.length });
 
   const summary = {
     processed: 0,
@@ -226,13 +229,25 @@ async function handler(request: NextRequest) {
         .eq("id", draft.id);
 
       summary.published += 1;
+      log.info("cron.publish", "published", {
+        scheduledId: row.id,
+        draftId: draft.id,
+        externalId: outcome.publishedId,
+      });
     } else {
       summary.failed += 1;
       summary.errors.push({ scheduledId: row.id, reason: outcome.error });
+      log.warn("cron.publish", "publish failed", {
+        scheduledId: row.id,
+        draftId: row.draft_id,
+        attempt: row.attempt_count + 1,
+        reason: outcome.error,
+      });
       await bumpFailure(admin, row, outcome.error);
     }
   }
 
+  log.info("cron.publish", "run complete", summary as unknown as Record<string, unknown>);
   return NextResponse.json(summary);
 }
 
