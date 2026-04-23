@@ -202,7 +202,10 @@ Goal: Andréa agenda reuniões no Nest e puxa transcrições automaticamente.
 - [ ] **Calendar view** — `/calendar` visual com drag-to-reschedule, clique pra abrir meeting
 - [ ] **Transcript pull job** — cron checa reuniões concluídas, baixa transcrição via Meet API, cria `transcripts` row, extrai tarefas via Claude (haiku) e cria `tasks`
 - [ ] **Meeting detail** — mostra transcrição + tarefas geradas + botão "Gerar carrossel a partir dessa reunião"
-- [ ] **Today page · parte 2** — reuniões de hoje + amanhã
+- [x] **Today page · parte 2** — reuniões de hoje + amanhã
+  - Replaced the meetings skeleton card with a real list (meetings between now and end of tomorrow, non-cancelled, top 8 by start time)
+  - Shows title + start time + client; clicks through to `/meetings/[id]`
+  - Falls back to a friendly empty state when nothing is upcoming
 
 **Entrega:** Andréa agenda tudo no Nest, transcrições viram tarefas e conteúdo.
 

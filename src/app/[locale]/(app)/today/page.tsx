@@ -5,7 +5,7 @@ import { Pill } from "@/components/ui/Pill";
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentProfile, isOwner } from "@/lib/auth";
 import { formatCentsAsBrl, sumCents } from "@/lib/money";
-import type { TaskPriority, TaskStatus } from "@/types/database";
+import type { MeetingStatus, TaskPriority, TaskStatus } from "@/types/database";
 
 type TodayTask = {
   id: string;
@@ -13,6 +13,15 @@ type TodayTask = {
   priority: TaskPriority;
   status: TaskStatus;
   due_at: string | null;
+};
+
+type TodayMeeting = {
+  id: string;
+  title: string;
+  starts_at: string;
+  status: MeetingStatus;
+  google_meet_url: string | null;
+  client: { name: string } | Array<{ name: string }> | null;
 };
 
 const priorityTone = {
@@ -28,6 +37,19 @@ function tomorrowUtcMidnight(): string {
     Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() + 1, 0, 0, 0),
   );
   return t.toISOString();
+}
+
+function dayAfterTomorrowUtcMidnight(): string {
+  const now = new Date();
+  const t = new Date(
+    Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() + 2, 0, 0, 0),
+  );
+  return t.toISOString();
+}
+
+function pickOne<T>(v: T | T[] | null): T | null {
+  if (!v) return null;
+  return Array.isArray(v) ? v[0] ?? null : v;
 }
 
 export default async function TodayPage({
@@ -90,6 +112,21 @@ export default async function TodayPage({
       .limit(10);
     tasks = (data ?? []) as TodayTask[];
   }
+
+  // Meetings starting between now and the end of tomorrow (local-ish window
+  // via UTC midnight cutoff — good enough for the Today panel).
+  const nowIso = new Date().toISOString();
+  const { data: meetingsData } = await supabase
+    .from("meetings")
+    .select(
+      "id, title, starts_at, status, google_meet_url, client:clients(name)",
+    )
+    .gte("starts_at", nowIso)
+    .lt("starts_at", dayAfterTomorrowUtcMidnight())
+    .neq("status", "cancelled")
+    .order("starts_at", { ascending: true })
+    .limit(8);
+  const meetings = (meetingsData ?? []) as unknown as TodayMeeting[];
 
   return (
     <div className="mx-auto max-w-5xl">
@@ -158,10 +195,46 @@ export default async function TodayPage({
           </CardContent>
         </Card>
 
-        <SkeletonCard
-          title={t("blocks.meetings.title")}
-          hint={t("blocks.meetings.hint")}
-        />
+        <Card data-testid="today-block">
+          <CardHeader>
+            <CardTitle className="text-base">
+              {t("blocks.meetings.title")}
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="text-sm">
+            {meetings.length === 0 ? (
+              <p className="text-muted-foreground">
+                {t("blocks.meetings.empty")}
+              </p>
+            ) : (
+              <ul className="space-y-1.5">
+                {meetings.map((m) => {
+                  const client = pickOne(m.client);
+                  return (
+                    <li key={m.id} data-testid="today-meeting">
+                      <Link
+                        href={`/meetings/${m.id}`}
+                        className="group flex items-start justify-between gap-2 rounded-md px-2 py-1.5 hover:bg-muted"
+                      >
+                        <div className="min-w-0 flex-1">
+                          <span className="block truncate">{m.title}</span>
+                          <span className="text-xs text-muted-foreground">
+                            {new Intl.DateTimeFormat(locale, {
+                              dateStyle: "short",
+                              timeStyle: "short",
+                            }).format(new Date(m.starts_at))}
+                            {client ? ` · ${client.name}` : ""}
+                          </span>
+                        </div>
+                      </Link>
+                    </li>
+                  );
+                })}
+              </ul>
+            )}
+          </CardContent>
+        </Card>
+
         <SkeletonCard
           title={t("blocks.approvals.title")}
           hint={t("blocks.approvals.hint")}
