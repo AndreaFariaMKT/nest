@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
+import { auditEnv } from "@/lib/env";
 
 export const dynamic = "force-dynamic";
 
@@ -46,12 +47,19 @@ export async function GET() {
     dbOk = false;
   }
 
+  const envReport = auditEnv();
   const body = {
     status: dbOk ? "ok" : "degraded",
     version: appVersion(),
     uptimeSec: Math.round(process.uptime()),
     checks: {
       db: { ok: dbOk, latencyMs: dbMs },
+      env: {
+        ok: envReport.ok,
+        inactiveOptional: envReport.inactiveOptional,
+        missingCount: envReport.missingRequired.length,
+        invalidCount: envReport.invalid.length,
+      },
     },
     elapsedMs: Date.now() - started,
   };
