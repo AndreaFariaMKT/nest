@@ -1,12 +1,22 @@
 import { setRequestLocale, getTranslations } from "next-intl/server";
 import { notFound } from "next/navigation";
 import { Link } from "@/i18n/routing";
+import { Pill } from "@/components/ui/Pill";
 import { createClient } from "@/lib/supabase/server";
 import type { Database } from "@/types/database";
 import { DraftEditForm, type InitialSlide } from "./DraftEditForm";
+
+function complianceTone(
+  severity: "ok" | "warning" | "block",
+): "success" | "warning" | "danger" {
+  if (severity === "block") return "danger";
+  if (severity === "warning") return "warning";
+  return "success";
+}
 import {
   aiRewriteDraftAction,
   approveDraftAction,
+  checkComplianceAction,
   renderCreativesAction,
   scheduleDraftAction,
 } from "../../../actions";
@@ -83,6 +93,23 @@ export default async function DraftEditPage({
 
   const canSchedule = ["approved", "scheduled"].includes(draft.status);
 
+  // Compliance report (JSONB column populated by checkComplianceAction)
+  type ComplianceIssueView = {
+    rule: string;
+    location: string;
+    description: string;
+    severity: "warning" | "block";
+  };
+  type ComplianceReportView = {
+    severity: "ok" | "warning" | "block";
+    summary: string;
+    issues: ComplianceIssueView[];
+    checkedAt: string;
+    model: string;
+  };
+  const complianceReport =
+    (draft.compliance_report as ComplianceReportView | null) ?? null;
+
   // Existing scheduled posts for this draft (if any) — shown below the form.
   const { data: scheduledData } = await supabase
     .from("scheduled_posts")
@@ -135,6 +162,78 @@ export default async function DraftEditPage({
           </form>
         ) : null}
       </div>
+
+      {initialSlides.length > 0 ? (
+        <section
+          className="mb-8 rounded-lg border border-border bg-card p-5"
+          data-testid="compliance-panel"
+        >
+          <div className="mb-3 flex items-baseline justify-between gap-4">
+            <h2 className="font-display text-xl">{t("compliance.title")}</h2>
+            <form action={checkComplianceAction}>
+              <input type="hidden" name="draftId" value={draft.id} />
+              <input type="hidden" name="locale" value={locale} />
+              <button
+                type="submit"
+                className="inline-flex h-9 items-center rounded-md border border-input bg-background px-3 text-xs text-muted-foreground hover:bg-muted"
+                data-testid="run-compliance"
+              >
+                {complianceReport
+                  ? t("compliance.recheck")
+                  : t("compliance.run")}
+              </button>
+            </form>
+          </div>
+          {complianceReport ? (
+            <div className="space-y-3">
+              <div className="flex items-center gap-3">
+                <Pill tone={complianceTone(complianceReport.severity)}>
+                  {t(`compliance.severity.${complianceReport.severity}`)}
+                </Pill>
+                <span className="text-sm">
+                  {complianceReport.summary || t("compliance.noSummary")}
+                </span>
+              </div>
+              {complianceReport.issues.length > 0 ? (
+                <ul className="space-y-2">
+                  {complianceReport.issues.map((issue, idx) => (
+                    <li
+                      key={idx}
+                      className="rounded-md border border-border bg-background p-3 text-sm"
+                      data-testid="compliance-issue"
+                    >
+                      <div className="mb-1 flex items-center gap-2 text-xs">
+                        <Pill tone={complianceTone(issue.severity)}>
+                          {t(`compliance.severity.${issue.severity}`)}
+                        </Pill>
+                        <span className="font-medium">{issue.rule}</span>
+                        <span className="text-muted-foreground">
+                          · {issue.location}
+                        </span>
+                      </div>
+                      <p className="text-muted-foreground">
+                        {issue.description}
+                      </p>
+                    </li>
+                  ))}
+                </ul>
+              ) : null}
+              <p className="text-xs text-muted-foreground">
+                {t("compliance.checkedAt", {
+                  when: new Intl.DateTimeFormat(locale, {
+                    dateStyle: "short",
+                    timeStyle: "short",
+                  }).format(new Date(complianceReport.checkedAt)),
+                })}
+              </p>
+            </div>
+          ) : (
+            <p className="text-sm text-muted-foreground">
+              {t("compliance.empty")}
+            </p>
+          )}
+        </section>
+      ) : null}
 
       {initialSlides.length > 0 ? (
         <section

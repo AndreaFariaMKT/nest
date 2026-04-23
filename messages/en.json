@@ -247,6 +247,19 @@
       "placeholder": "e.g. 'shorten the headlines' · 'tom mais informal' · 'add a stronger CTA on the last slide'",
       "submit": "Rewrite draft"
     },
+    "compliance": {
+      "title": "Compliance check",
+      "run": "Run check",
+      "recheck": "Re-run",
+      "empty": "No check yet. Run it to validate against CVM / OAB / ANVISA / LGPD before scheduling.",
+      "noSummary": "No summary returned.",
+      "checkedAt": "Checked {when}",
+      "severity": {
+        "ok": "OK",
+        "warning": "Warning",
+        "block": "Block"
+      }
+    },
     "draftStatus": {
       "draft": "Draft",
       "text_review": "Text review",

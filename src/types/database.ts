@@ -111,6 +111,7 @@ export interface Database {
           caption: string | null;
           hashtags: string[];
           status: string;
+          compliance_report: Record<string, unknown> | null;
           created_by: string | null;
           created_at: string;
           updated_at: string;

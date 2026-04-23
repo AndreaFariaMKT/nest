@@ -27,6 +27,13 @@ import {
   embedText,
   vectorToSql,
 } from "@/lib/embeddings";
+import {
+  buildComplianceSystem,
+  buildComplianceUser,
+  ComplianceParseError,
+  detectDomains,
+  parseComplianceReport,
+} from "@/lib/compliance";
 import type { BrandColor, BrandTypography } from "@/types/database";
 
 export type TranscriptFormState = {
@@ -536,6 +543,114 @@ export async function aiRewriteDraftAction(formData: FormData): Promise<void> {
     tokens_out: result.usage.outputTokens,
     created_by: user?.id ?? null,
   });
+
+  revalidatePath(`/${locale}/content-engine/drafts/${draftId}/edit`);
+  if (draft.transcript_id) {
+    revalidatePath(
+      `/${locale}/content-engine/transcripts/${draft.transcript_id}`,
+    );
+  }
+  redirect(localePath(locale, `/content-engine/drafts/${draftId}/edit`));
+}
+
+// ───────────────────────────────────────────────────────────────────────────
+// Compliance check (CVM / OAB / ANVISA / LGPD) via Claude
+// ───────────────────────────────────────────────────────────────────────────
+
+export async function checkComplianceAction(formData: FormData): Promise<void> {
+  const draftId = (formData.get("draftId") ?? "").toString();
+  const locale = (formData.get("locale") ?? "pt-BR").toString();
+  if (!draftId) return;
+
+  const supabase = await createSupabaseClient();
+
+  type JoinedDraft = {
+    id: string;
+    client_id: string;
+    transcript_id: string | null;
+    title: string;
+    pillar: string | null;
+    hook: string | null;
+    caption: string | null;
+    hashtags: string[];
+    slides: Array<{
+      position: number;
+      headline: string | null;
+      body: string | null;
+    }>;
+    client:
+      | { name: string; industry: string | null }
+      | Array<{ name: string; industry: string | null }>
+      | null;
+  };
+
+  const { data } = await supabase
+    .from("content_drafts")
+    .select(
+      `id, client_id, transcript_id, title, pillar, hook, caption, hashtags,
+       slides(position, headline, body),
+       client:clients(name, industry)`,
+    )
+    .eq("id", draftId)
+    .maybeSingle();
+  if (!data) return;
+  const draft = data as unknown as JoinedDraft;
+  const client = pickOne(draft.client);
+  if (!client) return;
+
+  const orderedSlides = [...(draft.slides ?? [])].sort(
+    (a, b) => a.position - b.position,
+  );
+
+  const domains = detectDomains(client.industry);
+  const systemText = buildComplianceSystem(domains);
+  const userText = buildComplianceUser(
+    {
+      title: draft.title,
+      pillar: draft.pillar,
+      hook: draft.hook,
+      caption: draft.caption,
+      hashtags: draft.hashtags ?? [],
+      slides: orderedSlides.map((s) => ({
+        headline: s.headline ?? "",
+        body: s.body ?? "",
+      })),
+    },
+    { name: client.name, industry: client.industry },
+  );
+
+  let result;
+  try {
+    result = await generate({
+      kind: "extract", // haiku — fast + cheap; compliance is classification-ish
+      system: [{ type: "text", text: systemText }],
+      messages: [{ role: "user", content: userText }],
+      maxTokens: 8_000,
+    });
+  } catch (err) {
+    console.error("[compliance] Claude call failed", err);
+    return;
+  }
+
+  let parsed;
+  try {
+    parsed = parseComplianceReport(result.text, "claude-haiku-4-5");
+  } catch (err) {
+    const msg =
+      err instanceof ComplianceParseError ? err.message : "parse failed";
+    console.error("[compliance] parse error:", msg, result.text.slice(-300));
+    return;
+  }
+
+  const report = {
+    ...parsed,
+    checkedAt: new Date().toISOString(),
+  };
+
+  await supabase
+    .from("content_drafts")
+    .update({ compliance_report: report } as never)
+    .eq("id", draftId);
 
   revalidatePath(`/${locale}/content-engine/drafts/${draftId}/edit`);
   if (draft.transcript_id) {

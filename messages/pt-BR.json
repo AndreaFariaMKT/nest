@@ -247,6 +247,19 @@
       "placeholder": "ex.: 'encurta os headlines' · 'tom mais informal' · 'adiciona um CTA forte no último slide'",
       "submit": "Refinar draft"
     },
+    "compliance": {
+      "title": "Checagem de compliance",
+      "run": "Rodar check",
+      "recheck": "Rodar de novo",
+      "empty": "Nenhum check ainda. Rode pra validar contra CVM / OAB / ANVISA / LGPD antes de agendar.",
+      "noSummary": "Sem resumo.",
+      "checkedAt": "Verificado {when}",
+      "severity": {
+        "ok": "OK",
+        "warning": "Atenção",
+        "block": "Bloqueio"
+      }
+    },
     "draftStatus": {
       "draft": "Rascunho",
       "text_review": "Revisão de texto",

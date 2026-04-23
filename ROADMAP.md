@@ -147,6 +147,11 @@ Goal: fluxo completo pra Nayara.
   - retrieval in `generateCarouselsAction`: embed transcript → `match_drafts()` RPC → top-10 similar by cosine, falls back to "last 10 titles" when no embeddings exist
   - shipped but inactive until `VOYAGE_API_KEY` lands
 - [ ] **Compliance checks** — Claude prompt pipelines por segmento (CVM para financeiro, OAB para jurídico); gera warnings inline
+  - migration 007: `content_drafts.compliance_report jsonb` column
+  - `src/lib/compliance.ts` — `buildCompliancePrompt(draft, client)` + `parseComplianceReport(raw)` pure helpers
+  - `checkComplianceAction` — calls Claude (kind: extract → haiku for cost), parses + saves JSONB
+  - UI block on draft editor: "Run compliance check" + report panel (severity pill + findings list)
+  - industry-aware: Claude applies CVM rules when client.industry ~ "financ|invest", OAB for "jurid|adv", LGPD always
 - [ ] **Public approval link** — `/a/[token]` (sem auth) mostra carrossel pro cliente aprovar/comentar/rejeitar; `approvals` table atualizada via service role
 - [ ] **Reels / vídeo** — `content_drafts` extension: `video_script` field, upload do vídeo final pelo usuário, fluxo de agendamento adaptado
 - [ ] **Adaptações multi-plataforma** — action "adapt for LinkedIn/TikTok" cria drafts derivados com tone/length ajustado
