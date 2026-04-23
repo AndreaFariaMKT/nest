@@ -121,3 +121,59 @@ export async function deleteMeetingAction(formData: FormData): Promise<void> {
   revalidatePath(`/${locale}/meetings`);
   redirect(localePath(locale, "/meetings"));
 }
+
+/**
+ * Drop-to-reschedule: shifts a meeting to a new date, preserving the
+ * original local time-of-day. Called from the calendar grid's drag handler.
+ *
+ * Input:
+ *   meetingId — uuid
+ *   newDate   — YYYY-MM-DD (the target calendar cell)
+ *   locale    — for revalidation path
+ */
+export async function rescheduleMeetingAction(
+  formData: FormData,
+): Promise<{ ok: boolean; error?: string }> {
+  const meetingId = (formData.get("meetingId") ?? "").toString();
+  const newDate = (formData.get("newDate") ?? "").toString();
+  const locale = (formData.get("locale") ?? "pt-BR").toString();
+  if (!meetingId) return { ok: false, error: "missing_id" };
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(newDate)) {
+    return { ok: false, error: "bad_date" };
+  }
+
+  const supabase = await createSupabaseClient();
+  const { data: existing } = await supabase
+    .from("meetings")
+    .select("starts_at, ends_at")
+    .eq("id", meetingId)
+    .maybeSingle();
+  if (!existing) return { ok: false, error: "not_found" };
+
+  // Preserve the local hour/minute; only replace the date portion.
+  const oldStarts = new Date(existing.starts_at);
+  const [y, m, d] = newDate.split("-").map((n) => Number.parseInt(n, 10));
+  const newStarts = new Date(oldStarts);
+  newStarts.setFullYear(y, m - 1, d);
+
+  const patch: Record<string, unknown> = {
+    starts_at: newStarts.toISOString(),
+  };
+  if (existing.ends_at) {
+    const oldEnds = new Date(existing.ends_at);
+    const deltaMs = newStarts.getTime() - oldStarts.getTime();
+    const newEnds = new Date(oldEnds.getTime() + deltaMs);
+    patch.ends_at = newEnds.toISOString();
+  }
+
+  const { error } = await supabase
+    .from("meetings")
+    .update(patch)
+    .eq("id", meetingId);
+  if (error) return { ok: false, error: error.message };
+
+  revalidatePath(`/${locale}/calendar`);
+  revalidatePath(`/${locale}/meetings`);
+  revalidatePath(`/${locale}/meetings/${meetingId}`);
+  return { ok: true };
+}

@@ -1,7 +1,7 @@
 import { setRequestLocale, getTranslations } from "next-intl/server";
 import { Link } from "@/i18n/routing";
 import { createClient } from "@/lib/supabase/server";
-import type { Database, MeetingStatus } from "@/types/database";
+import type { Database } from "@/types/database";
 import {
   addMonths,
   buildMonthGrid,
@@ -9,17 +9,15 @@ import {
   monthRangeISO,
   parseMonthKey,
 } from "@/lib/calendar";
+import {
+  CalendarGrid,
+  type CalendarMeeting,
+} from "./_components/CalendarGrid";
 
 type Meeting = Pick<
   Database["public"]["Tables"]["meetings"]["Row"],
   "id" | "title" | "starts_at" | "status" | "client_id"
 >;
-
-function statusDotColor(s: MeetingStatus): string {
-  if (s === "completed") return "bg-emerald-500";
-  if (s === "cancelled") return "bg-destructive/60";
-  return "bg-primary";
-}
 
 export default async function CalendarPage({
   params,
@@ -47,18 +45,22 @@ export default async function CalendarPage({
     .order("starts_at", { ascending: true });
   const meetings = (meetingsData ?? []) as Meeting[];
 
-  // Bucket meetings by YYYY-MM-DD in the local timezone for cell lookup.
-  const byDay = new Map<string, Meeting[]>();
-  for (const m of meetings) {
+  // Pre-compute dateKey for each meeting so the client component doesn't
+  // have to re-bucket; also keeps the server as the source of truth for
+  // time-zone normalization.
+  const calendarMeetings: CalendarMeeting[] = meetings.map((m) => {
     const d = new Date(m.starts_at);
     const y = d.getFullYear();
     const mm = String(d.getMonth() + 1).padStart(2, "0");
     const dd = String(d.getDate()).padStart(2, "0");
-    const bucket = `${y}-${mm}-${dd}`;
-    const list = byDay.get(bucket) ?? [];
-    list.push(m);
-    byDay.set(bucket, list);
-  }
+    return {
+      id: m.id,
+      title: m.title,
+      starts_at: m.starts_at,
+      status: m.status,
+      dateKey: `${y}-${mm}-${dd}`,
+    };
+  });
 
   const monthLabel = new Intl.DateTimeFormat(locale, {
     month: "long",
@@ -123,58 +125,14 @@ export default async function CalendarPage({
         </div>
       </div>
 
-      <div className="grid grid-cols-7 gap-px overflow-hidden rounded-lg border border-border bg-border text-sm">
-        {weekdayLabels.map((label) => (
-          <div
-            key={label}
-            className="bg-card px-2 py-1.5 text-center text-xs uppercase tracking-wide text-muted-foreground"
-          >
-            {label}
-          </div>
-        ))}
-        {grid.map((cell) => {
-          const dayMeetings = byDay.get(cell.date) ?? [];
-          const isToday = cell.date === todayKey;
-          return (
-            <div
-              key={cell.date}
-              className={`min-h-[90px] bg-background p-2 ${
-                cell.outside ? "text-muted-foreground/60" : "text-foreground"
-              }`}
-              data-testid="calendar-cell"
-              data-date={cell.date}
-            >
-              <div className="mb-1 flex items-center justify-between">
-                <span
-                  className={`text-xs font-medium ${
-                    isToday
-                      ? "flex h-5 w-5 items-center justify-center rounded-full bg-primary text-primary-foreground"
-                      : ""
-                  }`}
-                >
-                  {cell.dayOfMonth}
-                </span>
-              </div>
-              <ul className="space-y-1">
-                {dayMeetings.map((m) => (
-                  <li key={m.id}>
-                    <Link
-                      href={`/meetings/${m.id}`}
-                      className="flex items-center gap-1.5 truncate rounded-sm px-1 py-0.5 text-xs hover:bg-muted"
-                      data-testid="calendar-meeting"
-                    >
-                      <span
-                        className={`h-1.5 w-1.5 shrink-0 rounded-full ${statusDotColor(m.status)}`}
-                      />
-                      <span className="truncate">{m.title}</span>
-                    </Link>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          );
-        })}
-      </div>
+      <CalendarGrid
+        locale={locale}
+        cells={grid}
+        weekdayLabels={weekdayLabels}
+        meetings={calendarMeetings}
+        todayKey={todayKey}
+      />
+      <p className="mt-3 text-xs text-muted-foreground">{t("dragHint")}</p>
     </>
   );
 }

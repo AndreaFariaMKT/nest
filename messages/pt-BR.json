@@ -203,7 +203,8 @@
     "newMeeting": "Nova reunião",
     "prev": "Anterior",
     "next": "Próximo",
-    "today": "Hoje"
+    "today": "Hoje",
+    "dragHint": "Arraste uma reunião pra outro dia pra remarcar. O horário é preservado."
   },
   "meetings": {
     "title": "Reuniões",

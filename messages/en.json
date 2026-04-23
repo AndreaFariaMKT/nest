@@ -203,7 +203,8 @@
     "newMeeting": "New meeting",
     "prev": "Previous",
     "next": "Next",
-    "today": "Today"
+    "today": "Today",
+    "dragHint": "Drag a meeting onto another day to reschedule. Time of day is preserved."
   },
   "meetings": {
     "title": "Meetings",
