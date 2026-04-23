@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { createClient as createServiceClient } from "@supabase/supabase-js";
 import { notifyUser } from "@/lib/notifications";
+import { checkRateLimit } from "@/lib/rate-limit";
 
 function admin() {
   return createServiceClient(
@@ -74,11 +75,23 @@ async function persistResponse(
   }
 }
 
+// Throttle per-token. A legitimate client clicks approve or reject once;
+// anything beyond 10/min for the same token is either a bug or abuse.
+function approvalRateLimitOk(token: string): boolean {
+  const rl = checkRateLimit({
+    key: `approval:${token}`,
+    limit: 10,
+    windowMs: 60_000,
+  });
+  return rl.allowed;
+}
+
 export async function approveViaTokenAction(formData: FormData): Promise<void> {
   const token = (formData.get("token") ?? "").toString();
   const comment = ((formData.get("comment") ?? "").toString().trim() || null);
   const locale = (formData.get("locale") ?? "pt-BR").toString();
   if (!token) return;
+  if (!approvalRateLimitOk(token)) return;
 
   await persistResponse(token, "approve", comment);
 
@@ -91,6 +104,7 @@ export async function rejectViaTokenAction(formData: FormData): Promise<void> {
   const comment = ((formData.get("comment") ?? "").toString().trim() || null);
   const locale = (formData.get("locale") ?? "pt-BR").toString();
   if (!token) return;
+  if (!approvalRateLimitOk(token)) return;
 
   await persistResponse(token, "reject", comment);
 

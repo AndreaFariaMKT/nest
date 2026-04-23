@@ -5,6 +5,7 @@ import {
   readCredentials,
   InstagramApiError,
 } from "@/lib/instagram";
+import { checkRateLimit, ipFromHeaders } from "@/lib/rate-limit";
 
 export const dynamic = "force-dynamic";
 
@@ -22,6 +23,21 @@ export const dynamic = "force-dynamic";
  * ANTHROPIC→IG pipeline has a hole that needs credentials, not code.
  */
 export async function POST(request: NextRequest) {
+  // Rate limit per IP — publishing is rare + heavy, 6/min is plenty for
+  // manual retries and blocks runaway loops.
+  const ip = ipFromHeaders(request.headers);
+  const rl = checkRateLimit({
+    key: `ig.publish:${ip}`,
+    limit: 6,
+    windowMs: 60_000,
+  });
+  if (!rl.allowed) {
+    return NextResponse.json(
+      { error: "rate_limited", resetMs: rl.resetMs },
+      { status: 429 },
+    );
+  }
+
   const expected = process.env.CRON_SECRET;
   if (!expected) {
     return NextResponse.json({ error: "no CRON_SECRET set" }, { status: 500 });

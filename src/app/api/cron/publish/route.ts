@@ -6,6 +6,7 @@ import {
   InstagramApiError,
 } from "@/lib/instagram";
 import { log } from "@/lib/log";
+import { checkRateLimit, ipFromHeaders } from "@/lib/rate-limit";
 
 export const dynamic = "force-dynamic";
 
@@ -89,6 +90,22 @@ type AttemptOutcome =
   | { ok: false; error: string };
 
 async function handler(request: NextRequest) {
+  // Rate limit by caller IP — even with a valid bearer, a misconfigured
+  // cron runner shouldn't stampede. 12/min leaves plenty of headroom for
+  // the */5 min schedule + manual retries.
+  const ip = ipFromHeaders(request.headers);
+  const rl = checkRateLimit({
+    key: `cron.publish:${ip}`,
+    limit: 12,
+    windowMs: 60_000,
+  });
+  if (!rl.allowed) {
+    return NextResponse.json(
+      { error: "rate_limited", resetMs: rl.resetMs },
+      { status: 429 },
+    );
+  }
+
   const expected = process.env.CRON_SECRET;
   if (!expected) {
     return NextResponse.json({ error: "no_cron_secret" }, { status: 500 });

@@ -1,6 +1,7 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import { currentYearMonth, cycleBounds } from "@/lib/cycles";
+import { checkRateLimit, ipFromHeaders } from "@/lib/rate-limit";
 
 export const dynamic = "force-dynamic";
 
@@ -13,6 +14,21 @@ export const dynamic = "force-dynamic";
  * Uses the service-role key (safe: we're on the server, not the browser).
  */
 async function handler(request: NextRequest) {
+  // Rate limit by IP — cycles runs monthly, so 4/min is enough for the
+  // scheduled firing + ad-hoc manual retries during incident response.
+  const ip = ipFromHeaders(request.headers);
+  const rl = checkRateLimit({
+    key: `cron.cycles:${ip}`,
+    limit: 4,
+    windowMs: 60_000,
+  });
+  if (!rl.allowed) {
+    return NextResponse.json(
+      { error: "rate_limited", resetMs: rl.resetMs },
+      { status: 429 },
+    );
+  }
+
   const authHeader = request.headers.get("authorization") ?? "";
   const expected = process.env.CRON_SECRET;
 
