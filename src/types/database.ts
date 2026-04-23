@@ -1,6 +1,9 @@
 // Minimal hand-rolled types for the tables the app currently touches.
-// TODO: replace with `supabase gen types typescript --local > database.ts`
-// once we automate it (tracked for Sprint 2 polish).
+//
+// Canonical generated types live in `./database.gen.ts` — refresh via
+// `npm run types:gen`. The swap to `Database` from the generated file is
+// tracked as a cross-cutting slice in ROADMAP §4.1; until then, both files
+// coexist and we keep this hand-rolled set aligned with the schema by hand.
 
 export type ClientStatus = "prospect" | "active" | "paused" | "archived";
 export type UserRole = "owner" | "staff" | "client";

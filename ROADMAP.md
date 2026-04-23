@@ -250,7 +250,10 @@ Goal: v1.0 em produção.
 Não pertencem a nenhuma sprint específica — vão acontecendo em paralelo.
 
 ### 4.1 Types generation
-- [ ] Script `npm run types:gen` que roda `supabase gen types typescript --local > src/types/database.gen.ts`
+- [x] Script `npm run types:gen` que roda `supabase gen types typescript --local > src/types/database.gen.ts`
+  - Also added `npm run types:check` for CI drift detection
+  - `database.gen.ts` seeded (1417 lines, all tables / enums / functions / triggers)
+  - Swap from hand-rolled `database.ts` → generated file still pending (next bullet)
 - [ ] Substituir `database.ts` manual pelo gerado, commitar
 - [ ] CI check: se `.gen.ts` tiver drift comparado ao gerado no momento do CI, falhar
 
