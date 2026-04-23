@@ -223,7 +223,13 @@ Goal: v1.0 em produção.
 
 - [ ] **Metrics collection** — cron diário pega métricas de todos `published_posts` via Graph API; insere time-series em `post_metrics`
 - [ ] **KPI dashboard** — `/reports` com filtro por cliente + período, gráficos (reach, impressions, engagement rate, saves, follows)
-- [ ] **Monthly report generator** — Claude analisa métricas do mês + gera 5-10 bullets de insight + recomendações pro próximo ciclo; exporta PDF via Playwright
+- [x] **Monthly report generator** — Claude analisa métricas do mês + gera 5-10 bullets de insight + recomendações pro próximo ciclo; exporta PDF via Playwright
+  - migration 010: `monthly_reports` table (client_id+year+month unique, RLS: read via has_client_access, owner-only writes)
+  - `src/lib/monthly-report.ts` — `buildReportSystem` / `buildReportUser` / `parseReportPayload` + `MonthlyReportParseError` + `monthBounds` / `monthLabel`; 14 unit tests
+  - `generateMonthlyReportAction` (in `/reports/actions.ts`) — aggregates drafts + tasks + meetings + approvals + published_posts for the client in the month, calls Claude Opus 4.7, upserts the structured report
+  - `/reports/[id]` view page renders summary + highlights + lessons + nextPillars + counts grid
+  - Owner-only "Monthly report" card on `/clients/[slug]` with a one-click "Generate this month's report" button
+  - PDF export via Playwright deferred — HTML view doubles as a print-ready surface for now
 - [x] **Client portal** — `/portal/[client_slug]` (token-based, sem conta) mostra: próximos posts agendados, posts publicados + métricas leves, aprovações pendentes
   - migration 009: `clients.portal_token text` + unique partial index (null allowed, non-null must be unique)
   - `generatePortalTokenAction` + `revokePortalTokenAction` (32-byte hex token) on `clients/actions.ts`

@@ -269,6 +269,30 @@ export interface Database {
         };
         Update: Partial<Database["public"]["Tables"]["ai_edits"]["Insert"]>;
       };
+      monthly_reports: {
+        Row: {
+          id: string;
+          client_id: string;
+          year: number;
+          month: number;
+          generated_by: string | null;
+          content: Record<string, unknown>;
+          model: string | null;
+          generated_at: string;
+        };
+        Insert: {
+          id?: string;
+          client_id: string;
+          year: number;
+          month: number;
+          generated_by?: string | null;
+          content: Record<string, unknown>;
+          model?: string | null;
+        };
+        Update: Partial<
+          Database["public"]["Tables"]["monthly_reports"]["Insert"]
+        >;
+      };
       meetings: {
         Row: {
           id: string;

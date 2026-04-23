@@ -107,13 +107,16 @@
       "upcoming": "Upcoming",
       "past": "Past",
       "portal": "Client portal",
-      "portalEmpty": "No portal link yet. Generate one to let the client see upcoming posts and pending approvals without a login."
+      "portalEmpty": "No portal link yet. Generate one to let the client see upcoming posts and pending approvals without a login.",
+      "reports": "Monthly report",
+      "reportsHint": "Generate a Claude-written monthly recap — highlights, lessons, and next-month pillars."
     },
     "actions": {
       "newMeeting": "New meeting",
       "generatePortalToken": "Generate portal link",
       "rotatePortalToken": "Rotate token",
-      "revokePortalToken": "Revoke"
+      "revokePortalToken": "Revoke",
+      "generateMonthlyReport": "Generate this month's report"
     },
     "fields": {
       "name": "Name",
@@ -466,7 +469,26 @@
   },
   "reports": {
     "title": "Reports",
-    "subtitle": "Performance analytics across platforms."
+    "subtitle": "Performance analytics across platforms.",
+    "monthlyTitle": "Recap · {period}",
+    "generatedAt": "Generated {when}",
+    "sections": {
+      "summary": "Summary",
+      "highlights": "Highlights",
+      "lessons": "Lessons",
+      "nextPillars": "Next-month pillars"
+    },
+    "counts": {
+      "draftsCreated": "Drafts created",
+      "draftsApproved": "Drafts approved",
+      "postsPublished": "Posts published",
+      "tasksCompleted": "Tasks completed",
+      "tasksOpen": "Tasks open",
+      "meetingsHeld": "Meetings held",
+      "approvalsSent": "Approvals sent",
+      "approvalsApproved": "Client approved",
+      "approvalsRejected": "Changes requested"
+    }
   },
   "team": {
     "title": "Team",

@@ -16,6 +16,7 @@ import {
   generatePortalTokenAction,
   revokePortalTokenAction,
 } from "../actions";
+import { generateMonthlyReportAction } from "../../reports/actions";
 import { ArchiveButton } from "./ArchiveButton";
 import {
   ClientServicesCard,
@@ -406,6 +407,43 @@ export default async function ClientDetailPage({
                 members={assignedMembers}
                 candidates={memberCandidates}
               />
+            </CardContent>
+          </Card>
+        ) : null}
+
+        {ownerView ? (
+          <Card data-testid="report-card">
+            <CardHeader>
+              <CardTitle className="text-base">
+                {t("sections.reports")}
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="text-sm">
+              <p className="mb-3 text-muted-foreground">
+                {t("sections.reportsHint")}
+              </p>
+              <form action={generateMonthlyReportAction}>
+                <input type="hidden" name="clientId" value={client.id} />
+                <input type="hidden" name="slug" value={client.slug} />
+                <input type="hidden" name="locale" value={locale} />
+                <input
+                  type="hidden"
+                  name="year"
+                  value={new Date().getFullYear()}
+                />
+                <input
+                  type="hidden"
+                  name="month"
+                  value={new Date().getMonth() + 1}
+                />
+                <button
+                  type="submit"
+                  className="inline-flex h-9 items-center rounded-md bg-primary px-3 text-xs font-medium text-primary-foreground hover:bg-primary/90"
+                  data-testid="generate-report"
+                >
+                  {t("actions.generateMonthlyReport")}
+                </button>
+              </form>
             </CardContent>
           </Card>
         ) : null}
