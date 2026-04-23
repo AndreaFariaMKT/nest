@@ -201,7 +201,8 @@
     },
     "actions": {
       "edit": "Edit",
-      "delete": "Delete"
+      "delete": "Delete",
+      "generateCarousels": "Generate carousels"
     },
     "status": {
       "scheduled": "Scheduled",

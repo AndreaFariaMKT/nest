@@ -201,7 +201,8 @@
     },
     "actions": {
       "edit": "Editar",
-      "delete": "Excluir"
+      "delete": "Excluir",
+      "generateCarousels": "Gerar carrosséis"
     },
     "status": {
       "scheduled": "Agendada",

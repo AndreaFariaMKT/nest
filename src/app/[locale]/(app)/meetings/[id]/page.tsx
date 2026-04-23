@@ -5,6 +5,7 @@ import { Pill } from "@/components/ui/Pill";
 import { createClient } from "@/lib/supabase/server";
 import type { Database, MeetingStatus } from "@/types/database";
 import { deleteMeetingAction } from "../actions";
+import { generateCarouselsAction } from "../../content-engine/actions";
 
 type Meeting = Database["public"]["Tables"]["meetings"]["Row"];
 type Transcript = Pick<
@@ -161,13 +162,26 @@ export default async function MeetingDetailPage({
                     {t("transcriptWords")}
                   </span>
                 </div>
-                <Link
-                  href={`/content-engine/transcripts/${tr.id}`}
-                  className="mt-1 block hover:text-foreground"
-                >
-                  {tr.content.slice(0, 140)}
-                  {tr.content.length > 140 ? "…" : ""}
-                </Link>
+                <div className="mt-1 flex items-start justify-between gap-3">
+                  <Link
+                    href={`/content-engine/transcripts/${tr.id}`}
+                    className="flex-1 hover:text-foreground"
+                  >
+                    {tr.content.slice(0, 140)}
+                    {tr.content.length > 140 ? "…" : ""}
+                  </Link>
+                  <form action={generateCarouselsAction} className="shrink-0">
+                    <input type="hidden" name="transcriptId" value={tr.id} />
+                    <input type="hidden" name="locale" value={locale} />
+                    <button
+                      type="submit"
+                      className="inline-flex h-8 items-center rounded-md border border-input bg-background px-3 text-xs font-medium hover:bg-muted"
+                      data-testid="generate-from-meeting"
+                    >
+                      {t("actions.generateCarousels")}
+                    </button>
+                  </form>
+                </div>
               </li>
             ))}
           </ul>
