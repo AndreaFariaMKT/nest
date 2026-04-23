@@ -1,6 +1,7 @@
 "use client";
 
 import { useRef, useTransition, type ChangeEvent } from "react";
+import Image from "next/image";
 import { useTranslations } from "next-intl";
 import { Pill } from "@/components/ui/Pill";
 import {
@@ -88,13 +89,15 @@ export function BrandAssets({
               className="group overflow-hidden rounded-md border border-border bg-card"
               data-testid="brand-asset-card"
             >
-              <div className="aspect-square bg-muted">
+              <div className="relative aspect-square bg-muted">
                 {asset.mime_type?.startsWith("image/") ? (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img
+                  <Image
                     src={asset.publicUrl}
                     alt={asset.label ?? ""}
-                    className="h-full w-full object-cover"
+                    fill
+                    sizes="(max-width: 768px) 50vw, 25vw"
+                    className="object-cover"
+                    unoptimized={asset.mime_type === "image/svg+xml"}
                   />
                 ) : (
                   <div className="flex h-full w-full items-center justify-center text-xs text-muted-foreground">

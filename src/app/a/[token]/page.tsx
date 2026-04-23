@@ -1,4 +1,5 @@
 import { notFound } from "next/navigation";
+import Image from "next/image";
 import { createClient as createServiceClient } from "@supabase/supabase-js";
 import { approveViaTokenAction, rejectViaTokenAction } from "./actions";
 
@@ -122,13 +123,14 @@ export default async function ApprovalPage({
               key={slide.position}
               className="overflow-hidden rounded-md border border-border bg-card"
             >
-              <div className="aspect-[4/5] w-full bg-muted">
+              <div className="relative aspect-[4/5] w-full bg-muted">
                 {slide.imageUrl ? (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img
+                  <Image
                     src={slide.imageUrl}
                     alt={`Slide ${slide.position}`}
-                    className="h-full w-full object-cover"
+                    fill
+                    sizes="(max-width: 768px) 50vw, 33vw"
+                    className="object-cover"
                   />
                 ) : (
                   <div className="flex h-full w-full items-center justify-center p-4 text-center text-xs text-muted-foreground">
