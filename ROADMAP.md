@@ -146,7 +146,7 @@ Goal: fluxo completo pra Nayara.
   - hook in `generateCarouselsAction`: embed each new draft (title + pillar + hook) after insert
   - retrieval in `generateCarouselsAction`: embed transcript → `match_drafts()` RPC → top-10 similar by cosine, falls back to "last 10 titles" when no embeddings exist
   - shipped but inactive until `VOYAGE_API_KEY` lands
-- [ ] **Compliance checks** — Claude prompt pipelines por segmento (CVM para financeiro, OAB para jurídico); gera warnings inline
+- [x] Compliance checks — industry-aware Claude review (CVM/OAB/ANVISA/LGPD), severity + inline findings on draft editor (shipped in `d227764`; test → `warning` + 2 LGPD issues)
   - migration 007: `content_drafts.compliance_report jsonb` column
   - `src/lib/compliance.ts` — `buildCompliancePrompt(draft, client)` + `parseComplianceReport(raw)` pure helpers
   - `checkComplianceAction` — calls Claude (kind: extract → haiku for cost), parses + saves JSONB
