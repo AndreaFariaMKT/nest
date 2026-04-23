@@ -137,6 +137,12 @@
     },
     "errors": {
       "tooShort": "Name must be at least 2 characters."
+    },
+    "pagination": {
+      "prev": "Previous",
+      "next": "Next",
+      "pageOf": "Page {page} of {total}",
+      "range": "{from}–{to} of {total}"
     }
   },
   "projects": {
