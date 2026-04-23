@@ -1,0 +1,41 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  typecheck-and-test:
+    name: Typecheck + unit tests
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Unit tests
+        run: npm run test
+        env:
+          # Supabase/Anthropic/Voyage are not needed for unit tests — the
+          # wrapped libraries no-op when env vars are absent.
+          SKIP_E2E: "1"
+
+      # TODO: add a lint job once eslint is configured (next lint is
+      # deprecated upstream; we'll migrate to the @eslint/cli codemod).
+      # TODO: add a Playwright smoke job once a hosted Supabase preview
+      # database + seed is available to CI — currently the smoke tests
+      # rely on a local Supabase stack.

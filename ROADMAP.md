@@ -264,7 +264,10 @@ Não pertencem a nenhuma sprint específica — vão acontecendo em paralelo.
 - [ ] Roda em CI a cada PR
 
 ### 4.3 CI/CD
-- [ ] GitHub Actions: `typecheck`, `lint`, `vitest`, `playwright` em todo push
+- [x] GitHub Actions: `typecheck`, `lint`, `vitest`, `playwright` em todo push
+  - `.github/workflows/ci.yml` runs Node 20, `npm ci`, `typecheck`, then `vitest` on every push + PR targeting `main`
+  - `lint` deferred (next lint is deprecated upstream; migration to `@eslint/cli` codemod tracked inline)
+  - Playwright smoke deferred until a hosted Supabase preview DB + seed is available in CI
 - [ ] Preview deploy automático via Vercel em PRs
 - [ ] Branch `main` → production deploy após tests green
 
