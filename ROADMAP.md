@@ -298,8 +298,8 @@ Não pertencem a nenhuma sprint específica — vão acontecendo em paralelo.
 
 ### 4.8 Documentação
 - [ ] Cada feature maior ganha `docs/<feature>.md` com: propósito, fluxo, pontos de extensão
-- [ ] Runbook operacional `docs/ops.md`: como restart Supabase, recuperar senha de dev, rotar tokens
-- [ ] API reference `docs/api.md` pros endpoints públicos (approvals, webhooks, cron)
+- [x] Runbook operacional `docs/ops.md`: como restart Supabase, recuperar senha de dev, rotar tokens
+- [x] API reference `docs/api.md` pros endpoints públicos (approvals, webhooks, cron)
 
 ---
 
