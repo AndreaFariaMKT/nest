@@ -241,6 +241,12 @@
       "platform": "Platform",
       "submit": "Schedule post"
     },
+    "aiRewrite": {
+      "title": "Ask Claude",
+      "hint": "Claude keeps the same slide count and brand voice.",
+      "placeholder": "e.g. 'shorten the headlines' · 'tom mais informal' · 'add a stronger CTA on the last slide'",
+      "submit": "Rewrite draft"
+    },
     "draftStatus": {
       "draft": "Draft",
       "text_review": "Text review",

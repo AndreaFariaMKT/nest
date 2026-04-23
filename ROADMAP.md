@@ -139,7 +139,7 @@ Goal: primeiro post Factory publicado pelo Nest.
 
 Goal: fluxo completo pra Nayara.
 
-- [ ] **AI chat in creative editor** — sidebar com chat que lê HTML/CSS atual + brand kit, retorna diff aplicável
+- [x] AI chat in creative editor — MVP single-shot rewrite. User types an instruction, Claude returns revised slides (+ optional hook/caption), changes apply atomically, `ai_edits` row logs the exchange. Verified end-to-end: "deixa o primeiro slide mais direto, com menos palavras" → Claude shortened + added punch per instruction.
 - [ ] **Semantic memory** — embeddings dos últimos 30-60 drafts por cliente (pgvector), busca antes de gerar pra evitar repetição temática; extensão `vector` já habilitável no Supabase local
 - [ ] **Compliance checks** — Claude prompt pipelines por segmento (CVM para financeiro, OAB para jurídico); gera warnings inline
 - [ ] **Public approval link** — `/a/[token]` (sem auth) mostra carrossel pro cliente aprovar/comentar/rejeitar; `approvals` table atualizada via service role

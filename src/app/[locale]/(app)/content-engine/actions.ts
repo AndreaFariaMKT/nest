@@ -14,6 +14,13 @@ import {
   type BrandSummary,
   type RecentDraft,
 } from "@/lib/carousel-prompt";
+import {
+  buildRewriteSystem,
+  buildRewriteUser,
+  parseRewritePayload,
+  RewriteParseError,
+  type RewriteBrand,
+} from "@/lib/carousel-rewrite";
 import type { BrandColor, BrandTypography } from "@/types/database";
 
 export type TranscriptFormState = {
@@ -337,6 +344,163 @@ export async function approveDraftAction(formData: FormData): Promise<void> {
     );
   }
   redirect(localePath(locale, "/content-engine"));
+}
+
+// ───────────────────────────────────────────────────────────────────────────
+// AI rewrite — Claude refines an existing draft based on an instruction
+// ───────────────────────────────────────────────────────────────────────────
+
+export async function aiRewriteDraftAction(formData: FormData): Promise<void> {
+  const draftId = (formData.get("draftId") ?? "").toString();
+  const locale = (formData.get("locale") ?? "pt-BR").toString();
+  const instruction = (formData.get("instruction") ?? "").toString().trim();
+  if (!draftId || instruction.length < 4) return;
+
+  const supabase = await createSupabaseClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  type JoinedDraft = {
+    id: string;
+    client_id: string;
+    transcript_id: string | null;
+    title: string;
+    pillar: string | null;
+    hook: string | null;
+    caption: string | null;
+    hashtags: string[];
+    slides: Array<{
+      id: string;
+      position: number;
+      headline: string | null;
+      body: string | null;
+    }>;
+    transcript:
+      | { language: string }
+      | Array<{ language: string }>
+      | null;
+  };
+
+  const { data } = await supabase
+    .from("content_drafts")
+    .select(
+      `id, client_id, transcript_id, title, pillar, hook, caption, hashtags,
+       slides(id, position, headline, body),
+       transcript:transcripts(language)`,
+    )
+    .eq("id", draftId)
+    .maybeSingle();
+  if (!data) return;
+  const draft = data as unknown as JoinedDraft;
+
+  const language = pickOne(draft.transcript)?.language ?? "pt-BR";
+
+  const orderedSlides = [...(draft.slides ?? [])].sort(
+    (a, b) => a.position - b.position,
+  );
+  if (orderedSlides.length === 0) return;
+
+  const { data: kit } = await supabase
+    .from("brand_kits")
+    .select("name, palette, typography, voice_tone, do_list, dont_list")
+    .eq("client_id", draft.client_id)
+    .maybeSingle();
+  const { data: client } = await supabase
+    .from("clients")
+    .select("name")
+    .eq("id", draft.client_id)
+    .single();
+  const brand: RewriteBrand | null = client
+    ? {
+        name: kit?.name ?? client.name,
+        palette: (kit?.palette as BrandColor[]) ?? [],
+        typography: (kit?.typography as BrandTypography) ?? null,
+        voiceTone: kit?.voice_tone ?? null,
+        doList: kit?.do_list ?? [],
+        dontList: kit?.dont_list ?? [],
+      }
+    : null;
+
+  const snapshot = {
+    title: draft.title,
+    pillar: draft.pillar,
+    hook: draft.hook,
+    caption: draft.caption,
+    hashtags: draft.hashtags ?? [],
+    slides: orderedSlides.map((s) => ({
+      position: s.position,
+      headline: s.headline,
+      body: s.body,
+    })),
+  };
+
+  const systemText = buildRewriteSystem(brand, language);
+  const userText = buildRewriteUser(snapshot, instruction, language);
+
+  let result;
+  try {
+    result = await generate({
+      kind: "content",
+      system: [
+        {
+          type: "text",
+          text: systemText,
+          cache_control: { type: "ephemeral" },
+        },
+      ],
+      messages: [{ role: "user", content: userText }],
+      maxTokens: 16_000,
+    });
+  } catch (err) {
+    console.error("[ai-rewrite] claude call failed", err);
+    return;
+  }
+
+  let payload;
+  try {
+    payload = parseRewritePayload(result.text, orderedSlides.length);
+  } catch (err) {
+    const msg = err instanceof RewriteParseError ? err.message : "parse failed";
+    console.error("[ai-rewrite] parse error:", msg, result.text.slice(-200));
+    return;
+  }
+
+  for (let i = 0; i < orderedSlides.length; i++) {
+    const slide = orderedSlides[i];
+    const revised = payload.slides[i];
+    await supabase
+      .from("slides")
+      .update({
+        headline: revised.headline || slide.headline,
+        body: revised.body || slide.body,
+      })
+      .eq("id", slide.id);
+  }
+  const draftUpdate: Record<string, unknown> = {};
+  if (payload.hook !== null) draftUpdate.hook = payload.hook;
+  if (payload.caption !== null) draftUpdate.caption = payload.caption;
+  if (Object.keys(draftUpdate).length > 0) {
+    await supabase.from("content_drafts").update(draftUpdate).eq("id", draftId);
+  }
+
+  await supabase.from("ai_edits").insert({
+    draft_id: draftId,
+    prompt: instruction,
+    response: payload.notes ?? result.text.slice(0, 2000),
+    model: "claude-sonnet-4-6",
+    tokens_in: result.usage.inputTokens,
+    tokens_out: result.usage.outputTokens,
+    created_by: user?.id ?? null,
+  });
+
+  revalidatePath(`/${locale}/content-engine/drafts/${draftId}/edit`);
+  if (draft.transcript_id) {
+    revalidatePath(
+      `/${locale}/content-engine/transcripts/${draft.transcript_id}`,
+    );
+  }
+  redirect(localePath(locale, `/content-engine/drafts/${draftId}/edit`));
 }
 
 // ───────────────────────────────────────────────────────────────────────────

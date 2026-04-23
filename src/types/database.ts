@@ -209,6 +209,32 @@ export interface Database {
         };
         Update: Partial<Database["public"]["Tables"]["creatives"]["Insert"]>;
       };
+      ai_edits: {
+        Row: {
+          id: string;
+          creative_id: string | null;
+          draft_id: string | null;
+          prompt: string;
+          response: string | null;
+          model: string | null;
+          tokens_in: number | null;
+          tokens_out: number | null;
+          created_by: string | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          creative_id?: string | null;
+          draft_id?: string | null;
+          prompt: string;
+          response?: string | null;
+          model?: string | null;
+          tokens_in?: number | null;
+          tokens_out?: number | null;
+          created_by?: string | null;
+        };
+        Update: Partial<Database["public"]["Tables"]["ai_edits"]["Insert"]>;
+      };
       transcripts: {
         Row: {
           id: string;

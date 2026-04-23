@@ -241,6 +241,12 @@
       "platform": "Plataforma",
       "submit": "Agendar post"
     },
+    "aiRewrite": {
+      "title": "Pedir ao Claude",
+      "hint": "O Claude mantém o mesmo número de slides e a voz da marca.",
+      "placeholder": "ex.: 'encurta os headlines' · 'tom mais informal' · 'adiciona um CTA forte no último slide'",
+      "submit": "Refinar draft"
+    },
     "draftStatus": {
       "draft": "Rascunho",
       "text_review": "Revisão de texto",
