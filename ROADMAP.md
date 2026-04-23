@@ -163,7 +163,11 @@ Goal: fluxo completo pra Nayara.
   - `adaptDraftAction` (content-engine/actions.ts) — clones the source draft as a NEW `content_drafts` row with pillar suffix `· linkedin` / `· tiktok`, status = draft, `ai_edits` audit row tracks the derivation
   - Draft editor exposes 2 buttons (Adapt for LinkedIn / TikTok) on the "Adapt for another platform" panel; redirects to the new draft's edit page
   - 13 unit tests for the pure helpers; manually verified end-to-end — LinkedIn adaptation produces a new 7-slide draft with professional caption + 5 industry hashtags
-- [ ] **Stories auto-gen** — a partir de um carrossel aprovado, 3 stories com links/stickers
+- [x] **Stories auto-gen** — a partir de um carrossel aprovado, 3 stories com links/stickers
+  - `src/lib/story-gen.ts` — `buildStorySystem` / `buildStoryUser` / `parseStoryPayload` + `StoryParseError`; prompt enforces narrative arc (tease → insight → CTA) and requires a `sticker_cta` on the last story
+  - `generateStoriesAction` (content-engine/actions.ts) — persists stories as a new `content_drafts` row with pillar suffix `· stories`; each story becomes a slide and the sticker_cta is appended to the body so the renderer can promote it later
+  - Draft editor exposes a "Generate Stories (3)" button in the Adapt panel
+  - 10 unit tests for the pure helpers; E2E verified — Stories 1 teases ("Você busca fora o que já tem dentro"), Story 2 delivers the method + "Save this" sticker, Story 3 closes with "Veja o carrossel"
 
 **Entrega:** fluxo completo (transcrição → IG+LinkedIn+TikTok + stories + aprovação do cliente) para Nayara.
 

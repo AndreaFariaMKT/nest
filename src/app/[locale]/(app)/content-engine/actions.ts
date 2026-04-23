@@ -30,6 +30,13 @@ import {
   type AdaptPlatform,
 } from "@/lib/carousel-adapt";
 import {
+  buildStorySystem,
+  buildStoryUser,
+  parseStoryPayload,
+  StoryParseError,
+  type StoryBrand,
+} from "@/lib/story-gen";
+import {
   buildDraftEmbedText,
   embedBatch,
   embedText,
@@ -826,6 +833,191 @@ export async function adaptDraftAction(formData: FormData): Promise<void> {
     draft_id: inserted.id,
     prompt: `[adapt:${platform}] from draft ${draft.id}`,
     response: `Adapted for ${platform} from "${draft.title}".`,
+    model: "claude-sonnet-4-6",
+    tokens_in: result.usage.inputTokens,
+    tokens_out: result.usage.outputTokens,
+    created_by: user?.id ?? null,
+  });
+
+  revalidatePath(`/${locale}/content-engine`);
+  if (draft.transcript_id) {
+    revalidatePath(
+      `/${locale}/content-engine/transcripts/${draft.transcript_id}`,
+    );
+  }
+  redirect(localePath(locale, `/content-engine/drafts/${inserted.id}/edit`));
+}
+
+// ───────────────────────────────────────────────────────────────────────────
+// Generate Instagram Stories from an approved carousel
+// ───────────────────────────────────────────────────────────────────────────
+
+const DEFAULT_STORY_COUNT = 3;
+
+export async function generateStoriesAction(
+  formData: FormData,
+): Promise<void> {
+  const draftId = (formData.get("draftId") ?? "").toString();
+  const locale = (formData.get("locale") ?? "pt-BR").toString();
+  const rawCount = (formData.get("count") ?? "").toString().trim();
+  const count = (() => {
+    const n = Number.parseInt(rawCount, 10);
+    if (Number.isFinite(n) && n >= 2 && n <= 6) return n;
+    return DEFAULT_STORY_COUNT;
+  })();
+  if (!draftId) return;
+
+  const supabase = await createSupabaseClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  type JoinedDraft = {
+    id: string;
+    client_id: string;
+    transcript_id: string | null;
+    title: string;
+    pillar: string | null;
+    hook: string | null;
+    caption: string | null;
+    hashtags: string[];
+    slides: Array<{
+      position: number;
+      headline: string | null;
+      body: string | null;
+    }>;
+    transcript:
+      | { language: string }
+      | Array<{ language: string }>
+      | null;
+  };
+
+  const { data } = await supabase
+    .from("content_drafts")
+    .select(
+      `id, client_id, transcript_id, title, pillar, hook, caption, hashtags,
+       slides(position, headline, body),
+       transcript:transcripts(language)`,
+    )
+    .eq("id", draftId)
+    .maybeSingle();
+  if (!data) return;
+  const draft = data as unknown as JoinedDraft;
+
+  const language = pickOne(draft.transcript)?.language ?? "pt-BR";
+
+  const orderedSlides = [...(draft.slides ?? [])].sort(
+    (a, b) => a.position - b.position,
+  );
+  if (orderedSlides.length === 0) return;
+
+  const { data: kit } = await supabase
+    .from("brand_kits")
+    .select("name, palette, typography, voice_tone, do_list, dont_list")
+    .eq("client_id", draft.client_id)
+    .maybeSingle();
+  const { data: client } = await supabase
+    .from("clients")
+    .select("name")
+    .eq("id", draft.client_id)
+    .single();
+  const brand: StoryBrand | null = client
+    ? {
+        name: kit?.name ?? client.name,
+        palette: (kit?.palette as BrandColor[]) ?? [],
+        typography: (kit?.typography as BrandTypography) ?? null,
+        voiceTone: kit?.voice_tone ?? null,
+        doList: kit?.do_list ?? [],
+        dontList: kit?.dont_list ?? [],
+      }
+    : null;
+
+  const snapshot = {
+    title: draft.title,
+    pillar: draft.pillar,
+    hook: draft.hook,
+    caption: draft.caption,
+    hashtags: draft.hashtags ?? [],
+    slides: orderedSlides.map((s) => ({
+      position: s.position,
+      headline: s.headline,
+      body: s.body,
+    })),
+  };
+
+  const systemText = buildStorySystem(brand, language, count);
+  const userText = buildStoryUser(snapshot, language, count);
+
+  let result;
+  try {
+    result = await generate({
+      kind: "content",
+      system: [
+        {
+          type: "text",
+          text: systemText,
+          cache_control: { type: "ephemeral" },
+        },
+      ],
+      messages: [{ role: "user", content: userText }],
+      maxTokens: 8_000,
+    });
+  } catch (err) {
+    console.error("[story-gen] claude call failed", err);
+    return;
+  }
+
+  let payload;
+  try {
+    payload = parseStoryPayload(result.text, count);
+  } catch (err) {
+    const msg = err instanceof StoryParseError ? err.message : "parse failed";
+    console.error("[story-gen] parse error:", msg, result.text.slice(-300));
+    return;
+  }
+
+  // Stories are persisted as a new content_drafts row with pillar suffix
+  // "· stories". Each story → a slide (headline + body); sticker_cta lands
+  // in the body as a trailing line so the renderer can pick it up later.
+  const storiesPillar = draft.pillar
+    ? `${draft.pillar} · stories`
+    : "stories";
+  const { data: inserted } = await supabase
+    .from("content_drafts")
+    .insert({
+      client_id: draft.client_id,
+      transcript_id: draft.transcript_id,
+      title: `${draft.title} — stories`,
+      pillar: storiesPillar,
+      hook: null,
+      caption: null,
+      hashtags: [],
+      status: "draft",
+      created_by: user?.id ?? null,
+    })
+    .select("id")
+    .single();
+  if (!inserted) return;
+
+  const slidesToInsert = payload.stories.map((s, i) => {
+    const bodyWithSticker = s.stickerCta
+      ? `${s.body}\n\n→ ${s.stickerCta}`
+      : s.body;
+    return {
+      draft_id: inserted.id,
+      position: i + 1,
+      headline: s.headline || null,
+      body: bodyWithSticker || null,
+    };
+  });
+  if (slidesToInsert.length > 0) {
+    await supabase.from("slides").insert(slidesToInsert);
+  }
+
+  await supabase.from("ai_edits").insert({
+    draft_id: inserted.id,
+    prompt: `[stories:${count}] from draft ${draft.id}`,
+    response: `Generated ${count} stories from "${draft.title}".`,
     model: "claude-sonnet-4-6",
     tokens_in: result.usage.inputTokens,
     tokens_out: result.usage.outputTokens,

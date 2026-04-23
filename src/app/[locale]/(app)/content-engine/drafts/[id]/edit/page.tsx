@@ -19,6 +19,7 @@ import {
   approveDraftAction,
   checkComplianceAction,
   generateApprovalLinkAction,
+  generateStoriesAction,
   renderCreativesAction,
   scheduleDraftAction,
 } from "../../../actions";
@@ -373,6 +374,18 @@ export default async function DraftEditPage({
                 data-testid="adapt-tiktok"
               >
                 {t("adapt.tiktok")}
+              </button>
+            </form>
+            <form action={generateStoriesAction}>
+              <input type="hidden" name="draftId" value={draft.id} />
+              <input type="hidden" name="locale" value={locale} />
+              <input type="hidden" name="count" value="3" />
+              <button
+                type="submit"
+                className="inline-flex h-9 items-center rounded-md border border-input bg-background px-3 text-xs font-medium hover:bg-muted"
+                data-testid="generate-stories"
+              >
+                {t("adapt.stories")}
               </button>
             </form>
           </div>

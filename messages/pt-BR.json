@@ -264,7 +264,8 @@
       "title": "Adaptar para outra plataforma",
       "hint": "Gera um novo draft com o tom ajustado pra cada plataforma.",
       "linkedin": "Adaptar para LinkedIn",
-      "tiktok": "Adaptar para TikTok"
+      "tiktok": "Adaptar para TikTok",
+      "stories": "Gerar Stories (3)"
     },
     "approvalLink": {
       "title": "Link de aprovação do cliente",
