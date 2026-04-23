@@ -132,6 +132,30 @@ export default async function ClientDetailPage({
     .order("name", { ascending: true });
   const catalog: CatalogService[] = (catalogData ?? []) as CatalogService[];
 
+  // Upcoming + recent meetings for this client — small overview card.
+  type ClientMeetingRow = Pick<
+    Database["public"]["Tables"]["meetings"]["Row"],
+    "id" | "title" | "starts_at" | "status"
+  >;
+  const nowIsoForClient = new Date().toISOString();
+  const { data: upcomingMeetingsData } = await supabase
+    .from("meetings")
+    .select("id, title, starts_at, status")
+    .eq("client_id", client.id)
+    .gte("starts_at", nowIsoForClient)
+    .neq("status", "cancelled")
+    .order("starts_at", { ascending: true })
+    .limit(3);
+  const upcomingMeetings = (upcomingMeetingsData ?? []) as ClientMeetingRow[];
+  const { data: pastMeetingsData } = await supabase
+    .from("meetings")
+    .select("id, title, starts_at, status")
+    .eq("client_id", client.id)
+    .lt("starts_at", nowIsoForClient)
+    .order("starts_at", { ascending: false })
+    .limit(3);
+  const pastMeetings = (pastMeetingsData ?? []) as ClientMeetingRow[];
+
   // Client members (staff assigned to this client). Owner-only.
   let assignedMembers: AssignedMember[] = [];
   let memberCandidates: MemberChoice[] = [];
@@ -383,11 +407,77 @@ export default async function ClientDetailPage({
         ) : null}
 
         <Card>
-          <CardHeader>
-            <CardTitle className="text-base">{t("sections.tasks")}</CardTitle>
+          <CardHeader className="flex-row items-center justify-between gap-2 space-y-0">
+            <CardTitle className="text-base">
+              {t("sections.meetings")}
+            </CardTitle>
+            <Link
+              href={`/meetings/new?client=${client.slug}`}
+              className="inline-flex h-8 items-center rounded-md border border-input bg-background px-2.5 text-xs font-medium hover:bg-muted"
+              data-testid="client-new-meeting"
+            >
+              {t("actions.newMeeting")}
+            </Link>
           </CardHeader>
-          <CardContent className="text-sm text-muted-foreground">
-            {t("comingSoon")}
+          <CardContent className="text-sm">
+            {upcomingMeetings.length === 0 && pastMeetings.length === 0 ? (
+              <p className="text-muted-foreground">
+                {t("sections.meetingsEmpty")}
+              </p>
+            ) : (
+              <div className="space-y-4">
+                {upcomingMeetings.length > 0 ? (
+                  <div>
+                    <div className="mb-1.5 text-xs uppercase tracking-wide text-muted-foreground">
+                      {t("sections.upcoming")}
+                    </div>
+                    <ul className="space-y-1.5">
+                      {upcomingMeetings.map((m) => (
+                        <li key={m.id}>
+                          <Link
+                            href={`/meetings/${m.id}`}
+                            className="flex items-center justify-between gap-2 rounded-md px-2 py-1.5 hover:bg-muted"
+                            data-testid="client-meeting-row"
+                          >
+                            <span className="truncate">{m.title}</span>
+                            <span className="shrink-0 text-xs text-muted-foreground">
+                              {new Intl.DateTimeFormat(locale, {
+                                dateStyle: "short",
+                                timeStyle: "short",
+                              }).format(new Date(m.starts_at))}
+                            </span>
+                          </Link>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                ) : null}
+                {pastMeetings.length > 0 ? (
+                  <div>
+                    <div className="mb-1.5 text-xs uppercase tracking-wide text-muted-foreground">
+                      {t("sections.past")}
+                    </div>
+                    <ul className="space-y-1.5">
+                      {pastMeetings.map((m) => (
+                        <li key={m.id}>
+                          <Link
+                            href={`/meetings/${m.id}`}
+                            className="flex items-center justify-between gap-2 rounded-md px-2 py-1.5 text-muted-foreground hover:bg-muted"
+                          >
+                            <span className="truncate">{m.title}</span>
+                            <span className="shrink-0 text-xs">
+                              {new Intl.DateTimeFormat(locale, {
+                                dateStyle: "short",
+                              }).format(new Date(m.starts_at))}
+                            </span>
+                          </Link>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                ) : null}
+              </div>
+            )}
           </CardContent>
         </Card>
       </div>

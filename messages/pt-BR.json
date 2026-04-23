@@ -101,7 +101,14 @@
       "members": "Equipe",
       "membersEmpty": "Nenhum membro da equipe atribuído.",
       "readonly": "somente leitura",
-      "tasks": "Tarefas"
+      "tasks": "Tarefas",
+      "meetings": "Reuniões",
+      "meetingsEmpty": "Nenhuma reunião ligada a esse cliente ainda.",
+      "upcoming": "Próximas",
+      "past": "Passadas"
+    },
+    "actions": {
+      "newMeeting": "Nova reunião"
     },
     "fields": {
       "name": "Nome",

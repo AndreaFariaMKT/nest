@@ -101,7 +101,14 @@
       "members": "Team",
       "membersEmpty": "No team members assigned.",
       "readonly": "read-only",
-      "tasks": "Tasks"
+      "tasks": "Tasks",
+      "meetings": "Meetings",
+      "meetingsEmpty": "No meetings yet for this client.",
+      "upcoming": "Upcoming",
+      "past": "Past"
+    },
+    "actions": {
+      "newMeeting": "New meeting"
     },
     "fields": {
       "name": "Name",
