@@ -21,6 +21,12 @@ import {
   RewriteParseError,
   type RewriteBrand,
 } from "@/lib/carousel-rewrite";
+import {
+  buildDraftEmbedText,
+  embedBatch,
+  embedText,
+  vectorToSql,
+} from "@/lib/embeddings";
 import type { BrandColor, BrandTypography } from "@/types/database";
 
 export type TranscriptFormState = {
@@ -166,17 +172,36 @@ export async function generateCarouselsAction(
       }
     : null;
 
-  // Recent drafts to avoid repetition
-  const { data: recentRows } = await supabase
-    .from("content_drafts")
-    .select("title, pillar")
-    .eq("client_id", client.id)
-    .order("created_at", { ascending: false })
-    .limit(10);
-  const recent: RecentDraft[] = (recentRows ?? []).map((r) => ({
-    title: r.title,
-    pillar: r.pillar,
-  }));
+  // Recent drafts to avoid repetition — prefer semantic similarity when
+  // embeddings exist for this client, fall back to chronological recency.
+  let recent: RecentDraft[] = [];
+  const transcriptEmbed = await embedText(trow.content.slice(0, 8000)).catch(
+    () => null,
+  );
+  if (transcriptEmbed) {
+    const { data: similarRows } = await supabase.rpc("match_drafts", {
+      query_embedding: vectorToSql(transcriptEmbed.vector),
+      match_client: client.id,
+      match_count: 10,
+    });
+    if (similarRows && similarRows.length > 0) {
+      recent = (
+        similarRows as Array<{ title: string; pillar: string | null }>
+      ).map((r) => ({ title: r.title, pillar: r.pillar }));
+    }
+  }
+  if (recent.length === 0) {
+    const { data: recentRows } = await supabase
+      .from("content_drafts")
+      .select("title, pillar")
+      .eq("client_id", client.id)
+      .order("created_at", { ascending: false })
+      .limit(10);
+    recent = (recentRows ?? []).map((r) => ({
+      title: r.title,
+      pillar: r.pillar,
+    }));
+  }
 
   // Ask Claude — system has the brand context; cache_control = ephemeral so
   // repeat generations for this client reuse ~90% of the prefix.
@@ -242,6 +267,24 @@ export async function generateCarouselsAction(
     }));
     if (slidesToInsert.length > 0) {
       await supabase.from("slides").insert(slidesToInsert);
+    }
+
+    // Populate the draft's embedding for future similarity retrieval.
+    // No-op when VOYAGE_API_KEY is unset — the column stays null and the
+    // generate path falls back to chronological recency.
+    const embedText = buildDraftEmbedText({
+      title: draft.title,
+      pillar: draft.pillar,
+      hook: draft.hook,
+    });
+    const embed = await embedBatch([embedText]).catch(() => null);
+    if (embed && embed.vectors[0]) {
+      await supabase
+        .from("content_drafts")
+        .update({
+          embedding: vectorToSql(embed.vectors[0]),
+        } as never)
+        .eq("id", inserted.id);
     }
   }
 

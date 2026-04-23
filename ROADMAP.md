@@ -141,6 +141,11 @@ Goal: fluxo completo pra Nayara.
 
 - [x] AI chat in creative editor — MVP single-shot rewrite. User types an instruction, Claude returns revised slides (+ optional hook/caption), changes apply atomically, `ai_edits` row logs the exchange. Verified end-to-end: "deixa o primeiro slide mais direto, com menos palavras" → Claude shortened + added punch per instruction.
 - [ ] **Semantic memory** — embeddings dos últimos 30-60 drafts por cliente (pgvector), busca antes de gerar pra evitar repetição temática; extensão `vector` já habilitável no Supabase local
+  - migration 006: `vector` extension + `content_drafts.embedding vector(1024)` + hnsw index + `match_drafts()` RPC
+  - `src/lib/embeddings.ts` — Voyage AI wrapper (voyage-3.5, 1024 dims) with graceful no-op fallback when `VOYAGE_API_KEY` missing; pure `cosineSimilarity` + `vectorToSql` helpers + unit tests
+  - hook in `generateCarouselsAction`: embed each new draft (title + pillar + hook) after insert
+  - retrieval in `generateCarouselsAction`: embed transcript → `match_drafts()` RPC → top-10 similar by cosine, falls back to "last 10 titles" when no embeddings exist
+  - shipped but inactive until `VOYAGE_API_KEY` lands
 - [ ] **Compliance checks** — Claude prompt pipelines por segmento (CVM para financeiro, OAB para jurídico); gera warnings inline
 - [ ] **Public approval link** — `/a/[token]` (sem auth) mostra carrossel pro cliente aprovar/comentar/rejeitar; `approvals` table atualizada via service role
 - [ ] **Reels / vídeo** — `content_drafts` extension: `video_script` field, upload do vídeo final pelo usuário, fluxo de agendamento adaptado
