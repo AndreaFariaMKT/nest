@@ -339,6 +339,58 @@ export async function approveDraftAction(formData: FormData): Promise<void> {
   redirect(localePath(locale, "/content-engine"));
 }
 
+// ───────────────────────────────────────────────────────────────────────────
+// Schedule a post (draft must be approved)
+// ───────────────────────────────────────────────────────────────────────────
+
+export async function scheduleDraftAction(
+  formData: FormData,
+): Promise<void> {
+  const draftId = (formData.get("draftId") ?? "").toString();
+  const locale = (formData.get("locale") ?? "pt-BR").toString();
+  const scheduledForRaw = (formData.get("scheduled_for") ?? "")
+    .toString()
+    .trim();
+  const platform = (formData.get("platform") ?? "instagram").toString();
+  if (!draftId || !scheduledForRaw) return;
+
+  const scheduledFor = new Date(scheduledForRaw);
+  if (Number.isNaN(scheduledFor.getTime())) return;
+
+  const supabase = await createSupabaseClient();
+  const { data: draft } = await supabase
+    .from("content_drafts")
+    .select("status, transcript_id")
+    .eq("id", draftId)
+    .maybeSingle();
+  if (!draft) return;
+  if (!["approved", "scheduled"].includes(draft.status)) return;
+
+  const { error } = await supabase.from("scheduled_posts").insert({
+    draft_id: draftId,
+    platform: platform as "instagram" | "linkedin" | "tiktok",
+    post_type: "carousel",
+    scheduled_for: scheduledFor.toISOString(),
+    status: "pending",
+  });
+  if (error) return;
+
+  if (draft.status !== "scheduled") {
+    await supabase
+      .from("content_drafts")
+      .update({ status: "scheduled" })
+      .eq("id", draftId);
+  }
+
+  revalidatePath(`/${locale}/content-engine/drafts/${draftId}/edit`);
+  if (draft.transcript_id) {
+    revalidatePath(
+      `/${locale}/content-engine/transcripts/${draft.transcript_id}`,
+    );
+  }
+  redirect(localePath(locale, `/content-engine/drafts/${draftId}/edit`));
+}
+
 export async function renderCreativesAction(
   formData: FormData,
 ): Promise<void> {

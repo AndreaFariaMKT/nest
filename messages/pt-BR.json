@@ -235,6 +235,12 @@
       "notRendered": "não renderizado",
       "hint": "Renderização usa Chromium local em 1080×1350. Renderizador serverless de produção entra no Sprint 11-12."
     },
+    "schedule": {
+      "title": "Agendamento",
+      "when": "Quando",
+      "platform": "Plataforma",
+      "submit": "Agendar post"
+    },
     "draftStatus": {
       "draft": "Rascunho",
       "text_review": "Revisão de texto",

@@ -154,6 +154,35 @@ export interface Database {
         };
         Update: Partial<Database["public"]["Tables"]["slides"]["Insert"]>;
       };
+      scheduled_posts: {
+        Row: {
+          id: string;
+          draft_id: string;
+          platform: "instagram" | "linkedin" | "tiktok";
+          post_type: "carousel" | "single_image" | "reel" | "story" | "text";
+          scheduled_for: string;
+          published_post_id: string | null;
+          status: string;
+          attempt_count: number;
+          last_error: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          draft_id: string;
+          platform: "instagram" | "linkedin" | "tiktok";
+          post_type: "carousel" | "single_image" | "reel" | "story" | "text";
+          scheduled_for: string;
+          published_post_id?: string | null;
+          status?: string;
+          attempt_count?: number;
+          last_error?: string | null;
+        };
+        Update: Partial<
+          Database["public"]["Tables"]["scheduled_posts"]["Insert"]
+        >;
+      };
       creatives: {
         Row: {
           id: string;
