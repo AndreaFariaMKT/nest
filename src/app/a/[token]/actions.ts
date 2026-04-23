@@ -5,6 +5,7 @@ import { redirect } from "next/navigation";
 import { createClient as createServiceClient } from "@supabase/supabase-js";
 import { notifyUser } from "@/lib/notifications";
 import { checkRateLimit } from "@/lib/rate-limit";
+import { cleanText } from "@/lib/sanitize";
 
 function admin() {
   return createServiceClient(
@@ -86,9 +87,14 @@ function approvalRateLimitOk(token: string): boolean {
   return rl.allowed;
 }
 
+function parseComment(raw: FormDataEntryValue | null): string | null {
+  const cleaned = cleanText((raw ?? "").toString(), { maxLength: 2000 });
+  return cleaned.length > 0 ? cleaned : null;
+}
+
 export async function approveViaTokenAction(formData: FormData): Promise<void> {
   const token = (formData.get("token") ?? "").toString();
-  const comment = ((formData.get("comment") ?? "").toString().trim() || null);
+  const comment = parseComment(formData.get("comment"));
   const locale = (formData.get("locale") ?? "pt-BR").toString();
   if (!token) return;
   if (!approvalRateLimitOk(token)) return;
@@ -101,7 +107,7 @@ export async function approveViaTokenAction(formData: FormData): Promise<void> {
 
 export async function rejectViaTokenAction(formData: FormData): Promise<void> {
   const token = (formData.get("token") ?? "").toString();
-  const comment = ((formData.get("comment") ?? "").toString().trim() || null);
+  const comment = parseComment(formData.get("comment"));
   const locale = (formData.get("locale") ?? "pt-BR").toString();
   if (!token) return;
   if (!approvalRateLimitOk(token)) return;
