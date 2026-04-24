@@ -147,8 +147,14 @@ All three are public-read because Instagram Graph API needs public URLs for cont
 
 ### Meta (Instagram Graph)
 - Long-lived page token expires every 60 days.
-- TODO: add a daily `/api/cron/meta-refresh` endpoint that refreshes the token via `oauth/access_token?grant_type=fb_exchange_token` and emails the owner if refresh fails twice in a row.
-- Manual refresh in the meantime: regenerate the token in Meta Business Suite → update `.env.local` or Vercel env → redeploy.
+- `/api/cron/meta-refresh` runs daily at `0 4 * * *`. Graph API → `oauth/access_token?grant_type=fb_exchange_token` exchanges the current token for a fresh one. On success, the full new token is written to the server log (`vercel logs` — search for `full_access_token`), NOT returned in the JSON response. Operator must copy it from logs into Vercel env + redeploy.
+- Automated persistence is not implemented (Vercel envs aren't writable from a running route). Manual step stays — frequency: ~every 50 days, well before expiry.
+- **Generating a new token from scratch** (e.g., after a rotation or initial setup): generate a short-lived User Access Token in the [Graph API Explorer](https://developers.facebook.com/tools/explorer/), then exchange it for a long-lived one:
+  ```bash
+  set -a && . .env.local && set +a          # loads META_APP_ID + META_APP_SECRET
+  npm run meta:exchange <short-lived-token>  # prints the long-lived token
+  ```
+  Copy the output into `.env.local` (or Vercel env) as `META_LONG_LIVED_TOKEN`, then restart the dev server / redeploy.
 
 ### Google (Calendar + Meet)
 - Blocked until credentials land. Refresh tokens issued on consent; store in `profiles.google_refresh_token` (migration TBD).

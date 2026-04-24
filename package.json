@@ -13,6 +13,7 @@
     "test:watch": "vitest",
     "test:e2e": "playwright test",
     "test:e2e:ui": "playwright test --ui",
+    "meta:exchange": "tsx scripts/meta-exchange.ts",
     "types:gen": "supabase gen types typescript --local > src/types/database.gen.ts && echo 'Generated src/types/database.gen.ts'",
     "types:check": "supabase gen types typescript --local | diff -u src/types/database.gen.ts - || (echo 'Generated types drifted from src/types/database.gen.ts — run npm run types:gen to refresh.' && exit 1)"
   },

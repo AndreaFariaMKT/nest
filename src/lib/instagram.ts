@@ -46,6 +46,92 @@ export function hasCredentials(
 }
 
 // ───────────────────────────────────────────────────────────────────────────
+// Long-lived token refresh (fb_exchange_token)
+// ───────────────────────────────────────────────────────────────────────────
+
+export type RefreshParams = {
+  apiVersion: string;
+  appId: string;
+  appSecret: string;
+  token: string; // existing long-lived token
+};
+
+export type RefreshResult = {
+  accessToken: string;
+  tokenType: string;
+  expiresInSec: number | null; // null when the API omits the field
+};
+
+/** Pure builder — used by the cron + unit tests. */
+export function buildRefreshUrl(p: RefreshParams): string {
+  const params = new URLSearchParams({
+    grant_type: "fb_exchange_token",
+    client_id: p.appId,
+    client_secret: p.appSecret,
+    fb_exchange_token: p.token,
+  });
+  return `${GRAPH_BASE}/${p.apiVersion}/oauth/access_token?${params.toString()}`;
+}
+
+export async function refreshLongLivedToken(
+  p: RefreshParams,
+): Promise<RefreshResult> {
+  const response = await fetch(buildRefreshUrl(p), { method: "GET" });
+  const text = await response.text();
+  let body: unknown;
+  try {
+    body = text ? JSON.parse(text) : {};
+  } catch {
+    throw new InstagramApiError({
+      message: `Non-JSON refresh response (${response.status})`,
+      code: "non_json",
+      type: "client",
+      subcode: null,
+      httpStatus: response.status,
+      fbtrace: null,
+      raw: text,
+    });
+  }
+  if (
+    !response.ok ||
+    (body && typeof body === "object" && "error" in body)
+  ) {
+    const err = (body as GraphError).error ?? {};
+    throw new InstagramApiError({
+      message: err.message ?? `Refresh failed (${response.status})`,
+      code: String(err.code ?? "unknown"),
+      type: err.type ?? "api",
+      subcode: err.error_subcode ?? null,
+      httpStatus: response.status,
+      fbtrace: err.fbtrace_id ?? null,
+      raw: body,
+    });
+  }
+  const raw = body as {
+    access_token?: string;
+    token_type?: string;
+    expires_in?: number;
+  };
+  if (!raw.access_token) {
+    throw new InstagramApiError({
+      message: "Refresh response missing access_token",
+      code: "missing_access_token",
+      type: "client",
+      subcode: null,
+      httpStatus: response.status,
+      fbtrace: null,
+      raw: body,
+    });
+  }
+  return {
+    accessToken: raw.access_token,
+    tokenType: raw.token_type ?? "bearer",
+    expiresInSec:
+      typeof raw.expires_in === "number" ? raw.expires_in : null,
+  };
+}
+
+// ───────────────────────────────────────────────────────────────────────────
 // URL builders (pure)
 // ───────────────────────────────────────────────────────────────────────────
 

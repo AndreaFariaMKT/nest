@@ -26,4 +26,5 @@ set -a
 . ./.env.local
 set +a
 
-exec npm run dev "$@"
+# Call next directly (bypass npm run dev → this script → npm run dev loop).
+exec npx next dev "$@"
