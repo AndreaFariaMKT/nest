@@ -32,10 +32,28 @@ docker ps >/dev/null 2>&1 || open -a Docker
 until docker ps >/dev/null 2>&1; do sleep 2; done
 npx supabase start
 until pg_isready -h 127.0.0.1 -p 54322 -U postgres >/dev/null 2>&1; do sleep 2; done
-npm run dev  # or use Claude Preview MCP
+npm run dev  # wrapper around ./scripts/dev.sh — sources .env.local first
 ```
 
 Dev login: `dev@nest.local` / `devpassword` (seeded by `supabase/seed.sql`).
+
+### ⚠ Env gotcha: shell variables override `.env.local`
+
+Next.js loads `.env.local` **after** the process.env inherited from your
+shell, so **shell values win** (even when empty). The most common victim
+is `ANTHROPIC_API_KEY` when running under Claude Code CLI, which exports
+an empty `ANTHROPIC_API_KEY=""` into its shells.
+
+Symptom: Anthropic SDK throws "Could not resolve authentication method"
+even though `.env.local` clearly has the key.
+
+Fix: `npm run dev` wraps `./scripts/dev.sh` which explicitly sources
+`.env.local` before launching `next dev` — so the file values always win.
+
+If you're launching Next some other way, run:
+```bash
+set -a && . .env.local && set +a && npx next dev
+```
 
 ---
 

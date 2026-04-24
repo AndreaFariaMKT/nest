@@ -28,7 +28,16 @@ let cachedClient: Anthropic | null = null;
 
 function client(): Anthropic {
   if (!cachedClient) {
-    cachedClient = new Anthropic();
+    // Explicitly pass apiKey — the SDK's auto-detect occasionally misses it
+    // in Next.js dev server reloads, surfacing as a confusing
+    // "Could not resolve authentication method" at the first call site.
+    const apiKey = process.env.ANTHROPIC_API_KEY?.trim();
+    if (!apiKey) {
+      throw new Error(
+        "ANTHROPIC_API_KEY is not set. Add it to .env.local and restart the dev server.",
+      );
+    }
+    cachedClient = new Anthropic({ apiKey });
   }
   return cachedClient;
 }
