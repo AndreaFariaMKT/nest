@@ -6,6 +6,11 @@ import type { Route } from "next";
 import { createClient as createSupabaseClient } from "@/lib/supabase/server";
 import type { MeetingStatus } from "@/types/database";
 import { MEETING_STATUSES } from "@/types/database";
+import {
+  mirrorMeetingCreate,
+  mirrorMeetingDelete,
+  mirrorMeetingUpdate,
+} from "@/lib/calendar-mirror";
 
 export type MeetingFormState = {
   error?: string;
@@ -61,17 +66,32 @@ export async function createMeetingAction(
     data: { user },
   } = await supabase.auth.getUser();
 
-  const { error } = await supabase.from("meetings").insert({
-    client_id: form.clientId,
-    title: form.title,
-    starts_at: form.startsAt,
-    ends_at: form.endsAt,
-    status: form.status,
-    google_meet_url: form.googleMeetUrl,
-    created_by: user?.id ?? null,
-  });
+  const { data: inserted, error } = await supabase
+    .from("meetings")
+    .insert({
+      client_id: form.clientId,
+      title: form.title,
+      starts_at: form.startsAt,
+      ends_at: form.endsAt,
+      status: form.status,
+      google_meet_url: form.googleMeetUrl,
+      created_by: user?.id ?? null,
+    })
+    .select("id")
+    .single();
 
   if (error) return { error: error.message };
+
+  // Best-effort Google Calendar mirror — silent no-op when the user hasn't
+  // connected Google or env creds are missing. Failures are logged.
+  if (user && inserted) {
+    await mirrorMeetingCreate(user.id, {
+      id: inserted.id,
+      title: form.title,
+      starts_at: form.startsAt,
+      ends_at: form.endsAt,
+    });
+  }
 
   revalidatePath(`/${form.locale}/meetings`);
   redirect(localePath(form.locale, "/meetings"));
@@ -91,6 +111,15 @@ export async function updateMeetingAction(
   }
 
   const supabase = await createSupabaseClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  const { data: existing } = await supabase
+    .from("meetings")
+    .select("google_event_id")
+    .eq("id", meetingId)
+    .maybeSingle();
+
   const { error } = await supabase
     .from("meetings")
     .update({
@@ -105,6 +134,22 @@ export async function updateMeetingAction(
 
   if (error) return { error: error.message };
 
+  // Best-effort Google Calendar mirror — patch existing event if one was
+  // created earlier; otherwise skip (we don't backfill on edit because the
+  // user may have intentionally avoided creating a calendar event).
+  if (user && existing?.google_event_id) {
+    await mirrorMeetingUpdate(
+      user.id,
+      {
+        id: meetingId,
+        title: form.title,
+        starts_at: form.startsAt,
+        ends_at: form.endsAt,
+      },
+      existing.google_event_id,
+    );
+  }
+
   revalidatePath(`/${form.locale}/meetings`);
   revalidatePath(`/${form.locale}/meetings/${meetingId}`);
   redirect(localePath(form.locale, `/meetings/${meetingId}`));
@@ -116,7 +161,22 @@ export async function deleteMeetingAction(formData: FormData): Promise<void> {
   if (!meetingId) return;
 
   const supabase = await createSupabaseClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  const { data: existing } = await supabase
+    .from("meetings")
+    .select("google_event_id")
+    .eq("id", meetingId)
+    .maybeSingle();
+
   await supabase.from("meetings").delete().eq("id", meetingId);
+
+  // Best-effort cleanup — keep going even if the calendar delete fails so
+  // the user doesn't see a stale row in Nest.
+  if (user && existing?.google_event_id) {
+    await mirrorMeetingDelete(user.id, existing.google_event_id);
+  }
 
   revalidatePath(`/${locale}/meetings`);
   redirect(localePath(locale, "/meetings"));

@@ -196,7 +196,11 @@ Goal: Andréa agenda reuniões no Nest e puxa transcrições automaticamente.
   - `/settings` page — owner-accessible card showing connection state + connect/disconnect controls; sidebar entry added; pt-BR + en strings
   - env updates: `GOOGLE_OAUTH_REDIRECT_URI` registered in `src/lib/env.ts`; `.env.example` aligned to `GOOGLE_OAUTH_*` prefix
   - inactive until `GOOGLE_OAUTH_*` creds land; tsc clean, 318 tests green
-- [ ] **Calendar sync** — listar eventos próximos 30 dias, criar/editar evento no Nest → espelha no Calendar (+ Meet link gerado)
+- [x] **Calendar sync** — listar eventos próximos 30 dias, criar/editar evento no Nest → espelha no Calendar (+ Meet link gerado)
+  - `src/lib/google-calendar.ts` — `getFreshAccessToken` (auto-refresh on stale + persist via service-role), `listEvents` (next-N-days helper), `createEvent` (with `conferenceData` → Meet link), `updateEvent` (PATCH), `deleteEvent`, pure `buildEventResource` + `parseEventResponse`; 12 unit tests
+  - `src/lib/calendar-mirror.ts` — best-effort mirror layer: `mirrorMeetingCreate` / `mirrorMeetingUpdate` / `mirrorMeetingDelete` (each silently no-ops when user hasn't connected Google or env creds missing; logs failures but never blocks the user-facing action)
+  - `meetings/actions.ts` — wired into `createMeetingAction` (mirrors + writes back `google_event_id` + `google_meet_url`), `updateMeetingAction` (patches existing event when `google_event_id` set), `deleteMeetingAction` (cleans up the calendar event)
+  - inactive until Google creds + a connected user; tsc clean, 330 tests green (12 new)
 - [x] **Meetings CRUD** — `/meetings` lista, `/meetings/new` agenda com cliente + participantes
   - `MeetingStatus` + `MEETING_STATUSES` + `meetings` table added to `src/types/database.ts`
   - `src/app/[locale]/(app)/meetings/actions.ts` — `createMeetingAction`, `updateMeetingAction`, `deleteMeetingAction` (server actions, validated, redirect-after-write)
