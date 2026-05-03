@@ -145,12 +145,12 @@ Goal: primeiro post Factory publicado pelo Nest.
 Goal: fluxo completo pra Nayara.
 
 - [x] AI chat in creative editor — MVP single-shot rewrite. User types an instruction, Claude returns revised slides (+ optional hook/caption), changes apply atomically, `ai_edits` row logs the exchange. Verified end-to-end: "deixa o primeiro slide mais direto, com menos palavras" → Claude shortened + added punch per instruction.
-- [ ] **Semantic memory** — embeddings dos últimos 30-60 drafts por cliente (pgvector), busca antes de gerar pra evitar repetição temática; extensão `vector` já habilitável no Supabase local
+- [x] **Semantic memory** — embeddings dos últimos 30-60 drafts por cliente (pgvector), busca antes de gerar pra evitar repetição temática; extensão `vector` já habilitável no Supabase local
   - migration 006: `vector` extension + `content_drafts.embedding vector(1024)` + hnsw index + `match_drafts()` RPC
-  - `src/lib/embeddings.ts` — Voyage AI wrapper (voyage-3.5, 1024 dims) with graceful no-op fallback when `VOYAGE_API_KEY` missing; pure `cosineSimilarity` + `vectorToSql` helpers + unit tests
+  - `src/lib/embeddings.ts` — Voyage AI wrapper (voyage-3.5, 1024 dims) with graceful no-op fallback when `VOYAGE_API_KEY` missing; pure `cosineSimilarity` + `vectorToSql` helpers + 16 unit tests
   - hook in `generateCarouselsAction`: embed each new draft (title + pillar + hook) after insert
   - retrieval in `generateCarouselsAction`: embed transcript → `match_drafts()` RPC → top-10 similar by cosine, falls back to "last 10 titles" when no embeddings exist
-  - shipped but inactive until `VOYAGE_API_KEY` lands
+  - inactive until `VOYAGE_API_KEY` lands; tsc clean, 16 embeddings tests green
 - [x] Compliance checks — industry-aware Claude review (CVM/OAB/ANVISA/LGPD), severity + inline findings on draft editor (shipped in `d227764`; test → `warning` + 2 LGPD issues)
   - migration 007: `content_drafts.compliance_report jsonb` column
   - `src/lib/compliance.ts` — `buildCompliancePrompt(draft, client)` + `parseComplianceReport(raw)` pure helpers
