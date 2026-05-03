@@ -245,7 +245,13 @@ Goal: v1.0 em produção.
   - `vercel.json`: daily at 05:00 UTC
   - LinkedIn / TikTok rows skipped silently (their wrappers come in 11-12)
   - Meta creds are already live, so this is testable end-to-end as soon as the cron runs; tsc clean, 361 tests green (7 new)
-- [ ] **KPI dashboard** — `/reports` com filtro por cliente + período, gráficos (reach, impressions, engagement rate, saves, follows)
+- [x] **KPI dashboard** — `/reports/kpi` com filtro por cliente + período, gráficos (reach, impressions, engagement rate, saves, shares, likes, comments)
+  - `src/lib/kpi.ts` — pure helpers: `latestPerPost` (dedupe by published_post, pick newest snapshot), `aggregateKpis` (sum + engagement rate), `computeEngagementRate` ((likes+comments+saves+shares)/reach \* 100, null when reach=0), `dailyReachSeries` (per-day per-post latest, summed), `parsePeriod` (YYYY-MM-DD with safe defaults). 15 unit tests
+  - `/reports/kpi/page.tsx` — server-rendered: filter form (client dropdown + from/to dates), 8 KPI tiles, inline SVG sparkline of daily reach. RLS scopes the metric query through `published_posts.content_drafts.client_id`; the optional clientId search param narrows further
+  - `/reports` page now has a tab strip linking to either Monthly recaps or KPIs
+  - i18n: full pt-BR + en strings for the kpi tab + tiles + filter + empty state
+  - Note: `follows` is account-level (not per-post), so it isn't in the per-post aggregation; will land alongside an account-insights cron in a follow-up
+  - tsc clean, 376 tests green (15 new)
 - [x] **Monthly report generator** — Claude analisa métricas do mês + gera 5-10 bullets de insight + recomendações pro próximo ciclo; exporta PDF via Playwright
   - migration 010: `monthly_reports` table (client_id+year+month unique, RLS: read via has_client_access, owner-only writes)
   - `src/lib/monthly-report.ts` — `buildReportSystem` / `buildReportUser` / `parseReportPayload` + `MonthlyReportParseError` + `monthBounds` / `monthLabel`; 14 unit tests

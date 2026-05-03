@@ -511,6 +511,8 @@
     "monthlyTitle": "Recap · {period}",
     "generatedAt": "Generated {when}",
     "downloadPdf": "Download PDF",
+    "kpiTab": "KPIs (Instagram)",
+    "monthlyTab": "Monthly recaps",
     "sections": {
       "summary": "Summary",
       "highlights": "Highlights",
@@ -527,6 +529,27 @@
       "approvalsSent": "Approvals sent",
       "approvalsApproved": "Client approved",
       "approvalsRejected": "Changes requested"
+    },
+    "kpi": {
+      "title": "KPIs · Instagram",
+      "subtitle": "Metrics from your published posts — refreshed daily by the cron.",
+      "filterClient": "Client",
+      "filterAll": "All",
+      "filterFrom": "From",
+      "filterTo": "To",
+      "apply": "Apply",
+      "tiles": {
+        "reach": "Reach",
+        "impressions": "Impressions",
+        "engagementRate": "Engagement rate",
+        "likes": "Likes",
+        "comments": "Comments",
+        "saves": "Saves",
+        "shares": "Shares",
+        "postsCovered": "Posts covered"
+      },
+      "sparkline": "Daily reach over period",
+      "noData": "No metrics in the selected period. Wait for the next cron run."
     }
   },
   "team": {

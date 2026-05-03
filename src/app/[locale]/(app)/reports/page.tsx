@@ -38,9 +38,21 @@ export default async function ReportsPage({
 
   return (
     <>
-      <div className="mb-8">
+      <div className="mb-6">
         <h1 className="font-display text-4xl text-foreground">{t("title")}</h1>
         <p className="mt-1 text-sm text-muted-foreground">{t("subtitle")}</p>
+      </div>
+
+      <div className="mb-6 flex gap-2 border-b border-border">
+        <span className="-mb-px border-b-2 border-foreground px-3 py-2 text-sm font-medium">
+          {t("monthlyTab")}
+        </span>
+        <Link
+          href="/reports/kpi"
+          className="-mb-px border-b-2 border-transparent px-3 py-2 text-sm text-muted-foreground hover:border-border hover:text-foreground"
+        >
+          {t("kpiTab")}
+        </Link>
       </div>
 
       {reports.length === 0 ? (
