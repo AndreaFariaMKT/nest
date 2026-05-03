@@ -11,6 +11,7 @@ import {
   GRAPH_BASE,
   hasCredentials,
   InstagramApiError,
+  mergeMetrics,
   publish,
   publishCarousel,
   readCredentials,
@@ -465,5 +466,75 @@ describe("publishCarousel (pipeline)", () => {
     await expect(publishCarousel(creds, ["only"], "cap")).rejects.toThrow(
       /2–10 children/,
     );
+  });
+});
+
+describe("mergeMetrics", () => {
+  it("returns null counts when fields and insights are empty", () => {
+    expect(mergeMetrics({}, [])).toEqual({
+      likes: null,
+      comments: null,
+      reach: null,
+      impressions: null,
+      saves: null,
+      shares: null,
+      totalInteractions: null,
+      raw: { insights: [] },
+    });
+  });
+
+  it("maps like_count and comments_count straight through", () => {
+    const merged = mergeMetrics(
+      { like_count: 42, comments_count: 7 },
+      [],
+    );
+    expect(merged.likes).toBe(42);
+    expect(merged.comments).toBe(7);
+  });
+
+  it("prefers `views` over `impressions` when both insights are present", () => {
+    const merged = mergeMetrics({}, [
+      { name: "views", values: [{ value: 1500 }] },
+      { name: "impressions", values: [{ value: 1000 }] },
+    ]);
+    expect(merged.impressions).toBe(1500);
+  });
+
+  it("falls back to `impressions` when `views` absent", () => {
+    const merged = mergeMetrics({}, [
+      { name: "impressions", values: [{ value: 1000 }] },
+    ]);
+    expect(merged.impressions).toBe(1000);
+  });
+
+  it("maps the standard insight names to typed columns", () => {
+    const merged = mergeMetrics({}, [
+      { name: "reach", values: [{ value: 800 }] },
+      { name: "saved", values: [{ value: 12 }] },
+      { name: "shares", values: [{ value: 3 }] },
+      { name: "total_interactions", values: [{ value: 60 }] },
+    ]);
+    expect(merged.reach).toBe(800);
+    expect(merged.saves).toBe(12);
+    expect(merged.shares).toBe(3);
+    expect(merged.totalInteractions).toBe(60);
+  });
+
+  it("ignores entries without numeric values", () => {
+    const merged = mergeMetrics({}, [
+      { name: "reach", values: [{ value: Number.NaN }] }, // not a real number
+      { name: "saved" }, // no values
+    ]);
+    expect(merged.reach).toBeNull();
+    expect(merged.saves).toBeNull();
+  });
+
+  it("preserves the raw payload for forensics", () => {
+    const fields = { like_count: 1, comments_count: 2, media_type: "CAROUSEL" };
+    const insights = [{ name: "reach", values: [{ value: 9 }] }];
+    expect(mergeMetrics(fields, insights).raw).toEqual({
+      ...fields,
+      insights,
+    });
   });
 });

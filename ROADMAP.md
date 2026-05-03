@@ -239,7 +239,12 @@ Goal: Andréa agenda reuniões no Nest e puxa transcrições automaticamente.
 
 Goal: v1.0 em produção.
 
-- [ ] **Metrics collection** — cron diário pega métricas de todos `published_posts` via Graph API; insere time-series em `post_metrics`
+- [x] **Metrics collection** — cron diário pega métricas de todos `published_posts` via Graph API; insere time-series em `post_metrics`
+  - `src/lib/instagram.ts` extension: `fetchPostMetrics(creds, mediaId)` calls `/{media}?fields=like_count,comments_count` + `/{media}/insights?metric=reach,saved,shares,total_interactions,views` and merges via pure `mergeMetrics(fields, insights)`. Best-effort insights — IG raises on unsupported metrics for the media type, so we catch and degrade to null fields rather than failing the whole post. 7 new mergeMetrics unit tests
+  - `/api/cron/metrics-collect` — bearer-gated, 503 on missing Meta creds. Per run: top 50 IG `published_posts` from the last 90 days → `fetchPostMetrics` per post → insert one `post_metrics` row each (time-series; consumers dedupe). 404 / `non_existing` are skipped (deleted post); other API errors logged + counted but never fatal
+  - `vercel.json`: daily at 05:00 UTC
+  - LinkedIn / TikTok rows skipped silently (their wrappers come in 11-12)
+  - Meta creds are already live, so this is testable end-to-end as soon as the cron runs; tsc clean, 361 tests green (7 new)
 - [ ] **KPI dashboard** — `/reports` com filtro por cliente + período, gráficos (reach, impressions, engagement rate, saves, follows)
 - [x] **Monthly report generator** — Claude analisa métricas do mês + gera 5-10 bullets de insight + recomendações pro próximo ciclo; exporta PDF via Playwright
   - migration 010: `monthly_reports` table (client_id+year+month unique, RLS: read via has_client_access, owner-only writes)

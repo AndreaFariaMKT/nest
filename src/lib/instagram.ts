@@ -346,6 +346,104 @@ export async function waitForContainerReady(
   });
 }
 
+// ───────────────────────────────────────────────────────────────────────────
+// Insights (post-level metrics)
+// ───────────────────────────────────────────────────────────────────────────
+
+export type PostMetrics = {
+  /** Always returned via media fields. */
+  likes: number | null;
+  comments: number | null;
+  /** From insights (`reach`). Null when account/media doesn't expose it. */
+  reach: number | null;
+  /** From insights (`views` post-2024; null on older media). */
+  impressions: number | null;
+  /** From insights (`saved`). */
+  saves: number | null;
+  /** From insights (`shares`). */
+  shares: number | null;
+  /** From insights (`total_interactions`). */
+  totalInteractions: number | null;
+  /** Raw insights payload, kept for forensics + future metric additions. */
+  raw: Record<string, unknown>;
+};
+
+const DEFAULT_INSIGHT_METRICS = [
+  "reach",
+  "saved",
+  "shares",
+  "total_interactions",
+  "views",
+] as const;
+
+/**
+ * Fetch top-level counts (likes, comments) plus insights metrics for a single
+ * media object. Insights are gated behind IG API permissions + account tier;
+ * we degrade gracefully — missing insights mean the corresponding fields are
+ * null, but `likes` / `comments` are always returned (as long as the media
+ * exists and the token has rights).
+ */
+export async function fetchPostMetrics(
+  creds: IgCredentials,
+  mediaId: string,
+  metrics: readonly string[] = DEFAULT_INSIGHT_METRICS,
+): Promise<PostMetrics> {
+  const fieldsUrl = `${GRAPH_BASE}/${creds.apiVersion}/${mediaId}`;
+  const fieldsParams = new URLSearchParams({
+    fields: "like_count,comments_count,media_type",
+    access_token: creds.token,
+  });
+  const fieldsResponse = await fetch(`${fieldsUrl}?${fieldsParams.toString()}`);
+  const fieldsData = await parseResponse<{
+    like_count?: number;
+    comments_count?: number;
+    media_type?: string;
+  }>(fieldsResponse);
+
+  // Insights — best-effort. The IG Graph API throws on a single bad metric
+  // for the media type, so we catch and zero out instead of failing the call.
+  let insights: Array<{ name: string; values?: Array<{ value: number }> }> = [];
+  try {
+    const insightsUrl = `${GRAPH_BASE}/${creds.apiVersion}/${mediaId}/insights`;
+    const insightsParams = new URLSearchParams({
+      metric: [...metrics].join(","),
+      access_token: creds.token,
+    });
+    const r = await fetch(`${insightsUrl}?${insightsParams.toString()}`);
+    const b = await parseResponse<{
+      data?: Array<{ name: string; values?: Array<{ value: number }> }>;
+    }>(r);
+    insights = b.data ?? [];
+  } catch {
+    insights = [];
+  }
+
+  return mergeMetrics(fieldsData, insights);
+}
+
+/** Pure — combines the fields response + insights array into the row shape. */
+export function mergeMetrics(
+  fields: { like_count?: number; comments_count?: number; media_type?: string },
+  insights: Array<{ name: string; values?: Array<{ value: number }> }>,
+): PostMetrics {
+  const byName = new Map<string, number>();
+  for (const i of insights) {
+    const v = i.values?.[0]?.value;
+    if (typeof v === "number" && Number.isFinite(v)) byName.set(i.name, v);
+  }
+  return {
+    likes: typeof fields.like_count === "number" ? fields.like_count : null,
+    comments:
+      typeof fields.comments_count === "number" ? fields.comments_count : null,
+    reach: byName.get("reach") ?? null,
+    impressions: byName.get("views") ?? byName.get("impressions") ?? null,
+    saves: byName.get("saved") ?? null,
+    shares: byName.get("shares") ?? null,
+    totalInteractions: byName.get("total_interactions") ?? null,
+    raw: { ...fields, insights },
+  };
+}
+
 /**
  * Convenience: create all children → create carousel → wait → publish.
  * Returns the published media id.
