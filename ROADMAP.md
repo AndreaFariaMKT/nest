@@ -214,7 +214,14 @@ Goal: Andréa agenda reuniões no Nest e puxa transcrições automaticamente.
   - `src/lib/calendar.ts` — pure month-grid helpers (`parseMonthKey`, `addMonths`, `buildMonthGrid`, `monthRangeISO`); 14 unit tests, Monday-first 6×7 grid
   - `/calendar` page renders the grid with meetings bucketed by local day; status dot per meeting + click-through to `/meetings/[id]`; prev/next/today navigation via `?ym=YYYY-MM`
   - Drag-to-reschedule deferred (requires a client component + optimistic update); manual edit via `/meetings/[id]/edit` is the current fallback
-- [ ] **Transcript pull job** — cron checa reuniões concluídas, baixa transcrição via Meet API, cria `transcripts` row, extrai tarefas via Claude (haiku) e cria `tasks`
+- [x] **Transcript pull job** — cron checa reuniões concluídas, baixa transcrição via Meet API, cria `transcripts` row, extrai tarefas via Claude (haiku) e cria `tasks`
+  - `src/lib/google-meet.ts` — pure `extractMeetingCode` (Meet URL → space code) + `entriesToPlainText` (concat to Speaker:text format), IO `listConferenceRecordsByCode` + `listTranscripts` + paginated `listTranscriptEntries`; 9 unit tests
+  - `src/lib/transcript-tasks.ts` — pure `buildTaskExtractionSystem` / `buildTaskExtractionUser` / `parseExtractedTasks` (clamps title to 120ch, normalises priority, parses due_at to ISO, drops malformed); 15 unit tests
+  - `/api/cron/transcript-pull` — bearer-gated, 503 on missing creds (Google + Anthropic). Per run: finds meetings ended in `[-7d, -5min]` with `google_meet_url` + no transcript yet (BATCH_SIZE=5), refreshes creator's Google token, picks closest conferenceRecord by space code, downloads first FILE_GENERATED transcript, persists, then calls Claude Haiku to extract tasks → bulk-inserts as `tasks` rows linked to the meeting's client. Skip reasons (creator_not_connected / no_meeting_code / no_conference_record / no_transcripts_yet / empty_transcript / scope_or_tier) are logged but don't count as failures
+  - `meetings.status` flips to `completed` when transcript arrives (conclusive proof)
+  - `vercel.json`: every 15 minutes
+  - SCOPES updated to include `meetings.space.readonly` (transcripts gated on Workspace Business Standard+ tier — OAuth still works on lower tiers, transcripts list comes back empty)
+  - inactive until Google + Anthropic creds + a connected user; tsc clean, 354 tests green (24 new)
 - [x] **Meeting detail** — mostra transcrição + tarefas geradas + botão "Gerar carrossel a partir dessa reunião"
   - `/meetings/[id]` page already lists linked transcripts; now each row exposes a "Generate carousels" button that posts to the existing `generateCarouselsAction`
   - i18n strings added for both locales (`meetings.actions.generateCarousels`)

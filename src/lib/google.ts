@@ -25,6 +25,11 @@ export const SCOPES = [
   "email",
   "profile",
   "https://www.googleapis.com/auth/calendar",
+  // Read-only access to Meet conference records + transcripts. Required by
+  // the Transcript Pull cron. Note: transcripts are a Google Workspace
+  // Business Standard+ feature; the OAuth grant succeeds for any account but
+  // the API returns an empty transcripts list for unsupported tiers.
+  "https://www.googleapis.com/auth/meetings.space.readonly",
 ] as const;
 
 // ───────────────────────────────────────────────────────────────────────────
