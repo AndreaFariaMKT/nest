@@ -78,6 +78,11 @@ const GROUPS: Record<string, Group> = {
       { name: "LINKEDIN_ORGANIZATION_URN", required: true },
     ],
   },
+  tiktok: {
+    label: "TikTok (posting)",
+    optional: true,
+    vars: [{ name: "TIKTOK_ACCESS_TOKEN", required: true }],
+  },
   google: {
     label: "Google OAuth",
     optional: true,
@@ -258,6 +263,19 @@ export const env = {
       return !!(
         read("LINKEDIN_ACCESS_TOKEN") && read("LINKEDIN_ORGANIZATION_URN")
       );
+    },
+  },
+  tiktok: {
+    get accessToken() {
+      return read("TIKTOK_ACCESS_TOKEN") ?? null;
+    },
+    get publishMode() {
+      return (read("TIKTOK_PUBLISH_MODE") ?? "inbox").toLowerCase() === "direct"
+        ? "direct"
+        : "inbox";
+    },
+    get ok() {
+      return !!read("TIKTOK_ACCESS_TOKEN");
     },
   },
   google: {

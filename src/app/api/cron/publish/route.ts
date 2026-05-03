@@ -10,6 +10,11 @@ import {
   readCredentials as readLinkedInCredentials,
   LinkedInApiError,
 } from "@/lib/linkedin";
+import {
+  publishVideo as publishTikTokVideo,
+  readCredentials as readTikTokCredentials,
+  TikTokApiError,
+} from "@/lib/tiktok";
 import { log } from "@/lib/log";
 import { checkRateLimit, ipFromHeaders } from "@/lib/rate-limit";
 
@@ -48,8 +53,10 @@ type ScheduledRow = {
 
 type DraftWithSlides = {
   id: string;
+  title: string;
   caption: string | null;
   hashtags: string[];
+  video_url: string | null;
   slides:
     | Array<{
         position: number;
@@ -121,17 +128,19 @@ async function handler(request: NextRequest) {
 
   const igCredsResult = readCredentials();
   const liCredsResult = readLinkedInCredentials();
+  const ttCredsResult = readTikTokCredentials();
   // We let the cron run even when one platform's creds are missing — only
-  // rows for that platform get skipped. Returning 503 unless BOTH are
-  // missing keeps a partial config (e.g., IG live, LinkedIn pending) from
-  // blocking the queue.
-  if (!igCredsResult.ok && !liCredsResult.ok) {
+  // rows for that platform get skipped. Returning 503 unless ALL are
+  // missing keeps a partial config (e.g., IG live, LinkedIn + TikTok
+  // pending) from blocking the queue.
+  if (!igCredsResult.ok && !liCredsResult.ok && !ttCredsResult.ok) {
     return NextResponse.json(
       {
         error: "no_platform_creds",
         missing: {
           instagram: igCredsResult.ok ? [] : igCredsResult.missing,
           linkedin: liCredsResult.ok ? [] : liCredsResult.missing,
+          tiktok: ttCredsResult.ok ? [] : ttCredsResult.missing,
         },
       },
       { status: 503 },
@@ -139,6 +148,7 @@ async function handler(request: NextRequest) {
   }
   const creds = igCredsResult.ok ? igCredsResult.creds : null;
   const liCreds = liCredsResult.ok ? liCredsResult.creds : null;
+  const ttCreds = ttCredsResult.ok ? ttCredsResult.creds : null;
 
   const admin = createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -176,16 +186,6 @@ async function handler(request: NextRequest) {
   for (const row of due) {
     summary.processed += 1;
 
-    // TikTok dispatch lands in the next slice; skip cleanly until then.
-    if (row.platform === "tiktok") {
-      summary.skipped += 1;
-      summary.errors.push({
-        scheduledId: row.id,
-        reason: "platform_unsupported:tiktok",
-      });
-      continue;
-    }
-
     // Per-platform cred guard. Skip rows whose platform's creds are missing
     // without bumping attempt_count — operators can land creds and the row
     // gets retried on the next tick.
@@ -205,11 +205,19 @@ async function handler(request: NextRequest) {
       });
       continue;
     }
+    if (row.platform === "tiktok" && !ttCreds) {
+      summary.skipped += 1;
+      summary.errors.push({
+        scheduledId: row.id,
+        reason: "platform_creds_missing:tiktok",
+      });
+      continue;
+    }
 
     const { data: draftData } = await admin
       .from("content_drafts")
       .select(
-        "id, caption, hashtags, slides(position, creatives(image_url, version))",
+        "id, title, caption, hashtags, video_url, slides(position, creatives(image_url, version))",
       )
       .eq("id", row.draft_id)
       .maybeSingle();
@@ -221,38 +229,59 @@ async function handler(request: NextRequest) {
     }
 
     const draft = draftData as unknown as DraftWithSlides;
-    const imageUrls = extractImageUrls(draft);
-    // IG carousels need 2+; LinkedIn posts accept 1+ image (or 0 for text).
-    const minImages = row.platform === "instagram" ? 2 : 1;
-    if (imageUrls.length < minImages) {
-      summary.failed += 1;
-      summary.errors.push({
-        scheduledId: row.id,
-        reason: `not_enough_creatives:${imageUrls.length}`,
-      });
-      await bumpFailure(
-        admin,
-        row,
-        `not_enough_creatives: need ${minImages}+, got ${imageUrls.length}`,
-      );
-      continue;
-    }
-
     const caption = buildCaption(draft);
+
+    // TikTok needs a video URL, not slide images. Validate per-platform.
+    if (row.platform === "tiktok") {
+      if (!draft.video_url) {
+        summary.failed += 1;
+        summary.errors.push({
+          scheduledId: row.id,
+          reason: "tiktok_missing_video_url",
+        });
+        await bumpFailure(admin, row, "tiktok_missing_video_url");
+        continue;
+      }
+    } else {
+      const imageUrls = extractImageUrls(draft);
+      // IG carousels need 2+; LinkedIn posts accept 1+ image.
+      const minImages = row.platform === "instagram" ? 2 : 1;
+      if (imageUrls.length < minImages) {
+        summary.failed += 1;
+        summary.errors.push({
+          scheduledId: row.id,
+          reason: `not_enough_creatives:${imageUrls.length}`,
+        });
+        await bumpFailure(
+          admin,
+          row,
+          `not_enough_creatives: need ${minImages}+, got ${imageUrls.length}`,
+        );
+        continue;
+      }
+    }
 
     const outcome: AttemptOutcome = await (async () => {
       try {
         if (row.platform === "instagram") {
+          const imageUrls = extractImageUrls(draft);
           const result = await publishCarousel(creds!, imageUrls, caption);
           return { ok: true, publishedId: result.publishedId };
         }
-        // linkedin
-        const result = await publishCarouselLinkedIn(
-          liCreds!,
-          imageUrls.slice(0, 9),
-          caption,
-        );
-        return { ok: true, publishedId: result.postUrn };
+        if (row.platform === "linkedin") {
+          const imageUrls = extractImageUrls(draft);
+          const result = await publishCarouselLinkedIn(
+            liCreds!,
+            imageUrls.slice(0, 9),
+            caption,
+          );
+          return { ok: true, publishedId: result.postUrn };
+        }
+        // tiktok
+        const result = await publishTikTokVideo(ttCreds!, draft.video_url!, {
+          title: draft.title,
+        });
+        return { ok: true, publishedId: result.publishId };
       } catch (err) {
         if (err instanceof InstagramApiError) {
           return {
@@ -264,6 +293,12 @@ async function handler(request: NextRequest) {
           return {
             ok: false,
             error: `li_api:${err.code}:${err.message}`,
+          };
+        }
+        if (err instanceof TikTokApiError) {
+          return {
+            ok: false,
+            error: `tt_api:${err.code}:${err.message}`,
           };
         }
         return {

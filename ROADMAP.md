@@ -272,7 +272,14 @@ Goal: v1.0 em produção.
   - `.env.example`: pasted-token + org URN slots added; CLIENT_ID / CLIENT_SECRET kept for the future 3-legged OAuth flow when Community Management API is approved
   - `/api/cron/publish` dispatches by `row.platform`: 503 only when **both** IG and LinkedIn creds are missing; otherwise rows whose platform creds aren't present are skipped (`platform_creds_missing:<p>`) without bumping `attempt_count`. LinkedIn rows accept 1+ image (vs IG's 2+); on success the published_post row stores `platform="linkedin"` + the LinkedIn post URN as `external_id`
   - inactive until LinkedIn creds + Community Management API approval; tsc clean, 387 tests green (11 new)
-- [ ] **TikTok publishing** — `src/lib/tiktok.ts` + upload de vídeo via init API (conta Business)
+- [x] **TikTok publishing** — `src/lib/tiktok.ts` + upload de vídeo via init API (conta Business)
+  - `src/lib/tiktok.ts` — Content Posting API wrapper. Pure: `readCredentials` (TIKTOK_ACCESS_TOKEN + TIKTOK_PUBLISH_MODE) + `buildInitBody` (PULL_FROM_URL source; drops `privacy_level` in inbox mode since manual finalisation handles it; forwards title + duet/comment/stitch toggles + cover timestamp) + `initEndpoint` (selects /inbox/ vs /publish/ by mode). IO: `initVideoUpload` → `fetchPublishStatus` → `waitForPublishReady` (terminal states differ by mode) + orchestrating `publishVideo`. `TikTokApiError` matches the IG/LinkedIn error shape; 14 unit tests
+  - Inbox mode (default): works with un-audited apps; sends drafts to the creator's TikTok app for manual finalisation. Direct mode: requires app audit + `video.publish` scope. Toggle via `TIKTOK_PUBLISH_MODE=direct`
+  - PULL_FROM_URL requires the source domain be on TikTok's verified domains list (configured in dev portal). Operators must verify their Supabase Storage / CDN domain before publishing works
+  - `src/lib/env.ts`: `tiktok` group registered (TIKTOK_ACCESS_TOKEN required + optional TIKTOK_PUBLISH_MODE)
+  - `.env.example`: pasted-token slot + TIKTOK_PUBLISH_MODE; CLIENT_KEY / CLIENT_SECRET kept for the future 3-legged OAuth flow once Content Posting API is approved
+  - `/api/cron/publish` adds TikTok dispatch: 503 only when **all** platforms missing creds; tiktok rows fail fast when the draft has no `video_url`; on success the published_post stores `platform="tiktok"` + the TikTok publish_id as `external_id`. `content_drafts` select widened to `(title, video_url)` so the cron can populate the TikTok title + locate the source URL
+  - inactive until TikTok creds + Content Posting API approval + verified source domain; tsc clean, 401 tests green (14 new)
 - [ ] **Production deploy** — Vercel (app) + Supabase Cloud (DB), DNS, SSL, env secrets, first smoke test
 
 **Entrega:** Nest v1.0 rodando em produção, Andréa + equipe + Nayara usando diariamente.
