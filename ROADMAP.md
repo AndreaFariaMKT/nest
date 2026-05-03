@@ -188,7 +188,14 @@ Goal: fluxo completo pra Nayara.
 
 Goal: Andréa agenda reuniões no Nest e puxa transcrições automaticamente.
 
-- [ ] **Google OAuth** — `/api/google/*` com consent screen, store refresh token em `profiles.google_*` (migration nova)
+- [x] **Google OAuth** — `/api/google/*` com consent screen, store refresh token em `profiles.google_*` (migration nova)
+  - migration 012: `profiles.google_refresh_token` + `google_access_token` + `google_token_expires_at` + `google_email` + `google_scopes`
+  - `src/lib/google.ts` — pure URL builder (`buildAuthUrl`), `exchangeCode` + `refreshAccessToken` IO, `expiresAtIso` + `isAccessTokenStale` (60s lead window), `generateState` (32-byte hex CSRF), `GoogleApiError`; 17 unit tests
+  - `/api/google/auth` — auth-gated redirect to Google consent (scopes: openid, email, profile, calendar) with httpOnly state cookie, `prompt=consent` for reliable refresh_token issuance
+  - `/api/google/callback` — verifies state cookie, exchanges code, fetches userinfo, persists tokens via service-role (profiles google_* are server-managed); bounces back to `/settings?google=<status>`
+  - `/settings` page — owner-accessible card showing connection state + connect/disconnect controls; sidebar entry added; pt-BR + en strings
+  - env updates: `GOOGLE_OAUTH_REDIRECT_URI` registered in `src/lib/env.ts`; `.env.example` aligned to `GOOGLE_OAUTH_*` prefix
+  - inactive until `GOOGLE_OAUTH_*` creds land; tsc clean, 318 tests green
 - [ ] **Calendar sync** — listar eventos próximos 30 dias, criar/editar evento no Nest → espelha no Calendar (+ Meet link gerado)
 - [x] **Meetings CRUD** — `/meetings` lista, `/meetings/new` agenda com cliente + participantes
   - `MeetingStatus` + `MEETING_STATUSES` + `meetings` table added to `src/types/database.ts`

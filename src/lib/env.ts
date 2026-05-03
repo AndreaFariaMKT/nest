@@ -76,6 +76,7 @@ const GROUPS: Record<string, Group> = {
     vars: [
       { name: "GOOGLE_OAUTH_CLIENT_ID", required: true },
       { name: "GOOGLE_OAUTH_CLIENT_SECRET", required: true },
+      { name: "GOOGLE_OAUTH_REDIRECT_URI", required: true },
     ],
   },
   sentry: {
@@ -245,9 +246,14 @@ export const env = {
     get clientSecret() {
       return read("GOOGLE_OAUTH_CLIENT_SECRET") ?? null;
     },
+    get redirectUri() {
+      return read("GOOGLE_OAUTH_REDIRECT_URI") ?? null;
+    },
     get ok() {
       return !!(
-        read("GOOGLE_OAUTH_CLIENT_ID") && read("GOOGLE_OAUTH_CLIENT_SECRET")
+        read("GOOGLE_OAUTH_CLIENT_ID") &&
+        read("GOOGLE_OAUTH_CLIENT_SECRET") &&
+        read("GOOGLE_OAUTH_REDIRECT_URI")
       );
     },
   },

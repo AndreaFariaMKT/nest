@@ -468,6 +468,11 @@ export interface Database {
           avatar_url: string | null;
           role: UserRole;
           locale: string;
+          google_refresh_token: string | null;
+          google_access_token: string | null;
+          google_token_expires_at: string | null;
+          google_email: string | null;
+          google_scopes: string[] | null;
           created_at: string;
           updated_at: string;
         };
@@ -478,6 +483,11 @@ export interface Database {
           avatar_url?: string | null;
           role?: UserRole;
           locale?: string;
+          google_refresh_token?: string | null;
+          google_access_token?: string | null;
+          google_token_expires_at?: string | null;
+          google_email?: string | null;
+          google_scopes?: string[] | null;
         };
         Update: Partial<Database["public"]["Tables"]["profiles"]["Insert"]>;
       };

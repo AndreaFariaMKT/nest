@@ -11,6 +11,7 @@ import {
   PaletteIcon,
   ProjectsIcon,
   ServicesIcon,
+  SettingsIcon,
   TeamIcon,
 } from "@/components/icons/NavIcons";
 
@@ -25,6 +26,7 @@ const items = [
   { href: "/brand-kits", icon: PaletteIcon, key: "brandKits" },
   { href: "/reports", icon: ChartIcon, key: "reports" },
   { href: "/team", icon: TeamIcon, key: "team" },
+  { href: "/settings", icon: SettingsIcon, key: "settings" },
 ] as const;
 
 export function Sidebar() {

@@ -560,7 +560,19 @@
     "title": "Configurações",
     "language": "Idioma",
     "languagePtBR": "Português (Brasil)",
-    "languageEn": "Inglês"
+    "languageEn": "Inglês",
+    "integrations": {
+      "google": {
+        "title": "Google (Calendar + Meet)",
+        "description": "Conecte sua conta Google para sincronizar reuniões, gerar links do Meet e puxar transcrições.",
+        "connect": "Conectar Google",
+        "disconnect": "Desconectar",
+        "connectedAs": "Conectado como",
+        "connectedPill": "Conectado",
+        "notConnectedPill": "Não conectado",
+        "notConfigured": "Integração indisponível: as variáveis GOOGLE_OAUTH_* não estão configuradas no servidor."
+      }
+    }
   },
   "common": {
     "loading": "Carregando…",

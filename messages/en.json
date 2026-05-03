@@ -560,7 +560,19 @@
     "title": "Settings",
     "language": "Language",
     "languagePtBR": "Portuguese (Brazil)",
-    "languageEn": "English"
+    "languageEn": "English",
+    "integrations": {
+      "google": {
+        "title": "Google (Calendar + Meet)",
+        "description": "Connect your Google account to sync meetings, generate Meet links and pull transcripts.",
+        "connect": "Connect Google",
+        "disconnect": "Disconnect",
+        "connectedAs": "Connected as",
+        "connectedPill": "Connected",
+        "notConnectedPill": "Not connected",
+        "notConfigured": "Integration unavailable: GOOGLE_OAUTH_* env vars are not configured on the server."
+      }
+    }
   },
   "common": {
     "loading": "Loading…",
