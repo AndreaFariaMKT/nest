@@ -266,7 +266,12 @@ Goal: v1.0 em produção.
   - Public route at `src/app/p/[token]/page.tsx` (outside `[locale]` + auth); middleware matcher updated to skip `/p/*`
   - Service-role client fetches client-scoped `scheduled_posts`, `approvals` (not yet answered + not expired), and `published_posts` (last 10 each)
   - Landed at `/p/[token]` instead of `/portal/[slug]` to match the `/a/[token]` pattern (shorter URL, no slug-in-URL coupling); metrics bars on published posts land once Meta metrics collection ships (Sprint 11-12)
-- [ ] **LinkedIn publishing** — `src/lib/linkedin.ts` + pipeline de agendamento análogo ao IG (requer Company Page)
+- [x] **LinkedIn publishing** — `src/lib/linkedin.ts` + pipeline de agendamento análogo ao IG (requer Company Page)
+  - `src/lib/linkedin.ts` — Versioned Posts API wrapper (LinkedIn-Version pinned to 202403): pure `readCredentials` / `buildPostBody` (single-media for 1 img, `multiImage` for 2-9, clamped) + IO `initializeImageUpload` → `uploadImageBytes` → `createPost` (URN read from `x-restli-id` response header) + orchestrating `publishCarousel` (fetch each source URL → init+upload to LinkedIn → multi-image post). `LinkedInApiError` mirrors the IG error shape; 11 unit tests
+  - `src/lib/env.ts`: `linkedin` group registered (LINKEDIN_ACCESS_TOKEN + LINKEDIN_ORGANIZATION_URN; pinned API version override via LINKEDIN_API_VERSION)
+  - `.env.example`: pasted-token + org URN slots added; CLIENT_ID / CLIENT_SECRET kept for the future 3-legged OAuth flow when Community Management API is approved
+  - `/api/cron/publish` dispatches by `row.platform`: 503 only when **both** IG and LinkedIn creds are missing; otherwise rows whose platform creds aren't present are skipped (`platform_creds_missing:<p>`) without bumping `attempt_count`. LinkedIn rows accept 1+ image (vs IG's 2+); on success the published_post row stores `platform="linkedin"` + the LinkedIn post URN as `external_id`
+  - inactive until LinkedIn creds + Community Management API approval; tsc clean, 387 tests green (11 new)
 - [ ] **TikTok publishing** — `src/lib/tiktok.ts` + upload de vídeo via init API (conta Business)
 - [ ] **Production deploy** — Vercel (app) + Supabase Cloud (DB), DNS, SSL, env secrets, first smoke test
 

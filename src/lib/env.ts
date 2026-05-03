@@ -70,6 +70,14 @@ const GROUPS: Record<string, Group> = {
     optional: true,
     vars: [{ name: "VOYAGE_API_KEY", required: true }],
   },
+  linkedin: {
+    label: "LinkedIn (posting)",
+    optional: true,
+    vars: [
+      { name: "LINKEDIN_ACCESS_TOKEN", required: true },
+      { name: "LINKEDIN_ORGANIZATION_URN", required: true },
+    ],
+  },
   google: {
     label: "Google OAuth",
     optional: true,
@@ -237,6 +245,19 @@ export const env = {
     },
     get ok() {
       return !!read("VOYAGE_API_KEY");
+    },
+  },
+  linkedin: {
+    get accessToken() {
+      return read("LINKEDIN_ACCESS_TOKEN") ?? null;
+    },
+    get organizationUrn() {
+      return read("LINKEDIN_ORGANIZATION_URN") ?? null;
+    },
+    get ok() {
+      return !!(
+        read("LINKEDIN_ACCESS_TOKEN") && read("LINKEDIN_ORGANIZATION_URN")
+      );
     },
   },
   google: {

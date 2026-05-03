@@ -5,6 +5,11 @@ import {
   readCredentials,
   InstagramApiError,
 } from "@/lib/instagram";
+import {
+  publishCarousel as publishCarouselLinkedIn,
+  readCredentials as readLinkedInCredentials,
+  LinkedInApiError,
+} from "@/lib/linkedin";
 import { log } from "@/lib/log";
 import { checkRateLimit, ipFromHeaders } from "@/lib/rate-limit";
 
@@ -114,14 +119,26 @@ async function handler(request: NextRequest) {
     return NextResponse.json({ error: "unauthorized" }, { status: 401 });
   }
 
-  const credsResult = readCredentials();
-  if (!credsResult.ok) {
+  const igCredsResult = readCredentials();
+  const liCredsResult = readLinkedInCredentials();
+  // We let the cron run even when one platform's creds are missing — only
+  // rows for that platform get skipped. Returning 503 unless BOTH are
+  // missing keeps a partial config (e.g., IG live, LinkedIn pending) from
+  // blocking the queue.
+  if (!igCredsResult.ok && !liCredsResult.ok) {
     return NextResponse.json(
-      { error: "meta_creds_missing", missing: credsResult.missing },
+      {
+        error: "no_platform_creds",
+        missing: {
+          instagram: igCredsResult.ok ? [] : igCredsResult.missing,
+          linkedin: liCredsResult.ok ? [] : liCredsResult.missing,
+        },
+      },
       { status: 503 },
     );
   }
-  const creds = credsResult.creds;
+  const creds = igCredsResult.ok ? igCredsResult.creds : null;
+  const liCreds = liCredsResult.ok ? liCredsResult.creds : null;
 
   const admin = createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -159,13 +176,32 @@ async function handler(request: NextRequest) {
   for (const row of due) {
     summary.processed += 1;
 
-    // We only speak Instagram right now — skip LinkedIn/TikTok until those
-    // wrappers land (Sprint 11–12).
-    if (row.platform !== "instagram") {
+    // TikTok dispatch lands in the next slice; skip cleanly until then.
+    if (row.platform === "tiktok") {
       summary.skipped += 1;
       summary.errors.push({
         scheduledId: row.id,
-        reason: `platform_unsupported:${row.platform}`,
+        reason: "platform_unsupported:tiktok",
+      });
+      continue;
+    }
+
+    // Per-platform cred guard. Skip rows whose platform's creds are missing
+    // without bumping attempt_count — operators can land creds and the row
+    // gets retried on the next tick.
+    if (row.platform === "instagram" && !creds) {
+      summary.skipped += 1;
+      summary.errors.push({
+        scheduledId: row.id,
+        reason: "platform_creds_missing:instagram",
+      });
+      continue;
+    }
+    if (row.platform === "linkedin" && !liCreds) {
+      summary.skipped += 1;
+      summary.errors.push({
+        scheduledId: row.id,
+        reason: "platform_creds_missing:linkedin",
       });
       continue;
     }
@@ -186,7 +222,9 @@ async function handler(request: NextRequest) {
 
     const draft = draftData as unknown as DraftWithSlides;
     const imageUrls = extractImageUrls(draft);
-    if (imageUrls.length < 2) {
+    // IG carousels need 2+; LinkedIn posts accept 1+ image (or 0 for text).
+    const minImages = row.platform === "instagram" ? 2 : 1;
+    if (imageUrls.length < minImages) {
       summary.failed += 1;
       summary.errors.push({
         scheduledId: row.id,
@@ -195,7 +233,7 @@ async function handler(request: NextRequest) {
       await bumpFailure(
         admin,
         row,
-        `not_enough_creatives: need 2+, got ${imageUrls.length}`,
+        `not_enough_creatives: need ${minImages}+, got ${imageUrls.length}`,
       );
       continue;
     }
@@ -204,13 +242,28 @@ async function handler(request: NextRequest) {
 
     const outcome: AttemptOutcome = await (async () => {
       try {
-        const result = await publishCarousel(creds, imageUrls, caption);
-        return { ok: true, publishedId: result.publishedId };
+        if (row.platform === "instagram") {
+          const result = await publishCarousel(creds!, imageUrls, caption);
+          return { ok: true, publishedId: result.publishedId };
+        }
+        // linkedin
+        const result = await publishCarouselLinkedIn(
+          liCreds!,
+          imageUrls.slice(0, 9),
+          caption,
+        );
+        return { ok: true, publishedId: result.postUrn };
       } catch (err) {
         if (err instanceof InstagramApiError) {
           return {
             ok: false,
             error: `ig_api:${err.code}:${err.message}`,
+          };
+        }
+        if (err instanceof LinkedInApiError) {
+          return {
+            ok: false,
+            error: `li_api:${err.code}:${err.message}`,
           };
         }
         return {
@@ -225,7 +278,7 @@ async function handler(request: NextRequest) {
         .from("published_posts")
         .insert({
           draft_id: draft.id,
-          platform: "instagram",
+          platform: row.platform,
           post_type: row.post_type,
           external_id: outcome.publishedId,
         })
@@ -249,6 +302,7 @@ async function handler(request: NextRequest) {
       log.info("cron.publish", "published", {
         scheduledId: row.id,
         draftId: draft.id,
+        platform: row.platform,
         externalId: outcome.publishedId,
       });
     } else {
