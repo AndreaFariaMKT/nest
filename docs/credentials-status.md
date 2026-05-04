@@ -1,6 +1,6 @@
 # Credentials & rollout status
 
-Last updated: 2026-05-03 · Source of truth for which integrations are live, which are pending external review, and what's left to wire up before production.
+Last updated: 2026-05-04 · Source of truth for which integrations are live, which are pending external review, and what's left to wire up before production.
 
 The code for every integration listed here has already shipped — see ROADMAP §3. This document tracks **operator actions** (account creation, API key generation, review wait) that gate activation.
 
@@ -58,51 +58,60 @@ The code for every integration listed here has already shipped — see ROADMAP �
 
 ---
 
-## ❌ Not started — Production deploy (Passo 5)
+## 🟠 In progress — Production deploy (Passo 5)
 
-In-progress when the session ended. Pending decisions:
+Progress as of 2026-05-04:
 
-| Step | Status | Decision pending |
+| Step | Status | Notes |
 |---|---|---|
-| GitHub repo (private) | not created | Andrea's GitHub username |
-| Vercel project | not created | needs GitHub repo first |
-| Supabase Cloud project | not created | Pro plan ($25/mo) approval |
-| Domain registration | not started | Andrea chose option (c) — register a new dedicated domain (registrar TBD: Registro.br or Namecheap) |
-| Env vars in Vercel | n/a | mirror everything in `.env.local` |
-| First deploy + smoke test | n/a | |
+| GitHub repo | ✅ done | `Edrick42/nest` (private) — Andrea decided to keep on Edrick's account; HEAD synced at `80db923` |
+| Supabase Cloud project | ✅ done | Created on Pro plan; CLI linked; all 12 migrations applied (verified via `supabase migration list --linked`) |
+| Vercel project | ✅ imported | Repo connected; project created; env vars filled (12 obrigatórias) |
+| Env vars in Vercel | ✅ filled | Andrea pasted all 12 required vars on 2026-05-04. Pending: `NEXT_PUBLIC_APP_URL` + `GOOGLE_OAUTH_REDIRECT_URI` (need Vercel URL post-1st-deploy) |
+| Domain registration | ⏸️ deferred | Andrea avaliando preços — usar `*.vercel.app` no deploy inicial |
+| First deploy | ⏸️ pending | Andrea pausou antes de clicar Deploy. Próxima sessão: Vercel → Deploy → capturar URL |
+| Post-deploy: redirect URI | ⏸️ pending | Após deploy, adicionar URL no Google Cloud Console + preencher 2 env vars finais |
+| Smoke test | ⏸️ pending | |
 
-Tomorrow's first ask: GitHub username so the repo can be created via `gh repo create --private` and the 9 local commits pushed.
+### ⚠️ Security incident — 2026-05-04
+Durante a sessão, Andrea colou no chat (em vez de na UI da Vercel):
+1. **Supabase service_role key** (`sb_secret_*`) — orientado a rotacionar via Dashboard → Settings → API Keys → Roll
+2. **Anthropic API key** (`sk-ant-*`) — orientado a Disable + criar nova `nest-prod`
+
+**Verificar na próxima sessão:** se as chaves foram efetivamente rotacionadas (caso contrário, ainda há risco de uso indevido).
 
 ---
 
 ## .env.local cheat sheet
 
-What's set as of session end (2026-05-03):
+`.env.local` (dev local) status — **inalterado** na sessão de 2026-05-04 (continua apontando pro Supabase Docker local). Os valores de prod ficam **só na Vercel**, não no `.env.local`.
 
-| Group | Status |
-|---|---|
-| `NEXT_PUBLIC_SUPABASE_*` | local Docker (`http://127.0.0.1:54321`) — needs swap for Supabase Cloud URL/keys at deploy time |
-| `SUPABASE_SERVICE_ROLE_KEY` | local Docker — same swap needed |
-| `ANTHROPIC_API_KEY` | **not set** — Andrea will need to add hers (or use the team key) |
-| `VOYAGE_API_KEY` | ✅ set |
-| `GOOGLE_OAUTH_*` | ✅ set (3 vars) |
-| `LINKEDIN_*` | not set — pending MDP approval |
-| `TIKTOK_*` | not set — skipped |
-| `META_*` | should already be set (from earlier sprints) |
-| `CRON_SECRET` | ✅ set (random 32-char hex generated this session) |
+| Group | Local (.env.local) | Vercel (prod) |
+|---|---|---|
+| `NEXT_PUBLIC_SUPABASE_*` | local Docker `127.0.0.1:54321` | ✅ Cloud URL/anon (preenchido 2026-05-04) |
+| `SUPABASE_SERVICE_ROLE_KEY` | local Docker | ✅ Cloud key (rotacionada 2026-05-04 — confirmar) |
+| `ANTHROPIC_API_KEY` | vazio | ✅ chave `nest-prod` (rotacionada 2026-05-04 — confirmar) |
+| `VOYAGE_API_KEY` | ✅ set | ✅ copiado |
+| `GOOGLE_OAUTH_*` (3 vars) | ✅ set | ✅ 2 copiados; `REDIRECT_URI` pendente até ter Vercel URL |
+| `META_*` (4 vars) | ✅ set | ✅ copiados |
+| `CRON_SECRET` | ✅ set | ✅ copiado |
+| `NEXT_PUBLIC_APP_URL` | local | ⏸️ pendente — preencher pós-deploy |
+| `LINKEDIN_*` | not set | skipped (MDP review) |
+| `TIKTOK_*` | not set | skipped |
+| `WHATSAPP_*` | not set | skipped (não ativado) |
+| `SENTRY_DSN` | optional | skipped |
 
 ---
 
-## Tomorrow's plan
+## Next session plan
 
-1. Get GitHub username → `gh repo create andreafariamkt/nest --private --source . --push`
-2. Sign up for Vercel (Google login OK)
-3. Sign up for Supabase Cloud + create production project (Pro plan)
-4. Run `supabase db push` against production project to apply 12 migrations
-5. Decide on domain registrar + register the chosen domain
-6. Connect repo to Vercel, paste env vars, first deploy
-7. Configure DNS (CNAME → Vercel)
-8. Smoke test the production URL
-9. (Background) Check LinkedIn MDP form status
+1. ⚠️ **Confirmar rotação** das 2 chaves vazadas no chat (Anthropic + Supabase service_role)
+2. **Disparar 1º deploy na Vercel** → Deployments → Deploy
+3. Capturar URL final (`nest-xxxxx.vercel.app`)
+4. Voltar à Vercel → preencher `NEXT_PUBLIC_APP_URL` + `GOOGLE_OAUTH_REDIRECT_URI` → **Redeploy**
+5. Google Cloud Console → adicionar `https://<URL>/api/google/callback` em Authorized redirect URIs
+6. Smoke test: home, login Google, dashboard, cron health
+7. (Background) Check LinkedIn MDP form status (~2026-05-18)
+8. (Quando Andrea decidir) Registrar domínio + CNAME → Vercel
 
-Estimated time: 1.5h hands-on + DNS propagation wait.
+Estimated time: 30-45 min hands-on (sem o passo do domínio).
