@@ -9,6 +9,9 @@ import { monthLabel } from "@/lib/monthly-report";
 import { log } from "@/lib/log";
 
 export const dynamic = "force-dynamic";
+export const runtime = "nodejs";
+// Chromium cold-start + render needs more than the default budget.
+export const maxDuration = 60;
 
 /**
  * Render a monthly report as a PDF attachment. Auth: session-based; any

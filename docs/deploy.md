@@ -185,7 +185,7 @@ If a deploy breaks prod:
 
 ## 9. Known prod gaps (as of 2026-04-24)
 
-- [ ] Playwright creatives / Reel renderer runs `playwright-core` with a bundled Chromium — doesn't fit in a Vercel Lambda layer. Sprint 11-12 migration: swap to `@sparticuz/chromium` + `puppeteer-core`.
+- [x] Playwright creatives / Reel renderer — migrated to `@sparticuz/chromium` + `puppeteer-core` via the shared launcher `src/lib/browser.ts` (local dev reuses Playwright's Chromium). PDF route pinned to `runtime = "nodejs"` + `maxDuration = 60`.
 - [ ] `src/lib/rate-limit.ts` uses in-memory state — resets per instance. Swap to Upstash Redis before horizontal scale.
 - [ ] `/api/cron/meta-refresh` scaffolded but the actual Graph exchange isn't wired. See the route file for the ~20-line follow-up.
 - [ ] Types file `src/types/database.ts` is still hand-rolled; `database.gen.ts` is auto-generated but the swap is pending (ROADMAP §4.1).

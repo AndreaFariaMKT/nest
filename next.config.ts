@@ -5,6 +5,13 @@ const withNextIntl = createNextIntlPlugin("./src/i18n/request.ts");
 
 const nextConfig: NextConfig = {
   typedRoutes: true,
+  // Keep the headless-browser packages external so their native binaries are
+  // traced into the serverless function instead of bundled by the compiler.
+  serverExternalPackages: [
+    "@sparticuz/chromium",
+    "puppeteer-core",
+    "playwright-core",
+  ],
   images: {
     remotePatterns: [
       { protocol: "https", hostname: "*.supabase.co" },

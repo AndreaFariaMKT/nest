@@ -1,8 +1,10 @@
 // Server-side Report PDF renderer.
 //
-// Takes a structured MonthlyReport and returns a PDF buffer via playwright-core.
-// Same constraints as slide-render: local/dev only until prod Chromium lands in
-// Sprint 11-12.
+// Takes a structured MonthlyReport and returns a PDF buffer via headless
+// Chromium. Runs locally and on Vercel serverless through the shared launcher
+// in ./browser (puppeteer-core + @sparticuz/chromium in prod).
+
+import { launchBrowser } from "@/lib/browser";
 
 export type ReportPdfInput = {
   clientName: string;
@@ -112,25 +114,20 @@ export function buildReportHtml(input: ReportPdfInput): string {
 }
 
 /**
- * Render a report HTML document to a PDF buffer using playwright-core's
- * bundled Chromium. Dynamic import keeps the ~50 MB binary reference out of
- * cold start paths for unrelated routes.
+ * Render a report HTML document to a PDF buffer using headless Chromium.
  */
 export async function renderReportToPdf(html: string): Promise<Buffer> {
-  const { chromium } = await import("playwright-core");
-  const browser = await chromium.launch();
+  const browser = await launchBrowser();
   try {
-    const context = await browser.newContext({
-      viewport: { width: 794, height: 1123 }, // A4 @ 96dpi
-    });
-    const page = await context.newPage();
+    const page = await browser.newPage();
+    await page.setViewport({ width: 794, height: 1123 }); // A4 @ 96dpi
     await page.setContent(html, { waitUntil: "domcontentloaded" });
     const pdf = await page.pdf({
       format: "A4",
       printBackground: true,
       margin: { top: "0", right: "0", bottom: "0", left: "0" },
     });
-    return pdf;
+    return Buffer.from(pdf);
   } finally {
     await browser.close();
   }

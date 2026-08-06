@@ -1,10 +1,11 @@
-// Server-side slide rendering: HTML template + Playwright → PNG.
+// Server-side slide rendering: HTML template + headless Chromium → PNG.
 //
-// v1 local only — on Vercel serverless, Playwright's bundled chromium
-// doesn't fit in the Lambda layer. Sprint 11-12 migrates this to
-// @sparticuz/chromium + puppeteer-core for prod.
+// Runs both locally and on Vercel serverless via the shared launcher in
+// ./browser (puppeteer-core + @sparticuz/chromium in prod).
 
 import type { BrandColor, BrandTypography } from "@/types/database";
+
+import { launchBrowser } from "@/lib/browser";
 
 export type SlideContent = {
   headline: string | null;
@@ -116,21 +117,15 @@ function escapeHtml(input: string): string {
     .replace(/"/g, "&quot;");
 }
 
-/** Render the HTML to a PNG buffer using playwright-core's chromium. */
+/** Render the HTML to a PNG buffer using headless Chromium. */
 export async function renderSlideToPng(html: string): Promise<Buffer> {
-  // Imported dynamically so non-rendering code paths (type checking, unit
-  // tests) don't pay the cost of loading the browser binary metadata.
-  const { chromium } = await import("playwright-core");
-  const browser = await chromium.launch();
+  const browser = await launchBrowser();
   try {
-    const context = await browser.newContext({
-      viewport: { width: 1080, height: 1350 },
-      deviceScaleFactor: 1,
-    });
-    const page = await context.newPage();
+    const page = await browser.newPage();
+    await page.setViewport({ width: 1080, height: 1350, deviceScaleFactor: 1 });
     await page.setContent(html, { waitUntil: "domcontentloaded" });
     const png = await page.screenshot({ type: "png", fullPage: false });
-    return png;
+    return Buffer.from(png);
   } finally {
     await browser.close();
   }
