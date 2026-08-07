@@ -1,6 +1,5 @@
 import { setRequestLocale, getTranslations } from "next-intl/server";
 import { Link } from "@/i18n/routing";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/Card";
 import { Pill } from "@/components/ui/Pill";
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentProfile } from "@/lib/auth";
@@ -132,17 +131,17 @@ export default async function TodayPage({
   const meetings = (meetingsData ?? []) as unknown as TodayMeeting[];
 
   return (
-    <div className="mx-auto max-w-5xl">
-      <div className="mb-10">
-        <p className="text-sm text-muted-foreground capitalize">{dateLabel}</p>
+    <div className="mx-auto max-w-6xl">
+      <header className="mb-8">
+        <p className="text-sm capitalize text-muted-foreground">{dateLabel}</p>
         <h1 className="mt-1 font-display text-4xl text-foreground">
           {firstName ? t("greeting", { name: firstName }) : t("title")}
         </h1>
         <p className="mt-1 text-sm text-muted-foreground">{t("subtitle")}</p>
-      </div>
+      </header>
 
       {ownerView ? (
-        <div className="mb-8 grid grid-cols-1 gap-3 md:grid-cols-3">
+        <div className="mb-6 grid grid-cols-2 gap-4 lg:grid-cols-3">
           <Stat label={t("stats.activeClients")} value={String(activeClients)} />
           <Stat
             label={t("stats.activeServices")}
@@ -156,92 +155,83 @@ export default async function TodayPage({
       ) : null}
 
       <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
-        <Card data-testid="today-block">
-          <CardHeader>
-            <CardTitle className="text-base">{t("blocks.tasks.title")}</CardTitle>
-          </CardHeader>
-          <CardContent className="text-sm">
-            {tasks.length === 0 ? (
-              <p className="text-muted-foreground">
-                {t("blocks.tasks.empty")}
-              </p>
-            ) : (
-              <ul className="space-y-1.5">
-                {tasks.map((task) => (
-                  <li key={task.id} data-testid="today-task">
-                    <Link
-                      href={`/projects/${task.id}/edit`}
-                      className="group flex items-start justify-between gap-2 rounded-md px-2 py-1.5 hover:bg-muted"
+        <SectionCard title={t("blocks.tasks.title")}>
+          {tasks.length === 0 ? (
+            <Empty>{t("blocks.tasks.empty")}</Empty>
+          ) : (
+            <ul className="divide-y divide-border">
+              {tasks.map((task) => (
+                <li key={task.id} data-testid="today-task">
+                  <Link
+                    href={`/projects/${task.id}/edit`}
+                    className="group flex items-center justify-between gap-2 py-3 text-sm"
+                  >
+                    <div className="min-w-0 flex-1">
+                      <span className="block truncate text-foreground group-hover:text-brand">
+                        {task.title}
+                      </span>
+                      {task.due_at ? (
+                        <span className="text-xs text-muted-foreground">
+                          {new Intl.DateTimeFormat(locale, {
+                            dateStyle: "short",
+                            timeStyle: "short",
+                          }).format(new Date(task.due_at))}
+                        </span>
+                      ) : null}
+                    </div>
+                    <Pill
+                      tone={priorityTone[task.priority]}
+                      className="shrink-0 text-[10px]"
                     >
+                      {t(`blocks.tasks.priority.${task.priority}`)}
+                    </Pill>
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          )}
+        </SectionCard>
+
+        <SectionCard title={t("blocks.meetings.title")}>
+          {meetings.length === 0 ? (
+            <Empty>{t("blocks.meetings.empty")}</Empty>
+          ) : (
+            <ul className="divide-y divide-border">
+              {meetings.map((m) => {
+                const client = pickOne(m.client);
+                return (
+                  <li key={m.id} data-testid="today-meeting">
+                    <Link
+                      href={`/meetings/${m.id}`}
+                      className="group flex items-center gap-3 py-3 text-sm"
+                    >
+                      <span className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-brand-soft text-[10px] font-semibold text-brand-soft-foreground">
+                        {new Intl.DateTimeFormat(locale, {
+                          hour: "2-digit",
+                          minute: "2-digit",
+                        }).format(new Date(m.starts_at))}
+                      </span>
                       <div className="min-w-0 flex-1">
-                        <span className="block truncate">{task.title}</span>
-                        {task.due_at ? (
+                        <span className="block truncate text-foreground group-hover:text-brand">
+                          {m.title}
+                        </span>
+                        {client ? (
                           <span className="text-xs text-muted-foreground">
-                            {new Intl.DateTimeFormat(locale, {
-                              dateStyle: "short",
-                              timeStyle: "short",
-                            }).format(new Date(task.due_at))}
+                            {client.name}
                           </span>
                         ) : null}
                       </div>
-                      <Pill
-                        tone={priorityTone[task.priority]}
-                        className="shrink-0 text-[10px]"
-                      >
-                        {t(`blocks.tasks.priority.${task.priority}`)}
-                      </Pill>
                     </Link>
                   </li>
-                ))}
-              </ul>
-            )}
-          </CardContent>
-        </Card>
+                );
+              })}
+            </ul>
+          )}
+        </SectionCard>
 
-        <Card data-testid="today-block">
-          <CardHeader>
-            <CardTitle className="text-base">
-              {t("blocks.meetings.title")}
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="text-sm">
-            {meetings.length === 0 ? (
-              <p className="text-muted-foreground">
-                {t("blocks.meetings.empty")}
-              </p>
-            ) : (
-              <ul className="space-y-1.5">
-                {meetings.map((m) => {
-                  const client = pickOne(m.client);
-                  return (
-                    <li key={m.id} data-testid="today-meeting">
-                      <Link
-                        href={`/meetings/${m.id}`}
-                        className="group flex items-start justify-between gap-2 rounded-md px-2 py-1.5 hover:bg-muted"
-                      >
-                        <div className="min-w-0 flex-1">
-                          <span className="block truncate">{m.title}</span>
-                          <span className="text-xs text-muted-foreground">
-                            {new Intl.DateTimeFormat(locale, {
-                              dateStyle: "short",
-                              timeStyle: "short",
-                            }).format(new Date(m.starts_at))}
-                            {client ? ` · ${client.name}` : ""}
-                          </span>
-                        </div>
-                      </Link>
-                    </li>
-                  );
-                })}
-              </ul>
-            )}
-          </CardContent>
-        </Card>
-
-        <SkeletonCard
-          title={t("blocks.approvals.title")}
-          hint={t("blocks.approvals.hint")}
-        />
+        <SectionCard title={t("blocks.approvals.title")}>
+          <Empty>{t("blocks.approvals.hint")}</Empty>
+        </SectionCard>
       </div>
     </div>
   );
@@ -250,26 +240,41 @@ export default async function TodayPage({
 function Stat({ label, value }: { label: string; value: string }) {
   return (
     <div
-      className="rounded-lg border border-border bg-card p-5"
+      className="rounded-2xl border border-border bg-card p-5"
       data-testid="today-stat"
     >
-      <div className="text-xs uppercase tracking-wide text-muted-foreground">
+      <div className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
         {label}
       </div>
-      <div className="mt-1 font-display text-2xl text-foreground">{value}</div>
+      <div className="mt-3 font-display text-3xl leading-none text-foreground">
+        {value}
+      </div>
     </div>
   );
 }
 
-function SkeletonCard({ title, hint }: { title: string; hint: string }) {
+function SectionCard({
+  title,
+  children,
+}: {
+  title: string;
+  children: React.ReactNode;
+}) {
   return (
-    <Card data-testid="today-block">
-      <CardHeader>
-        <CardTitle className="text-base">{title}</CardTitle>
-      </CardHeader>
-      <CardContent className="text-sm text-muted-foreground">{hint}</CardContent>
-    </Card>
+    <section
+      className="rounded-2xl border border-border bg-card p-5"
+      data-testid="today-block"
+    >
+      <h2 className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+        {title}
+      </h2>
+      {children}
+    </section>
   );
+}
+
+function Empty({ children }: { children: React.ReactNode }) {
+  return <p className="py-3 text-sm text-muted-foreground">{children}</p>;
 }
 
 export const dynamic = "force-dynamic";
