@@ -3,6 +3,13 @@
     "name": "Nest"
   },
   "nav": {
+    "groups": {
+      "daily": "Dia a dia",
+      "work": "Trabalho",
+      "content": "Conteúdo",
+      "insights": "Análises",
+      "directory": "Diretório"
+    },
     "today": "Hoje",
     "clients": "Clientes",
     "projects": "Projetos",

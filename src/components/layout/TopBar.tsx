@@ -1,15 +1,29 @@
 import { LanguageSwitcher } from "@/components/ui/LanguageSwitcher";
+import { ThemeSwitch } from "@/components/layout/ThemeSwitch";
+import { ViewAsSwitcher } from "@/components/layout/ViewAsSwitcher";
 import {
   NotificationsBell,
   type NotificationItem,
 } from "@/components/layout/NotificationsBell";
 import { createClient } from "@/lib/supabase/server";
+import { getCurrentProfile } from "@/lib/auth";
+import { getViewAs } from "@/lib/view-as-server";
+import type { Theme } from "@/lib/theme";
 
-export async function TopBar({ locale }: { locale: string }) {
+export async function TopBar({
+  locale,
+  theme,
+}: {
+  locale: string;
+  theme: Theme;
+}) {
   const supabase = await createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
+
+  const profile = await getCurrentProfile();
+  const viewAs = await getViewAs();
 
   let notifications: NotificationItem[] = [];
   let unreadCount = 0;
@@ -32,13 +46,21 @@ export async function TopBar({ locale }: { locale: string }) {
   }
 
   return (
-    <header className="flex h-16 items-center justify-end gap-4 border-b border-border bg-card px-8">
-      <NotificationsBell
-        locale={locale}
-        notifications={notifications}
-        unreadCount={unreadCount}
+    <header className="flex items-center justify-between gap-4 px-2">
+      <ViewAsSwitcher
+        actualRole={profile?.role ?? "staff"}
+        current={viewAs}
+        name={profile?.full_name ?? user?.email ?? ""}
       />
-      <LanguageSwitcher />
+      <div className="flex items-center gap-3">
+        <ThemeSwitch initial={theme} />
+        <NotificationsBell
+          locale={locale}
+          notifications={notifications}
+          unreadCount={unreadCount}
+        />
+        <LanguageSwitcher />
+      </div>
     </header>
   );
 }

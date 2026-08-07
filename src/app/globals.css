@@ -4,54 +4,95 @@
 
 @layer base {
   :root {
-    /* Design tokens — HSL triplets so Tailwind's alpha-value works */
-    --background: 40 30% 98%;
-    --foreground: 20 14% 12%;
+    /* Design tokens — HSL triplets so Tailwind's alpha-value works.
+       Brand-specific values (background, brand, sidebar) are overridden per
+       theme in the [data-theme] blocks below; the default here is the Nest
+       (rose) palette so the app is themed even before a theme is chosen. */
+    --background: 340 100% 98%;
+    --foreground: 0 0% 7%;
 
     --card: 0 0% 100%;
-    --card-foreground: 20 14% 12%;
+    --card-foreground: 0 0% 7%;
 
-    --muted: 30 10% 95%;
-    --muted-foreground: 20 8% 40%;
+    --muted: 340 30% 96%;
+    --muted-foreground: 0 0% 42%;
 
-    --border: 30 10% 90%;
-    --input: 30 10% 90%;
-    --ring: 20 14% 12%;
+    --border: 340 20% 91%;
+    --input: 340 20% 91%;
+    --ring: 345 39% 52%;
 
-    --primary: 20 14% 12%;
-    --primary-foreground: 40 30% 98%;
+    --primary: 0 0% 7%;
+    --primary-foreground: 0 0% 100%;
 
-    --accent: 30 30% 92%;
-    --accent-foreground: 20 14% 12%;
+    --accent: 340 40% 95%;
+    --accent-foreground: 0 0% 7%;
 
     --destructive: 0 72% 45%;
     --destructive-foreground: 0 0% 100%;
 
-    --radius: 0.625rem;
+    /* Brand accent (wordmark, active states, primary pills) */
+    --brand: 345 39% 52%;
+    --brand-foreground: 0 0% 100%;
+    --brand-soft: 346 74% 86%;
+    --brand-soft-foreground: 345 45% 30%;
+
+    /* Dark floating sidebar */
+    --sidebar: 0 0% 5%;
+    --sidebar-foreground: 0 0% 96%;
+    --sidebar-muted: 0 0% 52%;
+    --sidebar-active: 345 39% 52%;
+    --sidebar-active-foreground: 0 0% 100%;
+    --sidebar-border: 0 0% 16%;
+
+    --radius: 0.75rem;
   }
 
-  .dark {
-    --background: 20 14% 8%;
-    --foreground: 40 20% 95%;
+  /* ── Nest · rose / blush ─────────────────────────────────────────────── */
+  [data-theme="nest"] {
+    --background: 340 100% 98%;
+    --foreground: 0 0% 7%;
+    --muted: 340 30% 96%;
+    --border: 340 20% 91%;
+    --input: 340 20% 91%;
+    --ring: 345 39% 52%;
+    --accent: 340 40% 95%;
 
-    --card: 20 14% 10%;
-    --card-foreground: 40 20% 95%;
+    --brand: 345 39% 52%;
+    --brand-foreground: 0 0% 100%;
+    --brand-soft: 346 74% 86%;
+    --brand-soft-foreground: 345 45% 30%;
 
-    --muted: 20 10% 15%;
-    --muted-foreground: 30 8% 65%;
+    --sidebar: 0 0% 5%;
+    --sidebar-foreground: 0 0% 96%;
+    --sidebar-muted: 0 0% 52%;
+    --sidebar-active: 345 39% 52%;
+    --sidebar-active-foreground: 0 0% 100%;
+    --sidebar-border: 0 0% 16%;
+  }
 
-    --border: 20 10% 18%;
-    --input: 20 10% 18%;
-    --ring: 40 20% 95%;
+  /* ── AFM · petrol / cream ────────────────────────────────────────────── */
+  [data-theme="afm"] {
+    --background: 40 24% 94%;
+    --foreground: 20 14% 12%;
+    --muted: 40 20% 90%;
+    --muted-foreground: 20 8% 40%;
+    --border: 40 14% 86%;
+    --input: 40 14% 86%;
+    --ring: 192 100% 18%;
+    --accent: 192 22% 92%;
+    --accent-foreground: 192 100% 18%;
 
-    --primary: 40 20% 95%;
-    --primary-foreground: 20 14% 8%;
+    --brand: 192 100% 18%;
+    --brand-foreground: 0 0% 100%;
+    --brand-soft: 192 22% 91%;
+    --brand-soft-foreground: 192 100% 22%;
 
-    --accent: 20 10% 18%;
-    --accent-foreground: 40 20% 95%;
-
-    --destructive: 0 72% 45%;
-    --destructive-foreground: 0 0% 100%;
+    --sidebar: 193 100% 13%;
+    --sidebar-foreground: 40 30% 96%;
+    --sidebar-muted: 193 14% 62%;
+    --sidebar-active: 192 100% 24%;
+    --sidebar-active-foreground: 0 0% 100%;
+    --sidebar-border: 193 40% 22%;
   }
 
   * {

@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import localFont from "next/font/local";
 import "./globals.css";
+import { getTheme } from "@/lib/theme-server";
 
 const sans = Inter({
   subsets: ["latin"],
@@ -34,13 +35,18 @@ export const metadata: Metadata = {
   description: "Operational platform for Studio Andréa Faria.",
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  const theme = await getTheme();
   return (
-    <html className={`${sans.variable} ${manier.variable}`} suppressHydrationWarning>
+    <html
+      className={`${sans.variable} ${manier.variable}`}
+      data-theme={theme}
+      suppressHydrationWarning
+    >
       <body className="min-h-screen bg-background font-sans text-foreground">
         {children}
       </body>

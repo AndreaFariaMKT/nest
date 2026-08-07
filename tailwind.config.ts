@@ -39,6 +39,20 @@ const config: Config = {
           DEFAULT: "hsl(var(--card) / <alpha-value>)",
           foreground: "hsl(var(--card-foreground) / <alpha-value>)",
         },
+        brand: {
+          DEFAULT: "hsl(var(--brand) / <alpha-value>)",
+          foreground: "hsl(var(--brand-foreground) / <alpha-value>)",
+          soft: "hsl(var(--brand-soft) / <alpha-value>)",
+          "soft-foreground": "hsl(var(--brand-soft-foreground) / <alpha-value>)",
+        },
+        sidebar: {
+          DEFAULT: "hsl(var(--sidebar) / <alpha-value>)",
+          foreground: "hsl(var(--sidebar-foreground) / <alpha-value>)",
+          muted: "hsl(var(--sidebar-muted) / <alpha-value>)",
+          active: "hsl(var(--sidebar-active) / <alpha-value>)",
+          "active-foreground": "hsl(var(--sidebar-active-foreground) / <alpha-value>)",
+          border: "hsl(var(--sidebar-border) / <alpha-value>)",
+        },
       },
       borderRadius: {
         lg: "var(--radius)",

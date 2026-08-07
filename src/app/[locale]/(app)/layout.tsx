@@ -3,6 +3,7 @@ import { redirect } from "@/i18n/routing";
 import { createClient } from "@/lib/supabase/server";
 import { Sidebar } from "@/components/layout/Sidebar";
 import { TopBar } from "@/components/layout/TopBar";
+import { getTheme } from "@/lib/theme-server";
 
 export default async function AppLayout({
   children,
@@ -23,12 +24,18 @@ export default async function AppLayout({
     redirect({ href: "/login", locale: locale as "pt-BR" | "en" });
   }
 
+  const theme = await getTheme();
+
   return (
-    <div className="flex min-h-screen">
-      <Sidebar />
-      <div className="flex flex-1 flex-col">
-        <TopBar locale={locale} />
-        <main className="flex-1 px-8 py-8">{children}</main>
+    <div className="min-h-screen bg-background">
+      <div className="mx-auto flex max-w-[1440px] flex-col gap-4 p-4">
+        <TopBar locale={locale} theme={theme} />
+        <div className="flex gap-4">
+          <Sidebar theme={theme} />
+          <main className="min-w-0 flex-1 rounded-2xl bg-card px-8 py-8 shadow-sm">
+            {children}
+          </main>
+        </div>
       </div>
     </div>
   );
