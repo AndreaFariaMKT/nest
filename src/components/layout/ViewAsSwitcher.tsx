@@ -5,12 +5,6 @@ import { useTransition } from "react";
 
 import { VIEW_AS_ROLES, type ViewAsRole } from "@/lib/view-as";
 
-function initials(name: string): string {
-  const parts = name.trim().split(/\s+/);
-  if (parts.length === 0 || !parts[0]) return "?";
-  return (parts[0][0] + (parts[1]?.[0] ?? "")).toUpperCase();
-}
-
 const ROLE_LABEL: Record<ViewAsRole, string> = {
   owner: "Founder",
   staff: "Team",
@@ -18,9 +12,8 @@ const ROLE_LABEL: Record<ViewAsRole, string> = {
 };
 
 /**
- * Persona/role preview. Owners can preview the app as a Team member or Client;
- * everyone else just sees their own identity chip. Selection is stored in a
- * cookie and applied by re-running the server tree.
+ * Persona/role preview, styled for the dark sidebar. Owners can preview the app
+ * as a Team member or Client; everyone else just sees their own role chip.
  */
 export function ViewAsSwitcher({
   actualRole,
@@ -42,15 +35,10 @@ export function ViewAsSwitcher({
     startTransition(() => router.refresh());
   }
 
-  // Non-owners can't impersonate — show just their identity.
   if (actualRole !== "owner") {
     return (
-      <div className="flex items-center gap-2 rounded-full border border-border bg-card px-3 py-1.5">
-        <Avatar name={name} />
-        <div className="leading-tight">
-          <p className="text-xs font-medium text-foreground">{name}</p>
-          <p className="text-[10px] text-muted-foreground">{ROLE_LABEL.staff}</p>
-        </div>
+      <div className="px-1 text-xs text-sidebar-foreground/60">
+        {name} · {ROLE_LABEL.staff}
       </div>
     );
   }
@@ -58,14 +46,13 @@ export function ViewAsSwitcher({
   const active: ViewAsRole = current ?? "owner";
 
   return (
-    <div className="flex items-center gap-2">
-      <span className="hidden text-[10px] font-semibold uppercase tracking-[0.14em] text-muted-foreground sm:inline">
+    <div data-pending={pending}>
+      <p className="mb-1.5 px-1 text-[10px] font-semibold uppercase tracking-[0.14em] text-sidebar-muted">
         View as
-      </span>
-      <div className="flex items-center gap-1.5" data-pending={pending}>
+      </p>
+      <div className="flex gap-1">
         {VIEW_AS_ROLES.map((role) => {
           const isActive = role === active;
-          const label = role === "owner" ? name : ROLE_LABEL[role];
           return (
             <button
               key={role}
@@ -73,41 +60,15 @@ export function ViewAsSwitcher({
               aria-pressed={isActive}
               className={
                 isActive
-                  ? "flex items-center gap-2 rounded-full bg-sidebar px-3 py-1.5 text-sidebar-foreground"
-                  : "flex items-center gap-2 rounded-full border border-border bg-card px-3 py-1.5 text-foreground hover:border-brand/40"
+                  ? "flex-1 rounded-lg bg-sidebar-active px-2 py-1.5 text-xs font-medium text-sidebar-active-foreground"
+                  : "flex-1 rounded-lg bg-white/5 px-2 py-1.5 text-xs font-medium text-sidebar-foreground/70 hover:bg-white/10"
               }
             >
-              <Avatar name={role === "owner" ? name : ROLE_LABEL[role]} muted={!isActive} />
-              <div className="leading-tight">
-                <p className="text-xs font-medium">{label}</p>
-                <p
-                  className={
-                    isActive
-                      ? "text-[10px] text-sidebar-muted"
-                      : "text-[10px] text-muted-foreground"
-                  }
-                >
-                  {ROLE_LABEL[role]}
-                </p>
-              </div>
+              {role === "owner" ? "You" : ROLE_LABEL[role]}
             </button>
           );
         })}
       </div>
     </div>
-  );
-}
-
-function Avatar({ name, muted }: { name: string; muted?: boolean }) {
-  return (
-    <span
-      className={
-        muted
-          ? "grid h-6 w-6 place-items-center rounded-full bg-muted text-[10px] font-semibold text-muted-foreground"
-          : "grid h-6 w-6 place-items-center rounded-full bg-brand text-[10px] font-semibold text-brand-foreground"
-      }
-    >
-      {initials(name)}
-    </span>
   );
 }

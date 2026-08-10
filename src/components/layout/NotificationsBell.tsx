@@ -39,11 +39,11 @@ export function NotificationsBell({
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
-        className="relative inline-flex h-9 w-9 items-center justify-center rounded-md hover:bg-muted"
+        className="relative inline-flex h-8 w-8 items-center justify-center rounded-lg text-sidebar-foreground/70 hover:bg-white/5 hover:text-sidebar-foreground"
         aria-label={t("title")}
         data-testid="notifications-bell"
       >
-        <BellIcon className="h-5 w-5 text-muted-foreground" />
+        <BellIcon className="h-4 w-4" />
         {unreadCount > 0 ? (
           <span
             className="absolute -right-0.5 -top-0.5 inline-flex h-4 min-w-[16px] items-center justify-center rounded-full bg-destructive px-1 text-[10px] font-medium text-destructive-foreground"

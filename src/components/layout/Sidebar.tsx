@@ -16,7 +16,15 @@ import {
   SettingsIcon,
   TeamIcon,
 } from "@/components/icons/NavIcons";
+import { ViewAsSwitcher } from "@/components/layout/ViewAsSwitcher";
+import { SignOutButton } from "@/components/layout/SignOutButton";
+import { LanguageSwitcher } from "@/components/ui/LanguageSwitcher";
+import {
+  NotificationsBell,
+  type NotificationItem,
+} from "@/components/layout/NotificationsBell";
 import type { Theme } from "@/lib/theme";
+import type { ViewAsRole } from "@/lib/view-as";
 
 type Item = { href: string; icon: typeof HomeIcon; key: string };
 type Group = { label: string; items: Item[] };
@@ -58,14 +66,30 @@ const groups: Group[] = [
   },
 ];
 
-export function Sidebar({ theme }: { theme: Theme }) {
+export function Sidebar({
+  theme,
+  locale,
+  profileName,
+  profileRole,
+  viewAs,
+  notifications,
+  unreadCount,
+}: {
+  theme: Theme;
+  locale: string;
+  profileName: string;
+  profileRole: string;
+  viewAs: ViewAsRole | null;
+  notifications: NotificationItem[];
+  unreadCount: number;
+}) {
   const t = useTranslations("nav");
   const pathname = usePathname();
 
   return (
-    <aside className="sticky top-4 flex h-[calc(100vh-2rem)] w-60 shrink-0 flex-col gap-6 overflow-y-auto rounded-2xl bg-sidebar px-4 py-5 text-sidebar-foreground">
+    <aside className="flex h-screen w-64 shrink-0 flex-col bg-sidebar text-sidebar-foreground">
       {/* Wordmark */}
-      <div className="flex items-center gap-2 px-2">
+      <div className="flex items-center gap-2 px-5 py-5">
         <NestMark className="h-6 w-6 text-brand-soft" />
         <span className="font-display text-2xl lowercase tracking-tight text-brand-soft">
           {theme === "afm" ? "AFM" : "nest"}
@@ -73,9 +97,9 @@ export function Sidebar({ theme }: { theme: Theme }) {
       </div>
 
       {/* Grouped nav */}
-      <nav className="flex flex-1 flex-col gap-6">
+      <nav className="flex flex-1 flex-col gap-5 overflow-y-auto px-3 pb-4">
         {groups.map((group) => (
-          <div key={group.label} className="flex flex-col gap-1">
+          <div key={group.label} className="flex flex-col gap-0.5">
             <p className="px-3 pb-1 text-[10px] font-semibold uppercase tracking-[0.14em] text-sidebar-muted">
               {t(`groups.${group.label}`)}
             </p>
@@ -100,6 +124,29 @@ export function Sidebar({ theme }: { theme: Theme }) {
           </div>
         ))}
       </nav>
+
+      {/* Footer: view-as + utilities + identity */}
+      <div className="space-y-3 border-t border-sidebar-border px-4 py-4">
+        <ViewAsSwitcher
+          actualRole={profileRole}
+          current={viewAs}
+          name={profileName}
+        />
+        <div className="flex items-center justify-between">
+          <p className="min-w-0 flex-1 truncate text-xs text-sidebar-foreground/60">
+            {profileName}
+          </p>
+          <div className="flex items-center gap-1">
+            <NotificationsBell
+              locale={locale}
+              notifications={notifications}
+              unreadCount={unreadCount}
+            />
+            <LanguageSwitcher />
+            <SignOutButton />
+          </div>
+        </div>
+      </div>
     </aside>
   );
 }
