@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { createClient as createSupabaseClient } from "@/lib/supabase/server";
+import { currentTenantId } from "@/lib/tenant-server";
 
 export async function attachClientServiceAction(
   formData: FormData,
@@ -13,7 +14,9 @@ export async function attachClientServiceAction(
   if (!clientId || !serviceId) return;
 
   const supabase = await createSupabaseClient();
+  const tenantId = await currentTenantId();
   await supabase.from("client_services").insert({
+    tenant_id: tenantId,
     client_id: clientId,
     service_id: serviceId,
     started_on: new Date().toISOString().slice(0, 10),

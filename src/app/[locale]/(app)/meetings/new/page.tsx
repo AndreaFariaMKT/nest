@@ -1,6 +1,7 @@
 import { setRequestLocale, getTranslations } from "next-intl/server";
 import { Link } from "@/i18n/routing";
 import { createClient } from "@/lib/supabase/server";
+import { currentTenantId } from "@/lib/tenant-server";
 import {
   MeetingForm,
   type ClientChoice,
@@ -17,9 +18,11 @@ export default async function NewMeetingPage({
   const t = await getTranslations("meetings");
 
   const supabase = await createClient();
+  const tenantId = await currentTenantId();
   const { data: clientsData } = await supabase
     .from("clients")
     .select("id, name, status")
+    .eq("tenant_id", tenantId)
     .neq("status", "archived")
     .order("name", { ascending: true });
   const clients: ClientChoice[] = (clientsData ?? []).map((c) => ({

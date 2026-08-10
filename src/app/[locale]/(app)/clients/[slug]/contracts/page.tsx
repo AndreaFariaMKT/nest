@@ -4,6 +4,7 @@ import { Link } from "@/i18n/routing";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/Card";
 import { Pill } from "@/components/ui/Pill";
 import { createClient } from "@/lib/supabase/server";
+import { currentTenantId } from "@/lib/tenant-server";
 import { isOwner } from "@/lib/auth";
 import { formatCentsAsBrl, sumCents } from "@/lib/money";
 import type { Database } from "@/types/database";
@@ -25,9 +26,11 @@ export default async function ClientContractsPage({
   const t = await getTranslations("contracts");
 
   const supabase = await createClient();
+  const tenantId = await currentTenantId();
   const { data: clientData } = await supabase
     .from("clients")
     .select("id, slug, name")
+    .eq("tenant_id", tenantId)
     .eq("slug", slug)
     .maybeSingle();
   if (!clientData) notFound();

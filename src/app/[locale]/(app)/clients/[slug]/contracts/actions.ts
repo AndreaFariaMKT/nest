@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import type { Route } from "next";
 import { createClient as createSupabaseClient } from "@/lib/supabase/server";
+import { currentTenantId } from "@/lib/tenant-server";
 import { parseBrlToCents } from "@/lib/money";
 
 export type ContractFormState = {
@@ -87,7 +88,9 @@ export async function createContractAction(
   if (!("ok" in check)) return check;
 
   const supabase = await createSupabaseClient();
+  const tenantId = await currentTenantId();
   const { error } = await supabase.from("contracts").insert({
+    tenant_id: tenantId,
     client_id: form.clientId,
     title: form.title,
     monthly_value_cents: check.monthlyCents,

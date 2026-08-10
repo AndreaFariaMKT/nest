@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import type { Route } from "next";
 import { createClient as createSupabaseClient } from "@/lib/supabase/server";
+import { currentTenantId } from "@/lib/tenant-server";
 import type { MeetingStatus } from "@/types/database";
 import { MEETING_STATUSES } from "@/types/database";
 import {
@@ -62,6 +63,7 @@ export async function createMeetingAction(
   }
 
   const supabase = await createSupabaseClient();
+  const tenantId = await currentTenantId();
   const {
     data: { user },
   } = await supabase.auth.getUser();
@@ -69,6 +71,7 @@ export async function createMeetingAction(
   const { data: inserted, error } = await supabase
     .from("meetings")
     .insert({
+      tenant_id: tenantId,
       client_id: form.clientId,
       title: form.title,
       starts_at: form.startsAt,

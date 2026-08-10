@@ -1,6 +1,7 @@
 import { setRequestLocale, getTranslations } from "next-intl/server";
 import { Link } from "@/i18n/routing";
 import { createClient } from "@/lib/supabase/server";
+import { currentTenantId } from "@/lib/tenant-server";
 import type { BrandColor, Database } from "@/types/database";
 
 type Row = {
@@ -26,9 +27,11 @@ export default async function BrandKitsPage({
   const t = await getTranslations("brandKits");
 
   const supabase = await createClient();
+  const tenantId = await currentTenantId();
   const { data } = await supabase
     .from("brand_kits")
     .select("id, name, palette, typography, client:clients!inner(slug, name)")
+    .eq("tenant_id", tenantId)
     .order("updated_at", { ascending: false });
 
   const kits = ((data ?? []) as unknown as Row[]).map((kit) => {

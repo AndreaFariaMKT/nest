@@ -1,6 +1,7 @@
 import { setRequestLocale, getTranslations } from "next-intl/server";
 import { Link } from "@/i18n/routing";
 import { createClient } from "@/lib/supabase/server";
+import { currentTenantId } from "@/lib/tenant-server";
 import { TaskForm, type AssigneeChoice, type ClientChoice } from "../_components/TaskForm";
 import { createTaskAction } from "../actions";
 
@@ -14,9 +15,11 @@ export default async function NewTaskPage({
   const t = await getTranslations("tasks");
 
   const supabase = await createClient();
+  const tenantId = await currentTenantId();
   const { data: clientsData } = await supabase
     .from("clients")
     .select("id, name, status")
+    .eq("tenant_id", tenantId)
     .neq("status", "archived")
     .order("name", { ascending: true });
   const clients: ClientChoice[] = (clientsData ?? []).map((c) => ({

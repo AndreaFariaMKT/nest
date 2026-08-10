@@ -2,6 +2,7 @@ import { setRequestLocale, getTranslations } from "next-intl/server";
 import { Link } from "@/i18n/routing";
 import { Pill } from "@/components/ui/Pill";
 import { createClient } from "@/lib/supabase/server";
+import { currentTenantId } from "@/lib/tenant-server";
 import type { Database, MeetingStatus } from "@/types/database";
 
 type Meeting = Pick<
@@ -42,11 +43,13 @@ export default async function MeetingsPage({
   const t = await getTranslations("meetings");
 
   const supabase = await createClient();
+  const tenantId = await currentTenantId();
   const { data } = await supabase
     .from("meetings")
     .select(
       "id, title, starts_at, ends_at, status, google_meet_url, client_id, client:clients(name)",
     )
+    .eq("tenant_id", tenantId)
     .order("starts_at", { ascending: true });
 
   const meetings = (data ?? []) as unknown as JoinedMeeting[];

@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import type { Route } from "next";
 import { createClient as createSupabaseClient } from "@/lib/supabase/server";
+import { currentTenantId } from "@/lib/tenant-server";
 import type { BrandColor, BrandTypography } from "@/types/database";
 import {
   buildAssetPath,
@@ -140,9 +141,10 @@ async function ensureBrandKit(
     .maybeSingle();
   if (!client) return null;
 
+  const tenantId = await currentTenantId();
   const { data: created } = await supabase
     .from("brand_kits")
-    .insert({ client_id: clientId, name: client.name })
+    .insert({ tenant_id: tenantId, client_id: clientId, name: client.name })
     .select("id")
     .single();
   return created?.id ?? null;
@@ -169,7 +171,9 @@ export async function uploadBrandAssetAction(formData: FormData): Promise<void> 
     .upload(path, file, { contentType: file.type, upsert: false });
   if (uploadError) return;
 
+  const assetTenantId = await currentTenantId();
   const { error: insertError } = await supabase.from("brand_assets").insert({
+    tenant_id: assetTenantId,
     brand_kit_id: kitId,
     kind: detectAssetKind(file.name, file.type),
     label: file.name || null,

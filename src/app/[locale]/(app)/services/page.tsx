@@ -1,6 +1,7 @@
 import { setRequestLocale, getTranslations } from "next-intl/server";
 import { Link } from "@/i18n/routing";
 import { createClient } from "@/lib/supabase/server";
+import { currentTenantId } from "@/lib/tenant-server";
 import { isOwner } from "@/lib/auth";
 import { formatCentsAsBrl } from "@/lib/money";
 import type { Database } from "@/types/database";
@@ -17,9 +18,11 @@ export default async function ServicesPage({
   const t = await getTranslations("services");
 
   const supabase = await createClient();
+  const tenantId = await currentTenantId();
   const { data } = await supabase
     .from("services")
     .select("*")
+    .eq("tenant_id", tenantId)
     .order("name", { ascending: true });
   const services = (data ?? []) as Service[];
 

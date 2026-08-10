@@ -1,6 +1,7 @@
 import { setRequestLocale, getTranslations } from "next-intl/server";
 import { Link } from "@/i18n/routing";
 import { createClient } from "@/lib/supabase/server";
+import { currentTenantId } from "@/lib/tenant-server";
 import { wordCount } from "@/lib/vtt";
 import { pageMeta, parsePage } from "@/lib/pagination";
 import { generateCarouselsAction } from "./actions";
@@ -38,12 +39,14 @@ export default async function ContentEnginePage({
   const parsed = parsePage(sp, { defaultSize: PAGE_SIZE, maxSize: 100 });
 
   const supabase = await createClient();
+  const tenantId = await currentTenantId();
   const { data, count } = await supabase
     .from("transcripts")
     .select(
       "id, content, language, created_at, meeting:meetings(client:clients(slug, name))",
       { count: "exact" },
     )
+    .eq("tenant_id", tenantId)
     .order("created_at", { ascending: false })
     .range(parsed.from, parsed.to);
 

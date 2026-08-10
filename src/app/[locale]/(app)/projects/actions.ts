@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import type { Route } from "next";
 import { createClient as createSupabaseClient } from "@/lib/supabase/server";
+import { currentTenantId } from "@/lib/tenant-server";
 import { currentYearMonth } from "@/lib/cycles";
 import { notifyUser } from "@/lib/notifications";
 import type { TaskPriority, TaskStatus } from "@/types/database";
@@ -82,6 +83,7 @@ export async function createTaskAction(
   }
 
   const supabase = await createSupabaseClient();
+  const tenantId = await currentTenantId();
   const {
     data: { user },
   } = await supabase.auth.getUser();
@@ -95,6 +97,7 @@ export async function createTaskAction(
   const { error, data } = await supabase
     .from("tasks")
     .insert({
+      tenant_id: tenantId,
       title: form.title,
       description: form.description,
       status: form.status,

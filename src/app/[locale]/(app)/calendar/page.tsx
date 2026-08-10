@@ -1,6 +1,7 @@
 import { setRequestLocale, getTranslations } from "next-intl/server";
 import { Link } from "@/i18n/routing";
 import { createClient } from "@/lib/supabase/server";
+import { currentTenantId } from "@/lib/tenant-server";
 import type { Database } from "@/types/database";
 import {
   addMonths,
@@ -37,9 +38,11 @@ export default async function CalendarPage({
   const range = monthRangeISO(key);
 
   const supabase = await createClient();
+  const tenantId = await currentTenantId();
   const { data: meetingsData } = await supabase
     .from("meetings")
     .select("id, title, starts_at, status, client_id")
+    .eq("tenant_id", tenantId)
     .gte("starts_at", range.startISO)
     .lte("starts_at", range.endISO)
     .order("starts_at", { ascending: true });

@@ -1,6 +1,7 @@
 import { setRequestLocale, getTranslations } from "next-intl/server";
 import { Link } from "@/i18n/routing";
 import { createClient } from "@/lib/supabase/server";
+import { currentTenantId } from "@/lib/tenant-server";
 import { TranscriptForm, type ClientOption } from "./TranscriptForm";
 
 export default async function NewTranscriptPage({
@@ -13,9 +14,11 @@ export default async function NewTranscriptPage({
   const t = await getTranslations("contentEngine");
 
   const supabase = await createClient();
+  const tenantId = await currentTenantId();
   const { data } = await supabase
     .from("clients")
     .select("id, name, status")
+    .eq("tenant_id", tenantId)
     .neq("status", "archived")
     .order("name", { ascending: true });
   const clients: ClientOption[] = (data ?? []).map((c) => ({

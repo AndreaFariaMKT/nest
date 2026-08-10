@@ -1,6 +1,7 @@
 import { setRequestLocale, getTranslations } from "next-intl/server";
 import { Link } from "@/i18n/routing";
 import { createClient } from "@/lib/supabase/server";
+import { currentTenantId } from "@/lib/tenant-server";
 import type { Database } from "@/types/database";
 import { monthLabel } from "@/lib/monthly-report";
 
@@ -27,9 +28,11 @@ export default async function ReportsPage({
   const t = await getTranslations("reports");
 
   const supabase = await createClient();
+  const tenantId = await currentTenantId();
   const { data } = await supabase
     .from("monthly_reports")
     .select("*, client:clients(name, slug)")
+    .eq("tenant_id", tenantId)
     .order("year", { ascending: false })
     .order("month", { ascending: false })
     .order("generated_at", { ascending: false })

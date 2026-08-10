@@ -1,5 +1,6 @@
 import { setRequestLocale, getTranslations } from "next-intl/server";
 import { createClient } from "@/lib/supabase/server";
+import { currentTenantId } from "@/lib/tenant-server";
 import type { Database } from "@/types/database";
 import {
   KanbanBoard,
@@ -49,12 +50,14 @@ export default async function ProjectsPage({
   const showingTemplates = templatesParam === "1";
 
   const supabase = await createClient();
+  const tenantId = await currentTenantId();
 
   let query = supabase
     .from("tasks")
     .select(
       "*, client:clients(name), assignee:profiles!tasks_assignee_id_fkey(full_name, email)",
     )
+    .eq("tenant_id", tenantId)
     .eq("is_template", showingTemplates)
     .order("due_at", { ascending: true, nullsFirst: false })
     .order("created_at", { ascending: false });
@@ -81,6 +84,7 @@ export default async function ProjectsPage({
   const { data: clientsData } = await supabase
     .from("clients")
     .select("id, name, status")
+    .eq("tenant_id", tenantId)
     .neq("status", "archived")
     .order("name", { ascending: true });
   const clients: FilterOption[] = (clientsData ?? []).map((c) => ({

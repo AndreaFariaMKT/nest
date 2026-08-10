@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import type { Route } from "next";
 import { createClient as createSupabaseClient } from "@/lib/supabase/server";
+import { currentTenantId } from "@/lib/tenant-server";
 import { parseBrlToCents } from "@/lib/money";
 import { slugify } from "@/lib/slug";
 
@@ -65,8 +66,10 @@ export async function createServiceAction(
 
   const supabase = await createSupabaseClient();
   const slug = await uniqueSlug(supabase, slugify(form.name));
+  const tenantId = await currentTenantId();
 
   const { error } = await supabase.from("services").insert({
+    tenant_id: tenantId,
     name: form.name,
     slug,
     description: form.description,
