@@ -7,11 +7,17 @@ import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { Label } from "@/components/ui/Label";
 import { Textarea } from "@/components/ui/Textarea";
-import type { BrandColor, Database } from "@/types/database";
+import type { BrandColor, BrandTypography, Database } from "@/types/database";
 import { upsertBrandKitAction, type BrandKitFormState } from "./actions";
 import { BrandAssets, type BrandAssetListItem } from "./BrandAssets";
 
-type BrandKit = Database["public"]["Tables"]["brand_kits"]["Row"];
+type BrandKit = Omit<
+  Database["public"]["Tables"]["brand_kits"]["Row"],
+  "palette" | "typography"
+> & {
+  palette: BrandColor[] | null;
+  typography: BrandTypography | null;
+};
 
 const emptyColor: BrandColor = { name: "", hex: "#000000" };
 

@@ -2,12 +2,18 @@ import { setRequestLocale, getTranslations } from "next-intl/server";
 import { notFound } from "next/navigation";
 import { Link } from "@/i18n/routing";
 import { createClient } from "@/lib/supabase/server";
-import type { Database } from "@/types/database";
+import type { BrandColor, BrandTypography, Database } from "@/types/database";
 import { BrandKitForm } from "./BrandKitForm";
 import type { BrandAssetListItem } from "./BrandAssets";
 
 type Client = Database["public"]["Tables"]["clients"]["Row"];
-type BrandKit = Database["public"]["Tables"]["brand_kits"]["Row"];
+type BrandKit = Omit<
+  Database["public"]["Tables"]["brand_kits"]["Row"],
+  "palette" | "typography"
+> & {
+  palette: BrandColor[] | null;
+  typography: BrandTypography | null;
+};
 type BrandAssetRow = Database["public"]["Tables"]["brand_assets"]["Row"];
 
 export default async function ClientBrandKitPage({

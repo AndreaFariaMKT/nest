@@ -12,7 +12,7 @@ import {
   cycleBounds,
   daysRemainingInCycle,
 } from "@/lib/cycles";
-import type { BrandColor, Database } from "@/types/database";
+import type { BrandColor, BrandTypography, Database } from "@/types/database";
 import {
   generatePortalTokenAction,
   revokePortalTokenAction,
@@ -31,10 +31,10 @@ import {
 } from "./_components/ClientMembersCard";
 
 type Client = Database["public"]["Tables"]["clients"]["Row"];
-type BrandKitPreview = Pick<
-  Database["public"]["Tables"]["brand_kits"]["Row"],
-  "palette" | "typography"
->;
+type BrandKitPreview = {
+  palette: BrandColor[] | null;
+  typography: BrandTypography | null;
+};
 type ContractPreview = Pick<
   Database["public"]["Tables"]["contracts"]["Row"],
   "id" | "title" | "monthly_value_cents" | "starts_on" | "ends_on" | "auto_renew"

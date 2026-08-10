@@ -118,7 +118,7 @@ export default async function TranscriptDetailPage({
                       {draft.caption}
                     </p>
                   ) : null}
-                  {draft.hashtags.length > 0 ? (
+                  {draft.hashtags && draft.hashtags.length > 0 ? (
                     <p className="mt-2 text-xs text-muted-foreground">
                       {draft.hashtags.join(" ")}
                     </p>

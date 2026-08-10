@@ -2,15 +2,13 @@ import { setRequestLocale, getTranslations } from "next-intl/server";
 import { Link } from "@/i18n/routing";
 import { createClient } from "@/lib/supabase/server";
 import { currentTenantId } from "@/lib/tenant-server";
-import type { BrandColor, Database } from "@/types/database";
+import type { BrandColor, BrandTypography } from "@/types/database";
 
 type Row = {
   id: string;
   name: string;
   palette: BrandColor[];
-  typography:
-    | Database["public"]["Tables"]["brand_kits"]["Row"]["typography"]
-    | null;
+  typography: BrandTypography | null;
   client:
     | { slug: string; name: string }
     | Array<{ slug: string; name: string }>
