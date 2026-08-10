@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import localFont from "next/font/local";
 import "./globals.css";
-import { getTheme } from "@/lib/theme-server";
+import { getCurrentTenant } from "@/lib/tenant-server";
 
 const sans = Inter({
   subsets: ["latin"],
@@ -40,11 +40,11 @@ export default async function RootLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const theme = await getTheme();
+  const tenant = await getCurrentTenant();
   return (
     <html
       className={`${sans.variable} ${manier.variable}`}
-      data-theme={theme}
+      data-theme={tenant.theme}
       suppressHydrationWarning
     >
       <body className="min-h-screen bg-background font-sans text-foreground">

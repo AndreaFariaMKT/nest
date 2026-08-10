@@ -5,6 +5,7 @@ import { createClient } from "@/lib/supabase/server";
 import { getCurrentProfile } from "@/lib/auth";
 import { effectiveRole } from "@/lib/view-as";
 import { getViewAs } from "@/lib/view-as-server";
+import { currentTenantId } from "@/lib/tenant-server";
 import { formatCentsAsBrl, sumCents } from "@/lib/money";
 import type { MeetingStatus, TaskPriority, TaskStatus } from "@/types/database";
 
@@ -72,6 +73,7 @@ export default async function TodayPage({
   }).format(new Date());
 
   const supabase = await createClient();
+  const tenantId = await currentTenantId();
 
   const viewAs = await getViewAs();
   const ownerView = effectiveRole(profile?.role ?? "staff", viewAs) === "owner";
@@ -82,12 +84,14 @@ export default async function TodayPage({
     const { count } = await supabase
       .from("clients")
       .select("id", { count: "exact", head: true })
+      .eq("tenant_id", tenantId)
       .eq("status", "active");
     activeClients = count ?? 0;
 
     const { count: serviceCount } = await supabase
       .from("client_services")
       .select("client_id", { count: "exact", head: true })
+      .eq("tenant_id", tenantId)
       .is("ended_on", null);
     activeServices = serviceCount ?? 0;
 
@@ -95,6 +99,7 @@ export default async function TodayPage({
     const { data: contracts } = await supabase
       .from("contracts")
       .select("monthly_value_cents, starts_on, ends_on")
+      .eq("tenant_id", tenantId)
       .lte("starts_on", today)
       .or(`ends_on.is.null,ends_on.gte.${today}`);
     mrrCents = sumCents((contracts ?? []).map((c) => c.monthly_value_cents));
@@ -106,6 +111,7 @@ export default async function TodayPage({
     const { data } = await supabase
       .from("tasks")
       .select("id, title, priority, status, due_at")
+      .eq("tenant_id", tenantId)
       .eq("assignee_id", profile.id)
       .eq("is_template", false)
       .neq("status", "done")
@@ -123,6 +129,7 @@ export default async function TodayPage({
     .select(
       "id, title, starts_at, status, google_meet_url, client:clients(name)",
     )
+    .eq("tenant_id", tenantId)
     .gte("starts_at", nowIso)
     .lt("starts_at", dayAfterTomorrowUtcMidnight())
     .neq("status", "cancelled")

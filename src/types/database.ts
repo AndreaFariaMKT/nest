@@ -44,6 +44,7 @@ export interface Database {
     Tables: {
       tasks: {
         Row: {
+          tenant_id: string;
           id: string;
           client_id: string | null;
           cycle_id: string | null;
@@ -60,6 +61,7 @@ export interface Database {
           updated_at: string;
         };
         Insert: {
+          tenant_id?: string;
           id?: string;
           client_id?: string | null;
           cycle_id?: string | null;
@@ -77,6 +79,7 @@ export interface Database {
       };
       services: {
         Row: {
+          tenant_id: string;
           id: string;
           name: string;
           slug: string;
@@ -85,6 +88,7 @@ export interface Database {
           created_at: string;
         };
         Insert: {
+          tenant_id?: string;
           id?: string;
           name: string;
           slug: string;
@@ -95,12 +99,14 @@ export interface Database {
       };
       client_services: {
         Row: {
+          tenant_id: string;
           client_id: string;
           service_id: string;
           started_on: string;
           ended_on: string | null;
         };
         Insert: {
+          tenant_id?: string;
           client_id: string;
           service_id: string;
           started_on?: string;
@@ -112,6 +118,7 @@ export interface Database {
       };
       content_drafts: {
         Row: {
+          tenant_id: string;
           id: string;
           client_id: string;
           transcript_id: string | null;
@@ -129,6 +136,7 @@ export interface Database {
           updated_at: string;
         };
         Insert: {
+          tenant_id?: string;
           id?: string;
           client_id: string;
           transcript_id?: string | null;
@@ -148,6 +156,7 @@ export interface Database {
       };
       slides: {
         Row: {
+          tenant_id: string;
           id: string;
           draft_id: string;
           position: number;
@@ -159,6 +168,7 @@ export interface Database {
           updated_at: string;
         };
         Insert: {
+          tenant_id?: string;
           id?: string;
           draft_id: string;
           position: number;
@@ -171,6 +181,7 @@ export interface Database {
       };
       scheduled_posts: {
         Row: {
+          tenant_id: string;
           id: string;
           draft_id: string;
           platform: "instagram" | "linkedin" | "tiktok";
@@ -184,6 +195,7 @@ export interface Database {
           updated_at: string;
         };
         Insert: {
+          tenant_id?: string;
           id?: string;
           draft_id: string;
           platform: "instagram" | "linkedin" | "tiktok";
@@ -200,6 +212,7 @@ export interface Database {
       };
       approvals: {
         Row: {
+          tenant_id: string;
           id: string;
           draft_id: string;
           token: string;
@@ -210,6 +223,7 @@ export interface Database {
           created_at: string;
         };
         Insert: {
+          tenant_id?: string;
           id?: string;
           draft_id: string;
           token: string;
@@ -222,6 +236,7 @@ export interface Database {
       };
       creatives: {
         Row: {
+          tenant_id: string;
           id: string;
           slide_id: string | null;
           draft_id: string | null;
@@ -234,6 +249,7 @@ export interface Database {
           created_at: string;
         };
         Insert: {
+          tenant_id?: string;
           id?: string;
           slide_id?: string | null;
           draft_id?: string | null;
@@ -248,6 +264,7 @@ export interface Database {
       };
       ai_edits: {
         Row: {
+          tenant_id: string;
           id: string;
           creative_id: string | null;
           draft_id: string | null;
@@ -260,6 +277,7 @@ export interface Database {
           created_at: string;
         };
         Insert: {
+          tenant_id?: string;
           id?: string;
           creative_id?: string | null;
           draft_id?: string | null;
@@ -274,6 +292,7 @@ export interface Database {
       };
       monthly_reports: {
         Row: {
+          tenant_id: string;
           id: string;
           client_id: string;
           year: number;
@@ -284,6 +303,7 @@ export interface Database {
           generated_at: string;
         };
         Insert: {
+          tenant_id?: string;
           id?: string;
           client_id: string;
           year: number;
@@ -298,6 +318,7 @@ export interface Database {
       };
       meetings: {
         Row: {
+          tenant_id: string;
           id: string;
           client_id: string | null;
           title: string;
@@ -311,6 +332,7 @@ export interface Database {
           updated_at: string;
         };
         Insert: {
+          tenant_id?: string;
           id?: string;
           client_id?: string | null;
           title: string;
@@ -325,6 +347,7 @@ export interface Database {
       };
       transcripts: {
         Row: {
+          tenant_id: string;
           id: string;
           meeting_id: string | null;
           language: string;
@@ -333,6 +356,7 @@ export interface Database {
           created_at: string;
         };
         Insert: {
+          tenant_id?: string;
           id?: string;
           meeting_id?: string | null;
           language?: string;
@@ -345,6 +369,7 @@ export interface Database {
       };
       contracts: {
         Row: {
+          tenant_id: string;
           id: string;
           client_id: string;
           title: string;
@@ -359,6 +384,7 @@ export interface Database {
           updated_at: string;
         };
         Insert: {
+          tenant_id?: string;
           id?: string;
           client_id: string;
           title: string;
@@ -376,6 +402,7 @@ export interface Database {
       };
       brand_assets: {
         Row: {
+          tenant_id: string;
           id: string;
           brand_kit_id: string;
           kind: string;
@@ -388,6 +415,7 @@ export interface Database {
           created_at: string;
         };
         Insert: {
+          tenant_id?: string;
           id?: string;
           brand_kit_id: string;
           kind: string;
@@ -404,6 +432,7 @@ export interface Database {
       };
       brand_kits: {
         Row: {
+          tenant_id: string;
           id: string;
           client_id: string;
           name: string;
@@ -417,6 +446,7 @@ export interface Database {
           updated_at: string;
         };
         Insert: {
+          tenant_id?: string;
           id?: string;
           client_id: string;
           name: string;
@@ -433,6 +463,7 @@ export interface Database {
       };
       clients: {
         Row: {
+          tenant_id: string;
           id: string;
           slug: string;
           name: string;
@@ -447,6 +478,7 @@ export interface Database {
           updated_at: string;
         };
         Insert: {
+          tenant_id?: string;
           id?: string;
           slug: string;
           name: string;

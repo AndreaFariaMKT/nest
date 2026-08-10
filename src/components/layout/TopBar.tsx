@@ -1,5 +1,5 @@
 import { LanguageSwitcher } from "@/components/ui/LanguageSwitcher";
-import { ThemeSwitch } from "@/components/layout/ThemeSwitch";
+import { TenantSwitch } from "@/components/layout/TenantSwitch";
 import { ViewAsSwitcher } from "@/components/layout/ViewAsSwitcher";
 import {
   NotificationsBell,
@@ -8,14 +8,14 @@ import {
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentProfile, getSessionUser } from "@/lib/auth";
 import { getViewAs } from "@/lib/view-as-server";
-import type { Theme } from "@/lib/theme";
+import type { TenantSlug } from "@/lib/tenant";
 
 export async function TopBar({
   locale,
-  theme,
+  tenantSlug,
 }: {
   locale: string;
-  theme: Theme;
+  tenantSlug: TenantSlug;
 }) {
   const [user, profile, viewAs] = await Promise.all([
     getSessionUser(),
@@ -53,7 +53,7 @@ export async function TopBar({
         name={profile?.full_name ?? user?.email ?? ""}
       />
       <div className="flex items-center gap-3">
-        <ThemeSwitch initial={theme} />
+        <TenantSwitch current={tenantSlug} />
         <NotificationsBell
           locale={locale}
           notifications={notifications}

@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import type { Route } from "next";
 import { createClient as createSupabaseClient } from "@/lib/supabase/server";
+import { currentTenantId } from "@/lib/tenant-server";
 import { slugify } from "@/lib/slug";
 
 export type ClientStatus = "prospect" | "active" | "paused" | "archived";
@@ -57,8 +58,10 @@ export async function createClientAction(
 
   const supabase = await createSupabaseClient();
   const slug = await uniqueSlug(supabase, slugify(name));
+  const tenantId = await currentTenantId();
 
   const { error } = await supabase.from("clients").insert({
+    tenant_id: tenantId,
     name,
     slug,
     industry: parseOptional(formData, "industry"),

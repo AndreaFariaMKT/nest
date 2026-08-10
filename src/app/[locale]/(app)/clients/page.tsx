@@ -3,6 +3,7 @@ import { Link } from "@/i18n/routing";
 import { Placeholder } from "@/components/ui/Placeholder";
 import { Pill } from "@/components/ui/Pill";
 import { createClient } from "@/lib/supabase/server";
+import { currentTenantId } from "@/lib/tenant-server";
 import { pageMeta, parsePage } from "@/lib/pagination";
 import type { Database } from "@/types/database";
 
@@ -35,9 +36,11 @@ export default async function ClientsPage({
   const parsed = parsePage(sp, { defaultSize: PAGE_SIZE, maxSize: 100 });
 
   const supabase = await createClient();
+  const tenantId = await currentTenantId();
   const { data, count } = await supabase
     .from("clients")
     .select("id, slug, name, industry, status", { count: "exact" })
+    .eq("tenant_id", tenantId)
     .order("name", { ascending: true })
     .range(parsed.from, parsed.to);
 
