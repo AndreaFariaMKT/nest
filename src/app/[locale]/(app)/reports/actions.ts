@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import type { Route } from "next";
 import { createClient as createSupabaseClient } from "@/lib/supabase/server";
+import { currentTenantId } from "@/lib/tenant-server";
 import { generate } from "@/lib/claude";
 import {
   buildReportSystem,
@@ -210,10 +211,12 @@ export async function generateMonthlyReportAction(
     generatedAt: new Date().toISOString(),
   };
 
+  const tenantId = await currentTenantId();
   const { data: upserted } = await supabase
     .from("monthly_reports")
     .upsert(
       {
+        tenant_id: tenantId,
         client_id: clientId,
         year,
         month,

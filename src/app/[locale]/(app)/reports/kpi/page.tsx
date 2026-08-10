@@ -1,5 +1,6 @@
 import { setRequestLocale, getTranslations } from "next-intl/server";
 import { createClient } from "@/lib/supabase/server";
+import { currentTenantId } from "@/lib/tenant-server";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/Card";
 import { PageHeader } from "@/components/ui/PageHeader";
 import {
@@ -49,6 +50,7 @@ export default async function KpiPage({
 
   const period = parsePeriod(from, to);
   const supabase = await createClient();
+  const tenantId = await currentTenantId();
 
   // Pull every metric snapshot in the period for posts whose draft (and thus
   // client) we can read. RLS handles client scoping; the optional clientId
@@ -58,6 +60,7 @@ export default async function KpiPage({
     .select(
       "published_post_id, captured_at, reach, impressions, likes, comments, saves, shares, published_posts!inner(id, draft_id, published_at, content_drafts!inner(client_id, clients!inner(name, slug)))",
     )
+    .eq("tenant_id", tenantId)
     .gte("captured_at", period.fromIso)
     .lt("captured_at", period.toIso)
     .order("captured_at", { ascending: false })
@@ -92,6 +95,7 @@ export default async function KpiPage({
   const { data: clients } = await supabase
     .from("clients")
     .select("id, name")
+    .eq("tenant_id", tenantId)
     .order("name", { ascending: true });
 
   const formatInt = (n: number) => new Intl.NumberFormat(locale).format(n);

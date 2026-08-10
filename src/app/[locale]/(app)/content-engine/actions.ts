@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import type { Route } from "next";
 import { createClient as createSupabaseClient } from "@/lib/supabase/server";
+import { currentTenantId } from "@/lib/tenant-server";
 import { parseVtt } from "@/lib/vtt";
 import { generate } from "@/lib/claude";
 import {
@@ -107,6 +108,7 @@ export async function createTranscriptAction(
   if (content.length < 20) return { fieldErrors: { content: "tooShort" } };
 
   const supabase = await createSupabaseClient();
+  const tenantId = await currentTenantId();
 
   // Transcripts RLS requires a meeting_id. We don't have one yet (Sprint 9),
   // so create an ad-hoc meeting row to hang the transcript off of.
@@ -116,6 +118,7 @@ export async function createTranscriptAction(
   const { data: meeting, error: meetingError } = await supabase
     .from("meetings")
     .insert({
+      tenant_id: tenantId,
       client_id: clientId,
       title: "Imported transcript",
       starts_at: new Date().toISOString(),
@@ -131,6 +134,7 @@ export async function createTranscriptAction(
   const { error, data } = await supabase
     .from("transcripts")
     .insert({
+      tenant_id: tenantId,
       meeting_id: meeting.id,
       language,
       content,
