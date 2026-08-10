@@ -6,7 +6,7 @@ import {
   type NotificationItem,
 } from "@/components/layout/NotificationsBell";
 import { createClient } from "@/lib/supabase/server";
-import { getCurrentProfile } from "@/lib/auth";
+import { getCurrentProfile, getSessionUser } from "@/lib/auth";
 import { getViewAs } from "@/lib/view-as-server";
 import type { Theme } from "@/lib/theme";
 
@@ -17,32 +17,32 @@ export async function TopBar({
   locale: string;
   theme: Theme;
 }) {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  const profile = await getCurrentProfile();
-  const viewAs = await getViewAs();
+  const [user, profile, viewAs] = await Promise.all([
+    getSessionUser(),
+    getCurrentProfile(),
+    getViewAs(),
+  ]);
 
   let notifications: NotificationItem[] = [];
   let unreadCount = 0;
 
   if (user) {
-    const { data } = await supabase
-      .from("notifications")
-      .select("id, type, title, body, link, read_at, created_at")
-      .eq("user_id", user.id)
-      .order("created_at", { ascending: false })
-      .limit(10);
-    notifications = (data ?? []) as NotificationItem[];
-
-    const { count } = await supabase
-      .from("notifications")
-      .select("id", { count: "exact", head: true })
-      .eq("user_id", user.id)
-      .is("read_at", null);
-    unreadCount = count ?? 0;
+    const supabase = await createClient();
+    const [list, unread] = await Promise.all([
+      supabase
+        .from("notifications")
+        .select("id, type, title, body, link, read_at, created_at")
+        .eq("user_id", user.id)
+        .order("created_at", { ascending: false })
+        .limit(10),
+      supabase
+        .from("notifications")
+        .select("id", { count: "exact", head: true })
+        .eq("user_id", user.id)
+        .is("read_at", null),
+    ]);
+    notifications = (list.data ?? []) as NotificationItem[];
+    unreadCount = unread.count ?? 0;
   }
 
   return (

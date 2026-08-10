@@ -38,7 +38,7 @@ export default async function TranscriptDetailPage({
   const drafts = (draftRows ?? []) as unknown as Draft[];
 
   return (
-    <div className="mx-auto max-w-5xl">
+    <div className="">
       <div className="mb-8">
         <Link
           href="/content-engine"

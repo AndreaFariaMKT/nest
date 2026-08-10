@@ -131,7 +131,7 @@ export default async function TodayPage({
   const meetings = (meetingsData ?? []) as unknown as TodayMeeting[];
 
   return (
-    <div className="mx-auto max-w-6xl">
+    <div className="">
       <header className="mb-8">
         <p className="text-sm capitalize text-muted-foreground">{dateLabel}</p>
         <h1 className="mt-1 font-display text-4xl text-foreground">

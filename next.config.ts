@@ -5,6 +5,12 @@ const withNextIntl = createNextIntlPlugin("./src/i18n/request.ts");
 
 const nextConfig: NextConfig = {
   typedRoutes: true,
+  // Client-side router cache: revisiting a route within 30s reuses the last
+  // render instantly instead of a server round-trip. Mutations still show
+  // fresh data (server actions revalidate; router.refresh() bypasses it).
+  experimental: {
+    staleTimes: { dynamic: 30 },
+  },
   // Keep the headless-browser packages external so their native binaries are
   // traced into the serverless function instead of bundled by the compiler.
   serverExternalPackages: [

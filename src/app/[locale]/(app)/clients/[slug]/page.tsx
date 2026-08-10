@@ -218,7 +218,7 @@ export default async function ClientDetailPage({
   const daysLeft = daysRemainingInCycle({ endsOn: currentCycle.endsOn });
 
   return (
-    <div className="mx-auto max-w-5xl">
+    <div className="">
       <div className="mb-8">
         <Link
           href="/clients"

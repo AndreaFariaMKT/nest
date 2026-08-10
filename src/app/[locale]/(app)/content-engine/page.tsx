@@ -89,7 +89,7 @@ export default async function ContentEnginePage({
   };
 
   return (
-    <div className="mx-auto max-w-5xl">
+    <div className="">
       <div className="mb-8 flex items-start justify-between gap-4">
         <div>
           <h1 className="font-display text-4xl text-foreground">{t("title")}</h1>

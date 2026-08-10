@@ -1,9 +1,9 @@
 import { setRequestLocale } from "next-intl/server";
 import { redirect } from "@/i18n/routing";
-import { createClient } from "@/lib/supabase/server";
 import { Sidebar } from "@/components/layout/Sidebar";
 import { TopBar } from "@/components/layout/TopBar";
 import { getTheme } from "@/lib/theme-server";
+import { getSessionUser } from "@/lib/auth";
 
 export default async function AppLayout({
   children,
@@ -15,16 +15,11 @@ export default async function AppLayout({
   const { locale } = await params;
   setRequestLocale(locale);
 
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const [user, theme] = await Promise.all([getSessionUser(), getTheme()]);
 
   if (!user) {
     redirect({ href: "/login", locale: locale as "pt-BR" | "en" });
   }
-
-  const theme = await getTheme();
 
   return (
     <div className="min-h-screen bg-background">
@@ -32,7 +27,7 @@ export default async function AppLayout({
         <TopBar locale={locale} theme={theme} />
         <div className="flex gap-4">
           <Sidebar theme={theme} />
-          <main className="min-w-0 flex-1 rounded-2xl bg-card px-8 py-8 shadow-sm">
+          <main className="min-w-0 flex-1 rounded-2xl bg-card px-6 py-6 shadow-sm">
             {children}
           </main>
         </div>
