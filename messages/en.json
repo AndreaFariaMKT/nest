@@ -127,6 +127,14 @@
       "pending": "Awaiting"
     }
   },
+  "messages": {
+    "title": "Messages",
+    "subtitle": "Team channel — everyone in this workspace.",
+    "placeholder": "Write a message…",
+    "send": "Send",
+    "empty": "No messages yet. Say hi 👋",
+    "you": "You"
+  },
   "auth": {
     "signIn": "Sign in",
     "signOut": "Sign out",

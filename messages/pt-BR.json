@@ -127,6 +127,14 @@
       "pending": "Aguardando"
     }
   },
+  "messages": {
+    "title": "Mensagens",
+    "subtitle": "Canal do time — todos deste workspace.",
+    "placeholder": "Escreva uma mensagem…",
+    "send": "Enviar",
+    "empty": "Nenhuma mensagem ainda. Manda um oi 👋",
+    "you": "Você"
+  },
   "auth": {
     "signIn": "Entrar",
     "signOut": "Sair",
