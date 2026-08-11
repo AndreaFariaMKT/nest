@@ -102,6 +102,31 @@
       "status": "Status"
     }
   },
+  "marketing": {
+    "title": "Marketing",
+    "subtitle": "Insights e planejamento de conteúdo.",
+    "totalDrafts": "Total de conteúdo",
+    "published": "Publicados",
+    "scheduled": "Agendados",
+    "byPillar": "Por pilar",
+    "noPillar": "Sem pilar",
+    "empty": "Nenhum conteúdo ainda."
+  },
+  "productionQueue": {
+    "title": "Fila de produção",
+    "subtitle": "Conteúdo em produção.",
+    "empty": "Nada em produção no momento."
+  },
+  "feedback": {
+    "title": "Feedback e status",
+    "subtitle": "Aprovações e comentários do cliente.",
+    "empty": "Nenhuma solicitação de aprovação ainda.",
+    "status": {
+      "approved": "Aprovado",
+      "rejected": "Mudanças pedidas",
+      "pending": "Aguardando"
+    }
+  },
   "auth": {
     "signIn": "Entrar",
     "signOut": "Sair",

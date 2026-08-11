@@ -102,6 +102,31 @@
       "status": "Status"
     }
   },
+  "marketing": {
+    "title": "Marketing",
+    "subtitle": "Content insights & planning.",
+    "totalDrafts": "Total content",
+    "published": "Published",
+    "scheduled": "Scheduled",
+    "byPillar": "By pillar",
+    "noPillar": "No pillar",
+    "empty": "No content yet."
+  },
+  "productionQueue": {
+    "title": "Production queue",
+    "subtitle": "Content in production.",
+    "empty": "Nothing in production right now."
+  },
+  "feedback": {
+    "title": "Feedback & status",
+    "subtitle": "Client approvals and comments.",
+    "empty": "No approval requests yet.",
+    "status": {
+      "approved": "Approved",
+      "rejected": "Changes requested",
+      "pending": "Awaiting"
+    }
+  },
   "auth": {
     "signIn": "Sign in",
     "signOut": "Sign out",
