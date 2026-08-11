@@ -3,88 +3,38 @@
 import { useTranslations } from "next-intl";
 import { Link, usePathname } from "@/i18n/routing";
 import { NestMark } from "@/components/icons/NestMark";
-import {
-  CalendarIcon,
-  ChartIcon,
-  ClientsIcon,
-  ContentIcon,
-  HomeIcon,
-  MeetingsIcon,
-  PaletteIcon,
-  ProjectsIcon,
-  ServicesIcon,
-  SettingsIcon,
-  TeamIcon,
-} from "@/components/icons/NavIcons";
-import { ViewAsSwitcher } from "@/components/layout/ViewAsSwitcher";
+import { RolePreview } from "@/components/layout/RolePreview";
 import { SignOutButton } from "@/components/layout/SignOutButton";
 import { LanguageSwitcher } from "@/components/ui/LanguageSwitcher";
 import {
   NotificationsBell,
   type NotificationItem,
 } from "@/components/layout/NotificationsBell";
+import { NAV, NAV_BY_ROLE, type AppRole } from "@/lib/roles";
 import type { Theme } from "@/lib/theme";
-import type { ViewAsRole } from "@/lib/view-as";
-
-type Item = { href: string; icon: typeof HomeIcon; key: string };
-type Group = { label: string; items: Item[] };
-
-const groups: Group[] = [
-  {
-    label: "daily",
-    items: [
-      { href: "/today", icon: HomeIcon, key: "today" },
-      { href: "/calendar", icon: CalendarIcon, key: "calendar" },
-      { href: "/meetings", icon: MeetingsIcon, key: "meetings" },
-    ],
-  },
-  {
-    label: "work",
-    items: [
-      { href: "/projects", icon: ProjectsIcon, key: "projects" },
-      { href: "/clients", icon: ClientsIcon, key: "clients" },
-      { href: "/services", icon: ServicesIcon, key: "services" },
-    ],
-  },
-  {
-    label: "content",
-    items: [
-      { href: "/content-engine", icon: ContentIcon, key: "contentEngine" },
-      { href: "/brand-kits", icon: PaletteIcon, key: "brandKits" },
-    ],
-  },
-  {
-    label: "insights",
-    items: [{ href: "/reports", icon: ChartIcon, key: "reports" }],
-  },
-  {
-    label: "directory",
-    items: [
-      { href: "/team", icon: TeamIcon, key: "team" },
-      { href: "/settings", icon: SettingsIcon, key: "settings" },
-    ],
-  },
-];
 
 export function Sidebar({
   theme,
   locale,
   profileName,
-  profileRole,
-  viewAs,
+  role,
+  actualRole,
+  viewRole,
   notifications,
   unreadCount,
 }: {
   theme: Theme;
   locale: string;
   profileName: string;
-  profileRole: string;
-  viewAs: ViewAsRole | null;
+  role: AppRole;
+  actualRole: AppRole;
+  viewRole: AppRole | null;
   notifications: NotificationItem[];
   unreadCount: number;
 }) {
   const t = useTranslations("nav");
   const pathname = usePathname();
+  const groups = NAV_BY_ROLE[role];
 
   return (
     <aside className="flex h-screen w-64 shrink-0 flex-col bg-sidebar text-sidebar-foreground">
@@ -96,19 +46,22 @@ export function Sidebar({
         </span>
       </div>
 
-      {/* Grouped nav */}
+      {/* Role-based nav */}
       <nav className="flex flex-1 flex-col gap-5 overflow-y-auto px-3 pb-4">
         {groups.map((group) => (
-          <div key={group.label} className="flex flex-col gap-0.5">
+          <div key={group.group} className="flex flex-col gap-0.5">
             <p className="px-3 pb-1 text-[10px] font-semibold uppercase tracking-[0.14em] text-sidebar-muted">
-              {t(`groups.${group.label}`)}
+              {t(`groups.${group.group}`)}
             </p>
-            {group.items.map(({ href, icon: Icon, key }) => {
+            {group.keys.map((key) => {
+              const item = NAV[key];
+              const href = item.href;
               const active =
                 pathname === href || pathname.startsWith(`${href}/`);
+              const Icon = item.icon;
               return (
                 <Link
-                  key={href}
+                  key={key}
                   href={href}
                   className={
                     active
@@ -117,7 +70,7 @@ export function Sidebar({
                   }
                 >
                   <Icon className="h-4 w-4" />
-                  {t(key)}
+                  {t(item.label)}
                 </Link>
               );
             })}
@@ -125,13 +78,9 @@ export function Sidebar({
         ))}
       </nav>
 
-      {/* Footer: view-as + utilities + identity */}
+      {/* Footer */}
       <div className="space-y-3 border-t border-sidebar-border px-4 py-4">
-        <ViewAsSwitcher
-          actualRole={profileRole}
-          current={viewAs}
-          name={profileName}
-        />
+        <RolePreview actualRole={actualRole} current={viewRole} />
         <div className="flex items-center justify-between">
           <p className="min-w-0 flex-1 truncate text-xs text-sidebar-foreground/60">
             {profileName}

@@ -3,8 +3,7 @@ import { Link } from "@/i18n/routing";
 import { Pill } from "@/components/ui/Pill";
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentProfile } from "@/lib/auth";
-import { effectiveRole } from "@/lib/view-as";
-import { getViewAs } from "@/lib/view-as-server";
+import { getCurrentRole } from "@/lib/roles-server";
 import { currentTenantId } from "@/lib/tenant-server";
 import { formatCentsAsBrl, sumCents } from "@/lib/money";
 import type { MeetingStatus, TaskPriority, TaskStatus } from "@/types/database";
@@ -75,8 +74,7 @@ export default async function TodayPage({
   const supabase = await createClient();
   const tenantId = await currentTenantId();
 
-  const viewAs = await getViewAs();
-  const ownerView = effectiveRole(profile?.role ?? "staff", viewAs) === "owner";
+  const ownerView = (await getCurrentRole()) === "founder";
   let activeClients = 0;
   let activeServices = 0;
   let mrrCents = 0;

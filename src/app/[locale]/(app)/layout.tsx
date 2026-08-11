@@ -5,7 +5,7 @@ import { Sidebar } from "@/components/layout/Sidebar";
 import type { NotificationItem } from "@/components/layout/NotificationsBell";
 import { getCurrentTenant } from "@/lib/tenant-server";
 import { getSessionUser, getCurrentProfile } from "@/lib/auth";
-import { getViewAs } from "@/lib/view-as-server";
+import { getCurrentRole, getActualRole, getViewRole } from "@/lib/roles-server";
 
 export default async function AppLayout({
   children,
@@ -17,11 +17,13 @@ export default async function AppLayout({
   const { locale } = await params;
   setRequestLocale(locale);
 
-  const [user, tenant, profile, viewAs] = await Promise.all([
+  const [user, tenant, profile, role, actualRole, viewRole] = await Promise.all([
     getSessionUser(),
     getCurrentTenant(),
     getCurrentProfile(),
-    getViewAs(),
+    getCurrentRole(),
+    getActualRole(),
+    getViewRole(),
   ]);
 
   if (!user) {
@@ -52,8 +54,9 @@ export default async function AppLayout({
         theme={tenant.theme}
         locale={locale}
         profileName={profile?.full_name ?? user.email ?? ""}
-        profileRole={profile?.role ?? "staff"}
-        viewAs={viewAs}
+        role={role}
+        actualRole={actualRole}
+        viewRole={viewRole}
         notifications={notifications}
         unreadCount={unreadCount}
       />
