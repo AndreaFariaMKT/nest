@@ -1,8 +1,50 @@
 # Nest · Roadmap
 
-Living document. Source of truth for **what is built**, **what is next**, and **in what order**. Updated as sprints land. Reference doc: [HANDOFF.md](./HANDOFF.md).
+Living document. Source of truth for **what is built**, **what is next**, and **in what order**. Reference doc: [HANDOFF.md](./HANDOFF.md). The original 12-sprint plan is preserved below (§ from "1. Current state" down); this top section is the live state as of **2026-08**.
 
-**Today** · 2026-04-22 · Branch `main` · 4 commits local
+---
+
+## 0. Current state — 2026-08 (multi-tenant + roles era)
+
+**Live in production** on Vercel (`nest-andrea-faria-mkts-projects.vercel.app`), Supabase Cloud (Free, ref `wntrsavneabdcrztwudf`, region us-east-1). Deploy = push to `main`. Migrations 001–018 applied. Apply new migrations with:
+`psql "postgresql://postgres.wntrsavneabdcrztwudf:<DB_PASSWORD>@aws-1-us-east-1.pooler.supabase.com:5432/postgres" -f <file>`
+
+### Shipped this era
+- **Production deploy** — Vercel + Supabase Cloud; `/api/health` green; Analytics + Speed Insights wired (enable in dashboard).
+- **Chromium renderer** fixed for Lambda (`@sparticuz/chromium` + `puppeteer-core`, `src/lib/browser.ts`) → creatives + report PDF work in prod.
+- **Multi-tenancy** — AFM + Nest as tenants (`tenants`, `tenant_members`, `tenant_id` on ~24 tables, RLS `is_tenant_member` + restrictive `tenant_isolation`). Tenant resolved **by login** (membership), theme follows tenant. No in-app tenant switch.
+- **8 roles + per-role views** (`src/lib/roles.ts`) — founder/manager/social/designer_social/designer_identity/developer/accountant/client. Sidebar renders the login's menu; founder "View as" previews any role. **Route guards** (`src/lib/guard.ts`, middleware): clients isolated to `/portal`; finance/admin → founder/accountant; business-plan/commercial → founder.
+- **Every nav item is a real page** — today, projects(tasks), calendar, meetings, messages, business-plan, administration, finance, commercial, marketing, content-calendar, scheduling, overview, clients, team(people), playbook, production-queue, feedback, identity-projects, website-builds.
+- **Client portal** (authenticated) — `clients.portal_user_id` links a client login to one client; `/portal` overview/content/calendar/meetings/invoices/chat, RLS-scoped (`owns_portal_client`, migration 018). Isolation verified in prod.
+- **Messages** — internal team channel + per-client chat (`messages.client_id`; null = team).
+- **UI** — themeable AFM/Nest tokens, dark grouped sidebar (now **collapsible**, cookie-persisted), edge-to-edge shell, reskinned dashboard.
+- **Perf** — `React.cache()` auth dedupe, `staleTimes.dynamic=30`, `loading.tsx` skeleton.
+- **Types** — `database.ts` swapped to generated `database.gen.ts` (`npm run types:gen` needs `supabase login`).
+
+### Test logins (admin-created, email confirmed)
+| Role · Tenant | Email | Password |
+|---|---|---|
+| Founder · AFM | afm@andreafariamkt.com | Afm-6de0bad9 |
+| Founder · Nest | nest@andreafariamkt.com | Nest-99b6a8c1 |
+| Client · AFM | client@andreafariamkt.com | Client-demo123 |
+
+### Backlog — what's next (roughly prioritized)
+1. **Operational / quick**
+   - [ ] DNS: `nest.andreafariamkt.com` → CNAME `cname.vercel-dns.com` (Google Cloud DNS); then set `NEXT_PUBLIC_APP_URL` + redeploy.
+   - [ ] **Rotate the DB password** (it was used/exposed during setup) — Supabase → Database → Reset password. Does not affect the app (uses keys).
+   - [ ] Remove the **demo data** (Demo Client + client@ login + its meeting/contract/draft) once portal testing is done.
+   - [ ] Enable Vercel **Web Analytics + Speed Insights** in the dashboard.
+   - [ ] SMTP for auth emails (invites/reset); Free-plan **backups** (no daily backup — upgrade Pro or scheduled dump).
+2. **Actions on the read-only pages** (currently views)
+   - [ ] Client **approves/comments** on content in `/portal/content` (writes `approvals`).
+   - [ ] Business plan / Administration → editable (needs tables) instead of static/derived.
+   - [ ] Content calendar / Scheduling → create + drag to reschedule.
+   - [ ] Commercial → move a prospect through stages; convert to active client.
+3. **Roles hardening**
+   - [ ] Assign granular roles to real staff logins (015 allows the 8); today all are `founder`.
+   - [ ] Tighten per-role route allow-list beyond the sensitive set if needed.
+4. **Integrations (code ready, need creds)** — Meta/Instagram, LinkedIn, TikTok, Voyage (semantic memory), Google (already connected). Wire `meta-refresh` token exchange.
+5. **Quality** — Sentry (needs DSN), rate-limit → Upstash Redis (public routes), Playwright E2E in CI, pagination/indexes when data grows, per-feature docs.
 
 ---
 
