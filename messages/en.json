@@ -72,6 +72,36 @@
     "inReview": "In review",
     "noWork": "No active work right now."
   },
+  "commercial": {
+    "title": "Commercial",
+    "subtitle": "Prospects and pipeline.",
+    "prospects": "Prospects",
+    "active": "Active clients",
+    "empty": "No prospects right now."
+  },
+  "contentCalendar": {
+    "title": "Content calendar",
+    "subtitle": "Everything in production, by stage.",
+    "empty": "No content yet.",
+    "buckets": {
+      "drafting": "Drafting",
+      "review": "Client review",
+      "approved": "Approved",
+      "published": "Published"
+    }
+  },
+  "scheduling": {
+    "title": "Scheduling",
+    "subtitle": "Upcoming and past scheduled posts.",
+    "empty": "Nothing scheduled yet.",
+    "th": {
+      "when": "When",
+      "content": "Content",
+      "platform": "Platform",
+      "type": "Type",
+      "status": "Status"
+    }
+  },
   "auth": {
     "signIn": "Sign in",
     "signOut": "Sign out",
