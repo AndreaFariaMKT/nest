@@ -175,6 +175,23 @@
       "studio": "Studio"
     }
   },
+  "identityProjects": {
+    "title": "Projetos de identidade",
+    "subtitle": "Brand kits por cliente.",
+    "empty": "Nenhum brand kit ainda.",
+    "guidelines": "Diretrizes"
+  },
+  "administration": {
+    "title": "Administração",
+    "subtitle": "Documentos da empresa e clientes.",
+    "empty": "Nenhum documento ainda.",
+    "open": "Abrir"
+  },
+  "websiteBuilds": {
+    "title": "Sites",
+    "subtitle": "Sites de clientes que você mantém.",
+    "empty": "Nenhum site de cliente ainda."
+  },
   "auth": {
     "signIn": "Entrar",
     "signOut": "Sair",
