@@ -11,10 +11,12 @@ export function ComposeMessage({
   locale,
   placeholder,
   sendLabel,
+  clientId,
 }: {
   locale: string;
   placeholder: string;
   sendLabel: string;
+  clientId?: string;
 }) {
   const router = useRouter();
   const [state, action, pending] = useActionState(sendMessageAction, initial);
@@ -31,6 +33,7 @@ export function ComposeMessage({
   return (
     <form ref={formRef} action={action} className="flex items-center gap-2">
       <input type="hidden" name="locale" value={locale} />
+      <input type="hidden" name="client_id" value={clientId ?? ""} />
       <input
         name="body"
         autoComplete="off"

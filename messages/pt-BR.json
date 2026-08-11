@@ -135,6 +135,46 @@
     "empty": "Nenhuma mensagem ainda. Manda um oi 👋",
     "you": "Você"
   },
+  "portal": {
+    "notLinked": "Sua conta ainda não está ligada a um cliente. Peça pro studio conectar.",
+    "overview": {
+      "greeting": "Oi, {name}",
+      "subtitle": "Seu projeto num relance.",
+      "awaitingApproval": "Aguardando sua aprovação",
+      "published": "Publicados",
+      "upcomingMeetings": "Próximas reuniões",
+      "noMeetings": "Nenhuma reunião agendada."
+    },
+    "content": {
+      "title": "Conteúdo",
+      "subtitle": "Seus posts em revisão e publicação.",
+      "empty": "Nada aqui ainda."
+    },
+    "meetings": {
+      "title": "Reuniões",
+      "subtitle": "Suas calls com o studio.",
+      "empty": "Nenhuma reunião ainda.",
+      "past": "passada"
+    },
+    "calendar": {
+      "title": "Calendário",
+      "subtitle": "Tudo na agenda."
+    },
+    "invoices": {
+      "title": "Faturas",
+      "subtitle": "Seus contratos e cobranças.",
+      "empty": "Nenhuma fatura ainda."
+    },
+    "chat": {
+      "title": "Chat",
+      "subtitle": "Fale com o studio.",
+      "empty": "Nenhuma mensagem ainda. Manda um oi 👋",
+      "placeholder": "Escreva uma mensagem…",
+      "send": "Enviar",
+      "you": "Você",
+      "studio": "Studio"
+    }
+  },
   "auth": {
     "signIn": "Entrar",
     "signOut": "Sair",

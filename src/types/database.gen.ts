@@ -422,6 +422,7 @@ export type Database = {
           name: string
           notes: string | null
           portal_token: string | null
+          portal_user_id: string | null
           primary_contact_id: string | null
           slug: string
           status: Database["public"]["Enums"]["client_status"]
@@ -437,6 +438,7 @@ export type Database = {
           name: string
           notes?: string | null
           portal_token?: string | null
+          portal_user_id?: string | null
           primary_contact_id?: string | null
           slug: string
           status?: Database["public"]["Enums"]["client_status"]
@@ -452,6 +454,7 @@ export type Database = {
           name?: string
           notes?: string | null
           portal_token?: string | null
+          portal_user_id?: string | null
           primary_contact_id?: string | null
           slug?: string
           status?: Database["public"]["Enums"]["client_status"]
@@ -868,6 +871,7 @@ export type Database = {
       messages: {
         Row: {
           body: string
+          client_id: string | null
           created_at: string
           id: string
           sender_id: string
@@ -875,6 +879,7 @@ export type Database = {
         }
         Insert: {
           body: string
+          client_id?: string | null
           created_at?: string
           id?: string
           sender_id: string
@@ -882,6 +887,7 @@ export type Database = {
         }
         Update: {
           body?: string
+          client_id?: string | null
           created_at?: string
           id?: string
           sender_id?: string

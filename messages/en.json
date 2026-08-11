@@ -135,6 +135,46 @@
     "empty": "No messages yet. Say hi 👋",
     "you": "You"
   },
+  "portal": {
+    "notLinked": "Your account isn't linked to a client yet. Ask the studio to connect it.",
+    "overview": {
+      "greeting": "Hi, {name}",
+      "subtitle": "Your project at a glance.",
+      "awaitingApproval": "Awaiting your approval",
+      "published": "Published",
+      "upcomingMeetings": "Upcoming meetings",
+      "noMeetings": "No meetings scheduled."
+    },
+    "content": {
+      "title": "Content",
+      "subtitle": "Your posts through review and publishing.",
+      "empty": "Nothing here yet."
+    },
+    "meetings": {
+      "title": "Meetings",
+      "subtitle": "Your calls with the studio.",
+      "empty": "No meetings yet.",
+      "past": "past"
+    },
+    "calendar": {
+      "title": "Calendar",
+      "subtitle": "Everything on the schedule."
+    },
+    "invoices": {
+      "title": "Invoices",
+      "subtitle": "Your contracts and billing.",
+      "empty": "No invoices yet."
+    },
+    "chat": {
+      "title": "Chat",
+      "subtitle": "Talk to the studio.",
+      "empty": "No messages yet. Say hi 👋",
+      "placeholder": "Write a message…",
+      "send": "Send",
+      "you": "You",
+      "studio": "Studio"
+    }
+  },
   "auth": {
     "signIn": "Sign in",
     "signOut": "Sign out",

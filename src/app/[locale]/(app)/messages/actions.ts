@@ -14,6 +14,8 @@ export async function sendMessageAction(
 ): Promise<SendState> {
   const body = (formData.get("body") ?? "").toString().trim();
   const locale = (formData.get("locale") ?? "pt-BR").toString();
+  const clientIdRaw = (formData.get("client_id") ?? "").toString().trim();
+  const clientId = clientIdRaw.length ? clientIdRaw : null;
   if (!body) return { ok: false };
 
   const user = await getSessionUser();
@@ -25,9 +27,11 @@ export async function sendMessageAction(
     tenant_id: tenantId,
     sender_id: user.id,
     body,
+    client_id: clientId,
   });
   if (error) return { ok: false, error: error.message };
 
-  revalidatePath(`/${locale}/messages`);
+  // Team channel or the client's chat, depending on client_id.
+  revalidatePath(`/${locale}/${clientId ? "portal/messages" : "messages"}`);
   return { ok: true };
 }

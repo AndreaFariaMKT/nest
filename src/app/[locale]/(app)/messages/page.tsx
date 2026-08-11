@@ -39,6 +39,7 @@ export default async function MessagesPage({
       .from("messages")
       .select("id, body, sender_id, created_at")
       .eq("tenant_id", tenantId)
+      .is("client_id", null)
       .order("created_at", { ascending: true })
       .limit(200),
     supabase.from("profiles").select("id, full_name"),
