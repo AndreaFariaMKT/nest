@@ -49,6 +49,29 @@
     "invoices": "Faturas",
     "soon": "Em breve"
   },
+  "finance": {
+    "title": "Financeiro",
+    "subtitle": "Contratos ativos e receita recorrente.",
+    "mrr": "MRR ativo",
+    "activeContracts": "Contratos ativos",
+    "onRetainer": "Clientes em retainer",
+    "autoRenew": "renovação automática",
+    "empty": "Nenhum contrato ainda.",
+    "th": {
+      "client": "Cliente",
+      "contract": "Contrato",
+      "period": "Período",
+      "monthly": "Mensal"
+    }
+  },
+  "overview": {
+    "title": "Visão geral",
+    "subtitle": "Trabalho ativo em todos os clientes.",
+    "activeClients": "Clientes ativos",
+    "activeTasks": "Tarefas abertas",
+    "inReview": "Em revisão",
+    "noWork": "Nenhum trabalho ativo no momento."
+  },
   "auth": {
     "signIn": "Entrar",
     "signOut": "Sair",

@@ -49,6 +49,29 @@
     "invoices": "Invoices",
     "soon": "Coming soon"
   },
+  "finance": {
+    "title": "Finance",
+    "subtitle": "Active contracts and recurring revenue.",
+    "mrr": "Active MRR",
+    "activeContracts": "Active contracts",
+    "onRetainer": "Clients on retainer",
+    "autoRenew": "auto-renew",
+    "empty": "No contracts yet.",
+    "th": {
+      "client": "Client",
+      "contract": "Contract",
+      "period": "Period",
+      "monthly": "Monthly"
+    }
+  },
+  "overview": {
+    "title": "Overview",
+    "subtitle": "Active work across every client.",
+    "activeClients": "Active clients",
+    "activeTasks": "Open tasks",
+    "inReview": "In review",
+    "noWork": "No active work right now."
+  },
   "auth": {
     "signIn": "Sign in",
     "signOut": "Sign out",
