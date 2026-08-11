@@ -1,3 +1,4 @@
+import { cookies } from "next/headers";
 import { setRequestLocale } from "next-intl/server";
 import { redirect } from "@/i18n/routing";
 import { createClient } from "@/lib/supabase/server";
@@ -47,6 +48,7 @@ export default async function AppLayout({
   ]);
   const notifications = (list.data ?? []) as NotificationItem[];
   const unreadCount = unread.count ?? 0;
+  const collapsed = (await cookies()).get("nest-sidebar")?.value === "1";
 
   return (
     <div className="flex h-screen overflow-hidden bg-background">
@@ -59,6 +61,7 @@ export default async function AppLayout({
         viewRole={viewRole}
         notifications={notifications}
         unreadCount={unreadCount}
+        initialCollapsed={collapsed}
       />
       <main className="min-w-0 flex-1 overflow-y-auto px-8 py-8">{children}</main>
     </div>
