@@ -1,12 +1,12 @@
 import { createServerClient, type CookieOptions } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 
+import { guardRedirect, mapLegacyRole, isAppRoleValue } from "@/lib/guard";
+
 /**
- * Refresh the Supabase auth session on every request and return the
- * (potentially mutated) response so cookies propagate back to the browser.
- *
- * Callers supply the response they already built (e.g. from next-intl) so
- * the auth cookies get attached without clobbering i18n redirects.
+ * Refresh the Supabase auth session on every request, then enforce per-role
+ * route access. Callers pass the response they already built (e.g. from
+ * next-intl) so auth cookies attach without clobbering i18n redirects.
  */
 export async function updateSession(
   request: NextRequest,
@@ -35,8 +35,39 @@ export async function updateSession(
     },
   );
 
-  // Touch the session so refresh tokens rotate before they expire.
-  await supabase.auth.getUser();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (user) {
+    // Locale-strip the path (pt-BR default = no prefix, en = /en).
+    const path = request.nextUrl.pathname;
+    const isEn = path === "/en" || path.startsWith("/en/");
+    const prefix = isEn ? "/en" : "";
+    const base = (isEn ? path.slice(3) : path) || "/";
+
+    // Effective role: the login's role, or a founder's "view as" preview.
+    const { data: membership } = await supabase
+      .from("tenant_members")
+      .select("role")
+      .eq("user_id", user.id)
+      .order("tenant_id", { ascending: true })
+      .limit(1)
+      .maybeSingle();
+    let role = mapLegacyRole(membership?.role);
+    if (role === "founder") {
+      const preview = request.cookies.get("nest-view-role")?.value;
+      if (isAppRoleValue(preview)) role = preview;
+    }
+
+    const target = guardRedirect(base, role);
+    if (target && target !== base) {
+      const url = request.nextUrl.clone();
+      url.pathname = prefix + target;
+      url.search = "";
+      return NextResponse.redirect(url);
+    }
+  }
 
   return response;
 }
