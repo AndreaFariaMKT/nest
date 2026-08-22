@@ -2,6 +2,8 @@
 
 import { useActionState, useEffect, useRef } from "react";
 import { useTranslations } from "next-intl";
+
+import { Button } from "@/components/ui/Button";
 import { useRouter } from "next/navigation";
 
 import { CONTENT_ORIGINS, SOCIAL_CHANNELS } from "@/lib/social";
@@ -198,13 +200,9 @@ export function ThemeForm({
         </div>
 
         <div className="flex items-center gap-3">
-          <button
-            type="submit"
-            disabled={pending}
-            className="inline-flex h-10 items-center rounded-md bg-brand px-4 text-sm font-medium text-brand-foreground transition-colors hover:bg-brand/90 disabled:opacity-50"
-          >
+          <Button type="submit" variant="brand" disabled={pending}>
             {t("submit")}
-          </button>
+          </Button>
           <Refusal error={state.error} />
         </div>
       </form>

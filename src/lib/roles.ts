@@ -19,6 +19,7 @@ import {
   PenIcon,
   CodeIcon,
   FileIcon,
+  ChartIcon,
   FilmIcon,
   KeyIcon,
 } from "@/components/icons/NavIcons";
@@ -94,6 +95,7 @@ export const NAV: Record<string, NavItem> = {
   c_invoices: { key: "c_invoices", href: "/portal/invoices", label: "invoices", icon: FileIcon },
   c_media: { key: "c_media", href: "/portal/media", label: "mediaLibrary", icon: FilmIcon },
   c_logins: { key: "c_logins", href: "/portal/logins", label: "sharedLogins", icon: KeyIcon },
+  c_report: { key: "c_report", href: "/portal/report", label: "performance", icon: ChartIcon },
 };
 
 export interface NavGroup {
@@ -147,6 +149,7 @@ export const NAV_BY_ROLE: Record<AppRole, NavGroup[]> = {
         "c_overview",
         "c_content",
         "c_calendar",
+        "c_report",
         "c_meetings",
         "c_media",
         "c_logins",

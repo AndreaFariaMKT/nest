@@ -50,7 +50,8 @@
     "soon": "Coming soon",
     "socialMedia": "Social media",
     "mediaLibrary": "Media library",
-    "sharedLogins": "Shared logins"
+    "sharedLogins": "Shared logins",
+    "performance": "Performance"
   },
   "finance": {
     "title": "Finance",
@@ -826,7 +827,8 @@
       "publishing": "Publishing",
       "calendar": "Calendar",
       "media": "Media library",
-      "logins": "Shared logins"
+      "logins": "Shared logins",
+      "report": "Performance"
     },
     "filter": {
       "client": "Client",
@@ -1180,7 +1182,9 @@
       "needsSignOff": "Sign the art off before it can go to the client.",
       "withClient": "With the client.",
       "nothingForYou": "Nothing here is yours to move right now.",
-      "silenceNote": "The reply date has passed. Running it as scheduled is what the module promised the studio — the client can still write, and it is recorded that they did not."
+      "silenceNote": "The reply date has passed. Running it as scheduled is what the module promised the studio — the client can still write, and it is recorded that they did not.",
+      "window": "Window · when it must run",
+      "source": "Source"
     },
     "blocked": {
       "notOnShelf": "This piece is not on the shelf.",
@@ -1232,7 +1236,15 @@
       "commentPlaceholder": "Rework the opening, it reads too hard.",
       "notApproved": "Not approved",
       "approveWithChanges": "Approve with changes",
-      "approve": "Approve"
+      "approve": "Approve",
+      "feedback": {
+        "title": "Two questions",
+        "hint": "These feed the next fortnights. They reach the studio in your chat, so nothing gets lost in a second inbox.",
+        "themes": "Anything you saw, read or lived recently that we should work on?",
+        "cycle": "Any observation about this cycle?",
+        "send": "Send",
+        "sent": "Sent to coordination"
+      }
     },
     "moduleCard": {
       "title": "Social media",
@@ -1242,6 +1254,34 @@
       "fortnights": "({n} fortnights)",
       "withClient": "With client",
       "live": "Live"
+    },
+    "report": {
+      "title": "Performance",
+      "subtitle": "The closed month — how far it reached, and whether it stayed on territory.",
+      "titlePortal": "Performance",
+      "subtitlePortal": "Your month, as we read it.",
+      "closedMonth": "{month} · closed month",
+      "previousMonth": "Previous month",
+      "nextMonth": "Next month",
+      "kpi": {
+        "impressions": "Views",
+        "reach": "Accounts reached",
+        "interactions": "Interactions",
+        "keeps": "Saves + shares",
+        "published": "Publications"
+      },
+      "previousRaw": "previous: {n}",
+      "previousPercent": "{sign}{percent}% · previous: {n}",
+      "axisTitle": "Where the month went",
+      "axisHint": "By axis — the territory each piece belongs to.",
+      "noAxis": "No axis set",
+      "nothingPublished": "Nothing published in this month.",
+      "axisNote": "Numbers measure reach. This measures position: whether the month stayed on the territory the brand is trying to own. A win outside the territory is a problem dressed as a result.",
+      "readingTitle": "Reading",
+      "highlights": "Highlights",
+      "lessons": "What we learned",
+      "noNarrative": "No written reading for this month yet. The numbers above are live either way.",
+      "narrativePerClient": "The written reading is per client — pick one above to see it."
     }
   }
 }

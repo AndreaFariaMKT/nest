@@ -50,7 +50,8 @@
     "soon": "Em breve",
     "socialMedia": "Social media",
     "mediaLibrary": "Biblioteca de mídia",
-    "sharedLogins": "Acessos compartilhados"
+    "sharedLogins": "Acessos compartilhados",
+    "performance": "Performance"
   },
   "finance": {
     "title": "Financeiro",
@@ -826,7 +827,8 @@
       "publishing": "Publicação",
       "calendar": "Calendário",
       "media": "Biblioteca de mídia",
-      "logins": "Acessos compartilhados"
+      "logins": "Acessos compartilhados",
+      "report": "Performance"
     },
     "filter": {
       "client": "Cliente",
@@ -1180,7 +1182,9 @@
       "needsSignOff": "Finalize a arte antes de mandar ao cliente.",
       "withClient": "Com o cliente.",
       "nothingForYou": "Nada aqui é seu para mover agora.",
-      "silenceNote": "A data de resposta passou. Publicar como agendado é o que o módulo prometeu ao estúdio — o cliente ainda pode escrever, e fica registrado que ele não escreveu."
+      "silenceNote": "A data de resposta passou. Publicar como agendado é o que o módulo prometeu ao estúdio — o cliente ainda pode escrever, e fica registrado que ele não escreveu.",
+      "window": "Janela · quando precisa sair",
+      "source": "Fonte"
     },
     "blocked": {
       "notOnShelf": "Esta peça não está na prateleira.",
@@ -1232,7 +1236,15 @@
       "commentPlaceholder": "Refaça a abertura, está dura demais.",
       "notApproved": "Não aprovar",
       "approveWithChanges": "Aprovar com ajustes",
-      "approve": "Aprovar"
+      "approve": "Aprovar",
+      "feedback": {
+        "title": "Duas perguntas",
+        "hint": "Isto alimenta as próximas quinzenas. Chega ao estúdio no seu chat, então nada se perde numa segunda caixa de entrada.",
+        "themes": "Algo que você viu, leu ou viveu recentemente e que a gente deveria trabalhar?",
+        "cycle": "Alguma observação sobre este ciclo?",
+        "send": "Enviar",
+        "sent": "Enviado à coordenação"
+      }
     },
     "moduleCard": {
       "title": "Social media",
@@ -1242,6 +1254,34 @@
       "fortnights": "({n} quinzenas)",
       "withClient": "Com o cliente",
       "live": "No ar"
+    },
+    "report": {
+      "title": "Performance",
+      "subtitle": "O mês fechado — até onde chegou, e se ficou no território.",
+      "titlePortal": "Performance",
+      "subtitlePortal": "Seu mês, como a gente lê.",
+      "closedMonth": "{month} · mês fechado",
+      "previousMonth": "Mês anterior",
+      "nextMonth": "Próximo mês",
+      "kpi": {
+        "impressions": "Visualizações",
+        "reach": "Contas alcançadas",
+        "interactions": "Interações",
+        "keeps": "Salvamentos + compartilhamentos",
+        "published": "Publicações"
+      },
+      "previousRaw": "anterior: {n}",
+      "previousPercent": "{sign}{percent}% · anterior: {n}",
+      "axisTitle": "Para onde foi o mês",
+      "axisHint": "Por eixo — o território a que cada peça pertence.",
+      "noAxis": "Sem eixo definido",
+      "nothingPublished": "Nada publicado neste mês.",
+      "axisNote": "Números medem alcance. Isto mede posição: se o mês ficou no território que a marca quer ocupar. Uma vitória fora do território é um problema disfarçado de resultado.",
+      "readingTitle": "Leitura",
+      "highlights": "Destaques",
+      "lessons": "O que aprendemos",
+      "noNarrative": "Ainda sem leitura escrita para este mês. Os números acima valem de qualquer forma.",
+      "narrativePerClient": "A leitura escrita é por cliente — escolha um acima para vê-la."
     }
   }
 }

@@ -413,6 +413,10 @@ export async function savePieceAction(
       patch.publish_time = optional(formData, "publish_time") ?? "08:00";
     if (formData.has("material_url"))
       patch.material_url = optional(formData, "material_url");
+    if (formData.has("window_note"))
+      patch.window_note = optional(formData, "window_note");
+    if (formData.has("source_ref"))
+      patch.source_ref = optional(formData, "source_ref");
   }
 
   if (hasCap(role, "design")) {

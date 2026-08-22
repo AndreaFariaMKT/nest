@@ -153,6 +153,7 @@ export const SOCIAL_SCREENS = [
   { key: "calendar", href: "/social/calendar", caps: ["direction", "coordinate", "design", "publish"] },
   { key: "media", href: "/social/media", caps: ["direction", "coordinate", "design"] },
   { key: "logins", href: "/social/logins", caps: ["direction", "coordinate", "publish"] },
+  { key: "report", href: "/social/report", caps: ["direction", "coordinate"] },
 ] as const satisfies readonly {
   key: string;
   href: string;

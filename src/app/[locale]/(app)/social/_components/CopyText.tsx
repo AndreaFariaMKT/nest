@@ -45,7 +45,7 @@ export function CopyText({
     <button
       type="button"
       onClick={copy}
-      className="inline-flex h-9 items-center gap-2 rounded-md border border-border bg-background px-3 text-sm transition-colors hover:bg-muted"
+      className="inline-flex h-9 items-center gap-2 rounded-md border border-border bg-background px-3 text-sm transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
     >
       <svg
         className="h-3.5 w-3.5"

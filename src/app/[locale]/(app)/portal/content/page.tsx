@@ -13,6 +13,7 @@ import {
 import { PIECE_COLUMNS, type PieceRecord } from "../../social/_data";
 import { PieceCard } from "../../social/_components/PieceCard";
 import { DecisionForm } from "../../social/_components/PieceActions";
+import { CycleFeedback } from "./CycleFeedback";
 import { NotLinked } from "../_NotLinked";
 
 export const dynamic = "force-dynamic";
@@ -119,6 +120,8 @@ export default async function PortalContent({
           })}
         </div>
       )}
+
+      <CycleFeedback locale={locale} clientId={client.id} />
     </>
   );
 }

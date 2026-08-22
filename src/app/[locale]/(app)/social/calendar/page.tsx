@@ -101,19 +101,21 @@ export default async function SocialCalendarPage({
         <div className="flex gap-2">
           <Link
             href={link(shift(-1))}
-            className="inline-flex h-9 items-center rounded-md border border-border px-3 text-sm hover:bg-muted"
+            aria-label={t("report.previousMonth")}
+            className="inline-flex h-9 items-center rounded-md border border-border px-3 text-sm transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
           >
             ←
           </Link>
           <Link
             href={link(scope.today.slice(0, 7))}
-            className="inline-flex h-9 items-center rounded-md border border-border px-3 text-sm hover:bg-muted"
+            className="inline-flex h-9 items-center rounded-md border border-border px-3 text-sm transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
           >
             {t("calendar.today")}
           </Link>
           <Link
             href={link(shift(1))}
-            className="inline-flex h-9 items-center rounded-md border border-border px-3 text-sm hover:bg-muted"
+            aria-label={t("report.nextMonth")}
+            className="inline-flex h-9 items-center rounded-md border border-border px-3 text-sm transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
           >
             →
           </Link>

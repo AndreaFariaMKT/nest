@@ -94,6 +94,12 @@ export default async function PiecePage({
         />
         <Row label={t("piece.axis")} value={piece.pillar ?? "—"} />
         <Row label={t("piece.addedOn")} value={piece.backlog_added_on} />
+        {piece.window_note ? (
+          <Row label={t("piece.window")} value={piece.window_note} />
+        ) : null}
+        {piece.source_ref ? (
+          <Row label={t("piece.source")} value={piece.source_ref} />
+        ) : null}
         {piece.publish_on ? (
           <Row
             label={t("piece.publishes")}
@@ -184,7 +190,9 @@ export default async function PiecePage({
 
       {/* ── The text ───────────────────────────────────────────── */}
       <section className="mb-4">
-        <h2 className={labelCls}>{t("piece.finalText")}</h2>
+        <h2 className={labelCls} id="final-text">
+          {t("piece.finalText")}
+        </h2>
         {coordinate ? (
           <SaveFields
             id={piece.id}
@@ -194,6 +202,7 @@ export default async function PiecePage({
           >
             <textarea
               name="caption"
+              aria-labelledby="final-text"
               defaultValue={piece.caption ?? ""}
               placeholder={t("piece.textPlaceholder")}
               className={`${field} min-h-[220px] font-sans leading-relaxed`}
@@ -350,6 +359,30 @@ export default async function PiecePage({
                 defaultValue={piece.why_now ?? ""}
                 className={`${field} min-h-[72px]`}
               />
+            </div>
+            <div className="grid gap-4 sm:grid-cols-2">
+              <div>
+                <label className={labelCls} htmlFor="window_note">
+                  {t("piece.window")}
+                </label>
+                <input
+                  id="window_note"
+                  name="window_note"
+                  defaultValue={piece.window_note ?? ""}
+                  className={field}
+                />
+              </div>
+              <div>
+                <label className={labelCls} htmlFor="source_ref">
+                  {t("piece.source")}
+                </label>
+                <input
+                  id="source_ref"
+                  name="source_ref"
+                  defaultValue={piece.source_ref ?? ""}
+                  className={field}
+                />
+              </div>
             </div>
           </SaveFields>
 

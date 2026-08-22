@@ -2,6 +2,8 @@
 
 import { useActionState, useEffect, useRef, useState } from "react";
 import { useTranslations } from "next-intl";
+
+import { Button } from "@/components/ui/Button";
 import { useRouter } from "next/navigation";
 
 import { APP_ROLES } from "@/lib/roles";
@@ -206,13 +208,9 @@ export function LoginForm({
         </div>
 
         <div className="flex items-center gap-3">
-          <button
-            type="submit"
-            disabled={pending}
-            className="inline-flex h-10 items-center rounded-md bg-brand px-4 text-sm font-medium text-brand-foreground transition-colors hover:bg-brand/90 disabled:opacity-50"
-          >
+          <Button type="submit" variant="brand" disabled={pending}>
             {t("submit")}
-          </button>
+          </Button>
           <Refusal error={state.error} />
         </div>
       </form>
@@ -282,14 +280,14 @@ export function RevealSecret({ id }: { id: string }) {
         type="button"
         onClick={reveal}
         disabled={busy}
-        className="text-xs text-brand hover:underline disabled:opacity-50"
+        className="rounded-sm text-xs text-brand hover:underline disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
       >
         {secret ? t("hide") : t("show")}
       </button>
       <button
         type="button"
         onClick={copy}
-        className="text-xs text-brand hover:underline"
+        className="rounded-sm text-xs text-brand hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
       >
         {t("copy")}
       </button>
@@ -328,7 +326,7 @@ export function DeleteLoginButton({
       <input type="hidden" name="locale" value={locale} />
       <button
         type="submit"
-        className="text-xs text-muted-foreground underline-offset-2 hover:text-destructive hover:underline"
+        className="rounded-sm text-xs text-muted-foreground underline-offset-2 hover:text-destructive hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
       >
         {label}
       </button>

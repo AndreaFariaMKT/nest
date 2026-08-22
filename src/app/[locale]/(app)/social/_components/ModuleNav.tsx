@@ -57,7 +57,7 @@ export function ModuleNav({
               key={s.key}
               href={`${s.href}${suffix}` as Route}
               className={cn(
-                "inline-flex items-center gap-2 rounded-md px-3 py-1.5 text-sm transition-colors",
+                "inline-flex items-center gap-2 rounded-md px-3 py-1.5 text-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
                 active
                   ? "bg-brand text-brand-foreground"
                   : "text-muted-foreground hover:bg-muted hover:text-foreground",

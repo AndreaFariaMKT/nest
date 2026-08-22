@@ -1,7 +1,7 @@
 import { forwardRef, type ButtonHTMLAttributes } from "react";
 import { cn } from "@/lib/utils";
 
-type Variant = "primary" | "secondary" | "ghost";
+type Variant = "primary" | "secondary" | "ghost" | "brand" | "danger";
 
 interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: Variant;
@@ -14,6 +14,12 @@ const variants: Record<Variant, string> = {
     "bg-accent text-accent-foreground hover:bg-accent/80 focus-visible:ring-ring",
   ghost:
     "bg-transparent text-foreground hover:bg-muted focus-visible:ring-ring",
+  // The module's own two: the brand fill it uses for the primary move, and a
+  // destructive outline for "send it back" / "not approved".
+  brand:
+    "bg-brand text-brand-foreground hover:bg-brand/90 focus-visible:ring-ring",
+  danger:
+    "border border-destructive/40 bg-background text-destructive hover:bg-destructive/10 focus-visible:ring-ring",
 };
 
 export const Button = forwardRef<HTMLButtonElement, ButtonProps>(

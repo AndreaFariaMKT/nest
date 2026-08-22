@@ -113,13 +113,41 @@ production talk behind them.
   list is derived from the enum and `updateDraftAction` validates instead of
   defaulting to `draft`.
 
-**Left open:** the four prototype screens never built — Report/Performance (for
-staff and client), the client's two-question feedback form, the portal calendar
-(which is a copy-paste of the portal meetings page and predates this work), and
-meeting decisions in the portal. Plus: the module re-derives form styling instead
-of using `src/components/ui`, so **none of its buttons carry a focus ring** —
-a keyboard-only accessibility gap that exists in the new code and not the old.
-Also still open: a daily digest for the client, and Playwright coverage.
+### Closing the gaps — 2026-08
+
+Everything the audit left open, except the two items named below. Needs
+**migration 023** (portal read policies for the report tables).
+
+- **Performance** — `/social/report` and `/portal/report`, off the same loader.
+  Real numbers from `post_metrics` via `src/lib/kpi.ts`, each against the same
+  number last month; the axis distribution of what actually published; and the
+  written reading from `monthly_reports` when one exists, with the screen honest
+  about its absence rather than inventing it. Defaults to the month that just
+  closed, matching the studio's own rule about reporting between the 3rd and the
+  7th. Rules in `src/lib/social-report.ts`, under test.
+- **The client's two questions** land in the client room as a message rather
+  than in a table of their own — that room is already where coordination reads
+  this client, and a second inbox is an inbox nobody checks.
+- **The portal calendar** was a verbatim copy of the portal meetings page: same
+  query, same rendering, the function still named `PortalMeetings`. It now shows
+  publications and meetings on a month grid.
+- **Meeting decisions reach the client.** 020 added them; only the studio could
+  see them.
+- **`window_note` and `source_ref`** were write-only — collected, stored, never
+  rendered. Now on the piece record and editable by coordination.
+- **Focus rings.** The module re-derived its own buttons and none of them had
+  one, so it was the only part of the app unusable by keyboard. They now go
+  through `src/components/ui/Button`, which gained `brand` and `danger`
+  variants. Also: the client's comment box and the caption editor gained bound
+  labels, and the month arrows an accessible name.
+
+**Still open, deliberately:** a daily digest for the client (each hand-off
+notifies individually today — batching needs a cron and a queue, and a decision
+about what a digest should hold), and Playwright coverage for the module, which
+needs a seeded database. The optional half of the readability review — the
+`movesFor()` consolidation, the disclosure-form and delete-button helpers, the
+`social.portal.*` key move — is also untouched; it is listed in the review and
+none of it changes behaviour.
 
 ### Backlog — what's next (roughly prioritized)
 1. **Operational / quick**

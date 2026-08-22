@@ -1,10 +1,11 @@
 "use client";
 
-import { useActionState } from "react";
+import { useActionState, useId } from "react";
 import { useTranslations } from "next-intl";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 
+import { Button } from "@/components/ui/Button";
 import { cn } from "@/lib/utils";
 import {
   isBlockedReason,
@@ -21,12 +22,17 @@ import {
 
 const initial: Result = { ok: false };
 
+/**
+ * The module speaks in three moves — the one you probably want, the neutral
+ * one, and the one that sends something back. They map onto the shared Button
+ * so every one of them carries the focus ring the rest of the app has.
+ */
 type Variant = "primary" | "secondary" | "danger";
 
-const variants: Record<Variant, string> = {
-  primary: "bg-brand text-brand-foreground hover:bg-brand/90",
-  secondary: "border border-border bg-background hover:bg-muted",
-  danger: "border border-destructive/40 text-destructive hover:bg-destructive/10",
+const VARIANT: Record<Variant, "brand" | "secondary" | "danger"> = {
+  primary: "brand",
+  secondary: "secondary",
+  danger: "danger",
 };
 
 function Btn({
@@ -35,13 +41,10 @@ function Btn({
   ...rest
 }: React.ButtonHTMLAttributes<HTMLButtonElement> & { variant?: Variant }) {
   return (
-    <button
+    <Button
       type="submit"
-      className={cn(
-        "inline-flex h-9 items-center justify-center rounded-md px-3 text-sm font-medium transition-colors disabled:opacity-50",
-        variants[variant],
-        className,
-      )}
+      variant={VARIANT[variant]}
+      className={cn("h-9 px-3", className)}
       {...rest}
     />
   );
@@ -93,6 +96,9 @@ export function DecisionForm({
 }) {
   const [state, action, pending] = useActionState(runTransitionAction, initial);
   const router = useRouter();
+  // One of these renders per piece on a page that maps over many, so a static
+  // id would bind every label to the first textarea.
+  const commentId = useId();
 
   useEffect(() => {
     if (state.ok) router.refresh();
@@ -105,10 +111,14 @@ export function DecisionForm({
       {extra}
       {commentLabel ? (
         <div className="mb-3">
-          <label className="mb-1.5 block text-xs font-medium uppercase tracking-wide text-muted-foreground">
+          <label
+            htmlFor={commentId}
+            className="mb-1.5 block text-xs font-medium uppercase tracking-wide text-muted-foreground"
+          >
             {commentLabel}
           </label>
           <textarea
+            id={commentId}
             name="comment"
             defaultValue={defaultComment}
             placeholder={commentPlaceholder}
