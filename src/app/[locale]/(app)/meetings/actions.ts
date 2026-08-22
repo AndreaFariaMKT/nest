@@ -38,6 +38,17 @@ function readForm(formData: FormData) {
     (formData.get("client_id") ?? "").toString().trim() || null;
   const googleMeetUrl =
     (formData.get("google_meet_url") ?? "").toString().trim() || null;
+  const summary = (formData.get("summary") ?? "").toString().trim() || null;
+  const agendaUrl =
+    (formData.get("agenda_url") ?? "").toString().trim() || null;
+  const transcriptUrl =
+    (formData.get("transcript_url") ?? "").toString().trim() || null;
+  // One decision per line — the part of a meeting that has to survive it.
+  const decisions = (formData.get("decisions") ?? "")
+    .toString()
+    .split("\n")
+    .map((d) => d.trim())
+    .filter(Boolean);
   const locale = (formData.get("locale") ?? "pt-BR").toString();
 
   return {
@@ -48,6 +59,10 @@ function readForm(formData: FormData) {
     endsAt,
     clientId,
     googleMeetUrl,
+    summary,
+    agendaUrl,
+    transcriptUrl,
+    decisions,
     locale,
   };
 }
@@ -78,6 +93,10 @@ export async function createMeetingAction(
       ends_at: form.endsAt,
       status: form.status,
       google_meet_url: form.googleMeetUrl,
+      summary: form.summary,
+      agenda_url: form.agendaUrl,
+      transcript_url: form.transcriptUrl,
+      decisions: form.decisions,
       created_by: user?.id ?? null,
     })
     .select("id")
@@ -132,6 +151,10 @@ export async function updateMeetingAction(
       ends_at: form.endsAt,
       status: form.status,
       google_meet_url: form.googleMeetUrl,
+      summary: form.summary,
+      agenda_url: form.agendaUrl,
+      transcript_url: form.transcriptUrl,
+      decisions: form.decisions,
     })
     .eq("id", meetingId);
 

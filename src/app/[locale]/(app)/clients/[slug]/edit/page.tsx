@@ -50,6 +50,8 @@ export default async function EditClientPage({
           website: client.website,
           notes: client.notes,
           status: client.status,
+          socialEnabled: client.social_enabled,
+          postsPerCycle: client.posts_per_cycle,
         }}
         action={updateClientAction}
         submitLabel={t("saveSubmit")}

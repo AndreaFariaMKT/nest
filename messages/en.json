@@ -47,7 +47,10 @@
     "content": "Content",
     "chat": "Chat",
     "invoices": "Invoices",
-    "soon": "Coming soon"
+    "soon": "Coming soon",
+    "socialMedia": "Social media",
+    "mediaLibrary": "Media library",
+    "sharedLogins": "Shared logins"
   },
   "finance": {
     "title": "Finance",
@@ -133,7 +136,19 @@
     "placeholder": "Write a message…",
     "send": "Send",
     "empty": "No messages yet. Say hi 👋",
-    "you": "You"
+    "you": "You",
+    "roomsSubtitle": "One room per client for the team, one for the client. They never mix.",
+    "studioChannel": "Studio channel",
+    "studioChannelWho": "Everyone in the studio",
+    "roomTeam": "Team",
+    "roomClient": "Client",
+    "teamRoom": "Team room",
+    "clientRoom": "Client room",
+    "teamRoomWho": "Coordination · design · publishing",
+    "clientRoomWho": "Coordination · direction · client",
+    "internalOnly": "internal only",
+    "clientReadsThis": "the client reads this room",
+    "noMessagesYet": "no messages yet"
   },
   "portal": {
     "notLinked": "Your account isn't linked to a client yet. Ask the studio to connect it.",
@@ -311,13 +326,20 @@
       "archived": "Archived"
     },
     "errors": {
-      "tooShort": "Name must be at least 2 characters."
+      "tooShort": "Name must be at least 2 characters.",
+      "outOfRange": "Must be between 1 and 40."
     },
     "pagination": {
       "prev": "Previous",
       "next": "Next",
       "pageOf": "Page {page} of {total}",
       "range": "{from}–{to} of {total}"
+    },
+    "social": {
+      "legend": "Social media module",
+      "enabled": "Run the social media module for this client",
+      "postsPerCycle": "Publications per fortnight",
+      "postsPerCycleHint": "The divisor behind the backlog meter — the shelf is measured in fortnights, not items."
     }
   },
   "projects": {
@@ -418,7 +440,14 @@
       "noClient": "No client",
       "status": "Status",
       "meetUrl": "Google Meet link",
-      "meetHint": "Optional. Once the Google integration lands in Sprint 9-10, this link is created automatically."
+      "meetHint": "Optional. Once the Google integration lands in Sprint 9-10, this link is created automatically.",
+      "summary": "Summary",
+      "summaryPlaceholder": "Two lines on what the meeting was about.",
+      "agendaUrl": "Agenda file",
+      "transcriptUrl": "Transcript",
+      "decisions": "What was decided",
+      "decisionsPlaceholder": "September runs on the method axis\nPublishing hour stays at 08:00",
+      "decisionsHint": "One per line. A meeting with no decision written down is a meeting that will be held again."
     },
     "errors": {
       "required": "Required field.",
@@ -544,7 +573,10 @@
       "approved": "Approved",
       "scheduled": "Scheduled",
       "published": "Published",
-      "archived": "Archived"
+      "archived": "Archived",
+      "backlog": "In backlog",
+      "changes_requested": "Changes requested",
+      "rejected": "Not approved"
     },
     "fields": {
       "client": "Client",
@@ -783,5 +815,433 @@
     "edit": "Edit",
     "search": "Search",
     "comingSoon": "Coming soon"
+  },
+  "social": {
+    "screens": {
+      "overview": "Overview",
+      "waiting": "Waiting on you",
+      "backlog": "Backlog",
+      "fortnight": "Fortnight",
+      "production": "Production",
+      "publishing": "Publishing",
+      "calendar": "Calendar",
+      "media": "Media library",
+      "logins": "Shared logins"
+    },
+    "filter": {
+      "client": "Client",
+      "allClients": "All clients"
+    },
+    "stage": {
+      "backlog": "In backlog",
+      "draft": "Writing",
+      "text_review": "Text with direction",
+      "creative_review": "In design",
+      "client_review": "Awaiting client",
+      "changes_requested": "Changes requested",
+      "rejected": "Not approved",
+      "approved": "Approved",
+      "scheduled": "Scheduled",
+      "published": "Live"
+    },
+    "designState": {
+      "todo": "To do",
+      "done": "Done",
+      "signed_off": "Signed off"
+    },
+    "format": {
+      "unset": "Format not set",
+      "carousel": "Carousel",
+      "single_image": "Single post",
+      "reel": "Reel",
+      "story": "Story",
+      "text": "Text only"
+    },
+    "channel": {
+      "instagram": "Instagram",
+      "linkedin": "LinkedIn",
+      "tiktok": "TikTok"
+    },
+    "roleShort": {
+      "founder": "Direction",
+      "manager": "Coordination",
+      "social": "Social",
+      "designer_social": "Design",
+      "designer_identity": "Identity",
+      "developer": "Dev",
+      "accountant": "Finance",
+      "client": "Client"
+    },
+    "overview": {
+      "title": "Social media",
+      "subtitle": "One shelf, one fortnight, one order. Everything else follows from those three.",
+      "clients": "Clients",
+      "clientsLegend": "Green is on rhythm · amber needs attention · red is late.",
+      "statBacklog": "{n} backlog",
+      "statWithClient": "{n} with client",
+      "statLive": "{n} live",
+      "noClients": "No client has the social module switched on yet.",
+      "fortnight": "The fortnight"
+    },
+    "health": {
+      "onRhythm": "On rhythm",
+      "stockLow": "Backlog below two fortnights",
+      "stockCritical": "Backlog under one fortnight",
+      "unwritten": "{count} piece(s) still without text",
+      "returned": "{count} piece(s) came back from the client",
+      "replyOverdue": "{count} piece(s) past the reply date"
+    },
+    "rhythm": {
+      "sendingWeek": "Sending week",
+      "productionWeek": "Production week",
+      "sending": {
+        "mon": "Mon · the plan goes to the client, text and creative ready",
+        "wed": "Wed · approval cut, end of day",
+        "thu": "Thu · publishing order built · next themes chosen",
+        "fri": "Fri · adjustments and scheduling"
+      },
+      "production": {
+        "mon": "Mon · writing and data checking · design brief closes",
+        "thu": "Thu · pieces back from design",
+        "fri": "Fri · review, assembly, sign-off"
+      },
+      "creedTitle": "Three sentences",
+      "creed": {
+        "one": "Sending week, production week, alternating.",
+        "two": "Report between the 3rd and the 7th.",
+        "three": "Restock when the backlog drops below two fortnights."
+      },
+      "datedRequest": "Dated request — five working days.",
+      "undatedIdea": "Undated idea — no deadline, it joins the backlog.",
+      "replyWindow": "Clients reply five working days before a piece publishes"
+    },
+    "waiting": {
+      "title": "Waiting on you",
+      "clear": "Nothing waiting on you. The next move belongs to someone else.",
+      "subtitleFor": {
+        "direction": "Text waiting for your approval, and anything the client sent back.",
+        "coordinate": "Everything the fortnight is holding on you right now.",
+        "design": "Pieces to draw, in the order they publish.",
+        "publish": "Publications to schedule, in the order they run.",
+        "client": "Pieces waiting for your read. They arrive one at a time, never as a pile."
+      },
+      "footnote": {
+        "direction": "You are approving the argument, not the artwork — nothing has been drawn yet, which is the cheapest point to change it.",
+        "coordinate": "This list is the fortnight seen from your desk. Anything not here belongs to someone else right now.",
+        "design": "Everything here has already been approved by direction, so the text will not change under you.",
+        "publish": "Work top to bottom. If something reads wrong, do not publish — tell coordination.",
+        "client": "Each piece carries its own reply date, five working days before it publishes. If we do not hear from you by then it runs as scheduled."
+      },
+      "reasons": {
+        "approveText": "text ready · approve before it goes into design · {client}",
+        "decideRejected": "client did not approve · decide where it goes",
+        "sendTextUp": "text written · send it up to direction",
+        "stillToWrite": "still to write · publishes {date}",
+        "signOffArt": "art delivered · sign it off",
+        "sendToClient": "signed off · send it to the client",
+        "backToDesign": "client asked for changes · send it back to design",
+        "restock": "backlog at {fortnights} fortnights · restock",
+        "toDraw": "to draw · publishes {date}",
+        "drawnAwaitingSignOff": "drawn, waiting for sign-off · publishes {date}",
+        "notInOrder": "approved · not in the publishing order yet",
+        "toSchedule": "to schedule · {date} · {time}",
+        "replyBy": "reply by {due} · publishes {date}",
+        "replyPassed": "past your reply date · it runs as is unless you write"
+      }
+    },
+    "backlog": {
+      "title": "Backlog",
+      "subtitle": "A shelf, not a monthly document.",
+      "twoFortnights": "two fortnights",
+      "stock": "{n} themes available · {per} publications a fortnight",
+      "restock": "restock in the next production week",
+      "comfortable": "comfortable",
+      "cameBack": "Came back",
+      "cameBackHint": "decide where each one goes",
+      "available": "Available",
+      "count": "{n} themes",
+      "emptyShelf": "Shelf empty for this filter.",
+      "pulled": "Pulled",
+      "inFlow": "{n} in the flow",
+      "emptyPulled": "Nothing pulled.",
+      "offShelf": "Off the shelf",
+      "publishedCount": "{n} published",
+      "emptyPublished": "Nothing published yet.",
+      "note": "A theme leaves the shelf when it goes live, not when it is pulled. That is why this counter is the only number anyone has to watch."
+    },
+    "themeForm": {
+      "open": "Add a theme",
+      "titleLabel": "Title · affirmative, specific, no generic question",
+      "titlePlaceholder": "What a leader owes the room in week one",
+      "client": "Client",
+      "axis": "Axis · the territory it belongs to",
+      "axisPlaceholder": "The method",
+      "format": "Suggested format",
+      "slides": "Slides",
+      "origin": "Where it came from",
+      "channels": "Channels",
+      "whyNow": "Why this, now · the client reads this one",
+      "whyNowPlaceholder": "What it resolves, and why it earns a slot this quarter.",
+      "whyNowHint": "This is the field that survives all the way to the client. A theme without it is a line in a spreadsheet.",
+      "window": "Window · leave blank if free",
+      "windowPlaceholder": "e.g. before 15 Oct",
+      "source": "Source · every figure needs a primary source and a date",
+      "sourcePlaceholder": "Blank if the theme carries no figure",
+      "submit": "Add to backlog",
+      "postType": {
+        "carousel": "Carousel",
+        "single_image": "Single post",
+        "reel": "Reel",
+        "story": "Story",
+        "text": "Text only"
+      },
+      "originValue": {
+        "research": "Research",
+        "client_request": "Client request",
+        "meeting": "Meeting",
+        "follow_up": "Follow-up from a strong post",
+        "dated_event": "Dated event"
+      },
+      "channel": {
+        "instagram": "Instagram",
+        "linkedin": "LinkedIn",
+        "tiktok": "TikTok"
+      }
+    },
+    "fortnight": {
+      "title": "Fortnight",
+      "subtitle": "Every piece walks on its own.",
+      "note": "Text written, direction approves the argument before anything is drawn, design produces, coordination signs the art off, and it goes to that client alone. Nothing waits on the slowest piece. The cut is per piece: five working days before it publishes — silence past that and it runs as scheduled.",
+      "releaseAll": "Send {n} signed-off piece(s) to their clients",
+      "empty": "Nothing in this fortnight yet. Pull themes from the backlog.",
+      "stillToWrite": "Still to write.",
+      "withDirection": "Waiting on direction",
+      "inDesign": "In design",
+      "withClient": "With the client",
+      "waitingForOrder": "Waiting for the order"
+    },
+    "actions": {
+      "pull": "Pull into the fortnight",
+      "sendTextUp": "Send text to direction",
+      "directionNoteLabel": "If it goes back, say what to change",
+      "directionNoteHint": "One line is enough. Nothing has been drawn yet.",
+      "sendBackToWriting": "Send back to writing",
+      "approveText": "Approve the text",
+      "sendToClient": "Send to {name}",
+      "backToDesign": "Send back to design",
+      "returnReasonLabel": "Why it is going back on the shelf",
+      "returnToBacklog": "Return to backlog",
+      "queue": "Add to the publishing order",
+      "approveOnSilence": "Run it as scheduled"
+    },
+    "production": {
+      "title": "Production",
+      "subtitle": "Design status of this fortnight.",
+      "titleDesign": "Production queue",
+      "subtitleDesign": "What comes to you, in order · brief closes Monday, pieces due Thursday.",
+      "open": "{n} open",
+      "folderAttached": "folder attached",
+      "noFolder": "no folder link",
+      "textApproved": "text approved {date}",
+      "note": "Direction approved the text before any of this was drawn. Design marks Done, coordination marks Signed off, and the piece goes to its client on its own.",
+      "noteDesign": "Everything here has already been approved by direction, so the text will not change under you. If something reads wrong or will not fit the screen, say so before drawing — fixing it at the source costs a message, fixing it after costs the whole piece."
+    },
+    "publishing": {
+      "title": "Publishing order",
+      "subtitle": "What is queued and what already ran.",
+      "counter": "{live} live · {toGo} to go",
+      "notInOrder": "{n} approved piece(s) are not in the order yet. Building the order hands publishing a single list with the approved text already on it.",
+      "buildOrder": "Build the order",
+      "note": "Copy the text, open the folder, schedule, then mark it live. Something reads wrong, a link does not open, a date does not match: do not publish and tell coordination. A late publication is fixed the same day. A wrong one that is already live is not.",
+      "noText": "No final text on this record.",
+      "copyText": "Copy text",
+      "copied": "Copied",
+      "noFolder": "no folder link",
+      "markLive": "Mark live",
+      "undo": "Undo live",
+      "empty": "Nothing in the order for this filter."
+    },
+    "calendar": {
+      "title": "Calendar",
+      "subtitle": "{month} · {n} publications",
+      "today": "Today"
+    },
+    "media": {
+      "title": "Media library",
+      "subtitle": "Raw material — footage, stills, recordings. Finished pieces live on the record, not here.",
+      "subtitlePortal": "The raw material we shoot and you send.",
+      "empty": "Nothing recorded for this filter.",
+      "shot": "Shot {date}",
+      "accessNeeded": "access needed",
+      "openLink": "open link",
+      "delete": "Remove",
+      "deleteConfirm": "Remove this material from the library?",
+      "note": "Every entry carries the date it was shot. Material ages: a portrait from March and a portrait from last week are not interchangeable, and the date is what stops anyone finding that out after publishing."
+    },
+    "mediaForm": {
+      "open": "Add media",
+      "client": "Client",
+      "titleLabel": "Title",
+      "titlePlaceholder": "Studio session · September",
+      "link": "Link",
+      "access": "Access · only if the link asks for something",
+      "accessPlaceholder": "password, or who to request it from",
+      "capturedOn": "Date it was made",
+      "description": "What it is",
+      "descriptionPlaceholder": "What is in it, what it is good for, and anything that limits its use.",
+      "submit": "Add"
+    },
+    "logins": {
+      "title": "Shared logins",
+      "subtitle": "The accounts the team shares. Everyone sees only the ones they are on.",
+      "subtitlePortal": "The accounts we work on for you, and who is on each one.",
+      "guardTitle": "Shared tools only",
+      "guardScope": "This is for accounts several people genuinely use — the social profiles, the design tools. Nothing financial, nothing holding customer or employee records, and never a personal login.",
+      "guardPartner": "Where an account offers partner access instead of a shared login, use it. It survives a password change, never needs rotating, and disappears the day the contract ends.",
+      "guardEncrypted": "Passwords are encrypted before they reach the database, and only decrypted when someone on the login asks for one.",
+      "guardNoKey": "SOCIAL_SECRET_KEY is not set, so no password can be stored or revealed. Records still work as a pointer to where a credential lives.",
+      "empty": "Nothing recorded for this filter.",
+      "username": "Username",
+      "password": "Password",
+      "lastChanged": "Last changed",
+      "never": "not recorded",
+      "over30": "over 30 days",
+      "partnerAccess": "no password · partner access",
+      "heldBy": "{who} holds it",
+      "secondFactor": "Second factor · {what}",
+      "none": "none",
+      "delete": "Remove",
+      "deleteConfirm": "Remove this login from the directory?",
+      "show": "Show",
+      "hide": "Hide",
+      "copy": "Copy",
+      "revealFailed": "Could not show it here — copy it manually.",
+      "note": "Every entry carries the date the password last changed. Past thirty days it turns amber — not a rule, a reminder, so nobody discovers an old credential by being locked out of a client account on a Monday morning.",
+      "notePortal": "These are the accounts we work on for you. If you change a password on your side, tell us — otherwise a scheduled post fails silently."
+    },
+    "loginForm": {
+      "open": "Add a login",
+      "client": "Client",
+      "account": "Account name",
+      "site": "Site",
+      "username": "Username",
+      "password": "Password",
+      "passwordHint": "Leave blank for partner access, or to keep the stored password on an edit.",
+      "noKeyHint": "SOCIAL_SECRET_KEY is not set, so a password cannot be stored. Record the pointer only.",
+      "holder": "Who holds it",
+      "mfa": "Second factor",
+      "mfaPlaceholder": "Client phone",
+      "rotatedOn": "Password last changed",
+      "whoIsOnIt": "Who is on it",
+      "note": "Note",
+      "notePlaceholder": "Anything the next person needs to know before logging in.",
+      "submit": "Save login"
+    },
+    "piece": {
+      "back": "Back to the fortnight",
+      "client": "Client",
+      "format": "Format",
+      "axis": "Axis",
+      "addedOn": "Added to backlog",
+      "publishes": "Publishes",
+      "replyByLabel": "Reply by",
+      "replyPassed": "reply date passed",
+      "replyBy": "reply by {date}",
+      "noDate": "no date yet",
+      "sentUp": "Sent to direction",
+      "approvedInternal": "Approved internally",
+      "sentToClient": "Sent to client",
+      "clientApproved": "Client approved",
+      "status": "Status",
+      "cameBackBecause": "Came back because",
+      "clientNote": "Client note",
+      "designNote": "Note from design",
+      "whyNow": "Why this, now",
+      "whyNowEditable": "Why this, now · the client reads this one",
+      "internalForDesign": "Internal · for design",
+      "internalForPublishing": "Internal · for publishing",
+      "finalText": "Final text",
+      "saveText": "Save text",
+      "saved": "Saved",
+      "textPlaceholder": "The caption as it will be published.",
+      "noText": "Text not written yet.",
+      "designPanel": "Design",
+      "folderLink": "Folder link · where the piece is saved",
+      "notesBack": "Your notes back",
+      "notesBackPlaceholder": "What changed against the brief, and why.",
+      "save": "Save",
+      "coordinationPanel": "Coordination",
+      "publishOn": "Publishes on",
+      "publishTime": "At",
+      "signOff": "Sign-off",
+      "nextMove": "Next move",
+      "waitingOnDirection": "Waiting on direction.",
+      "directionNote": "Nothing has been drawn yet. You are approving the argument, at the cheapest point to change it.",
+      "needsSignOff": "Sign the art off before it can go to the client.",
+      "withClient": "With the client.",
+      "nothingForYou": "Nothing here is yours to move right now.",
+      "silenceNote": "The reply date has passed. Running it as scheduled is what the module promised the studio — the client can still write, and it is recorded that they did not."
+    },
+    "blocked": {
+      "notOnShelf": "This piece is not on the shelf.",
+      "notInWriting": "This piece is not in writing.",
+      "needsText": "Write the text first — direction approves the argument, not a placeholder.",
+      "notWithDirection": "This piece is not with direction.",
+      "needsDirectionNote": "Say what to change — one line is enough.",
+      "notInDesign": "This piece is not in design.",
+      "needsSignOff": "Sign the art off first.",
+      "needsMaterial": "Add the folder link first — a piece nobody can find is not done.",
+      "notWithClient": "This piece is not with the client.",
+      "needsClientNote": "Say what changes and why — one line already solves it in a single round.",
+      "needsRejectReason": "Tell us whether the problem is the theme or the treatment — they take different routes back.",
+      "notInChanges": "No changes were requested on this piece.",
+      "notReturnable": "This piece cannot go back on the shelf from here.",
+      "notApproved": "This piece is not approved yet.",
+      "notScheduled": "This piece is not in the publishing order.",
+      "notLive": "This piece is not live.",
+      "notYours": "That move is not yours to make.",
+      "signOffNotYours": "Signing off is coordination's call.",
+      "notFound": "That piece is no longer here.",
+      "unknownAction": "Unknown action.",
+      "nothingToSave": "Nothing here was yours to change.",
+      "nothingSignedOff": "Nothing is signed off yet.",
+      "nothingApproved": "No approved pieces waiting.",
+      "needsClient": "Pick a client.",
+      "needsTitle": "A theme needs a title.",
+      "needsWhyNow": "Write why this, now — it is the field that survives all the way to the client.",
+      "needsTitleAndLink": "A title and a link are the minimum.",
+      "needsCapturedOn": "Give it a date — material ages, and nobody can tell from the file.",
+      "needsAccountAndUser": "An account name and a username are the minimum.",
+      "noSecretKey": "SOCIAL_SECRET_KEY is not set, so a password cannot be stored.",
+      "noPassword": "This login has no stored password — it is partner access.",
+      "secretUnreadable": "Stored under a different key. Re-enter the password.",
+      "notOnLogin": "You are not on this login.",
+      "writeBlocked": "That did not save — your login does not have write access to this client. Ask a founder to add you to the client's team.",
+      "notOverdue": "The client's reply date has not passed yet.",
+      "needsMaterialToSend": "Add the folder link before sending — the client would get a review request with no creative."
+    },
+    "portal": {
+      "contentSubtitle": "Text and creative together, one piece at a time.",
+      "waitingCount": "{n} waiting for you",
+      "allReviewed": "All reviewed",
+      "howItWorks": "Pieces arrive one at a time, as they are finished — you are never handed the whole fortnight at once. Each one carries its own reply date: five working days before it publishes. If we do not hear from you by then, it runs as scheduled.",
+      "pastDue": "Past your reply date — it runs as is unless you write.",
+      "dueOn": "Reply by {date}.",
+      "commentLabel": "Your comment",
+      "commentHint": "If you are not approving, tell us whether the problem is the theme or the treatment — they take different routes back.",
+      "commentPlaceholder": "Rework the opening, it reads too hard.",
+      "notApproved": "Not approved",
+      "approveWithChanges": "Approve with changes",
+      "approve": "Approve"
+    },
+    "moduleCard": {
+      "title": "Social media",
+      "open": "Open module",
+      "disabled": "The social module is off for this client.",
+      "backlog": "Backlog",
+      "fortnights": "({n} fortnights)",
+      "withClient": "With client",
+      "live": "Live"
+    }
   }
 }

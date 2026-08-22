@@ -29,6 +29,7 @@ import {
   type AssignedMember,
   type MemberChoice,
 } from "./_components/ClientMembersCard";
+import { SocialModuleCard } from "./_components/SocialModuleCard";
 
 type Client = Database["public"]["Tables"]["clients"]["Row"];
 type BrandKitPreview = {
@@ -327,6 +328,13 @@ export default async function ClientDetailPage({
       </div>
 
       <div className="mt-4 grid grid-cols-1 gap-4 md:grid-cols-3">
+        <SocialModuleCard
+          clientId={client.id}
+          slug={client.slug}
+          perCycle={client.posts_per_cycle}
+          enabled={client.social_enabled}
+        />
+
         <Card>
           <CardHeader className="flex-row items-center justify-between">
             <CardTitle className="text-base">{t("sections.brandKit")}</CardTitle>

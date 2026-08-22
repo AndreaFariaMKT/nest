@@ -28,6 +28,99 @@ Living document. Source of truth for **what is built**, **what is next**, and **
 | Founder · Nest | nest@andreafariamkt.com | Nest-99b6a8c1 |
 | Client · AFM | client@andreafariamkt.com | Client-demo123 |
 
+### Social media module — 2026-08
+
+The full social-media operation, as one module over the existing content engine.
+Migrations **019 + 020** (apply 019 first, plain autocommit psql — it adds enum
+values that 020's defaults use).
+
+- **One pipeline, one table.** `content_drafts` gained the stages the flow was
+  missing (`backlog`, `changes_requested`, `rejected`) plus everything a piece
+  carries: axis (`pillar`), format, channels, origin, *why this, now*, design
+  state, folder link, internal notes for design and for publishing, publish slot,
+  and the timestamps of each hand-off. `content-engine`, `production-queue`,
+  `scheduling` and the portal keep working and now see the whole flow.
+- **Direction approves the argument before anything is drawn** — the text goes up
+  at `text_review`, and only an approved text reaches design.
+- **Per-piece reply date.** A piece reaches the client five working days before it
+  publishes; silence past that runs it as scheduled, so a quiet week never stalls
+  the calendar. Pieces go to the client one at a time, never as a fortnight-sized
+  pile.
+- **Screens** (`/social/*`, client filter carried across all of them): overview
+  with client health, waiting-on-you, backlog with a stock meter measured in
+  fortnights, fortnight, production kanban, publishing order, calendar, media
+  library, shared logins. `/social/pieces/[id]` is the piece record.
+- **Rooms, not one inbox.** `messages.room` splits a client's internal room from
+  the room the client reads; RLS enforces it (018's portal policy was replaced).
+- **Shared logins** store where a credential lives and who holds it. The password
+  is AES-256-GCM ciphertext (`SOCIAL_SECRET_KEY`, `src/lib/secrets.ts`) — the
+  database never holds one in the clear, and reveal goes through a role-checked
+  server action.
+- **Meetings** gained summary, agenda/transcript links, and the decision list.
+- **Portal** gained per-piece approve / approve-with-changes / not-approved, plus
+  read-only media and logins.
+- Rules live in `src/lib/social.ts` (pure, 60 unit tests); every refusal returns
+  an i18n key so the UI says *why* a move was blocked.
+- Client edit carries the module toggle and publications-per-fortnight, which is
+  the divisor behind every backlog meter.
+
+Migrations 019+020 are **applied in Supabase Cloud** and `database.gen.ts` was
+regenerated from the live schema (`npm run types:check` is green). **021 and 022
+still need applying** — see below.
+
+### Audit and hardening — 2026-08
+
+Five independent reviews (correctness, regressions, completeness, security,
+readability) were run over the module. The date arithmetic, the crypto, and the
+i18n key parity came back clean. The rest produced two migrations and a round of
+fixes.
+
+**The pattern worth remembering:** three screens filtered the portal's data in
+the application and treated that as the boundary — the room filter on messages,
+the stage filter on pieces, the role list on shared logins. None of them was
+one. The browser holds the anon key and a client session, so a portal login can
+call PostgREST directly and skip every application filter. Two of the three
+holes predate this module (016's blanket `messages read`, 018's unfiltered
+`portal reads content`, 001's `client_id is null` short-circuit on
+tasks/meetings/transcripts); the module made them matter by putting internal
+production talk behind them.
+
+- **021** drops `portal decides content`; a client's decision is now written
+  server-side with the service role after an ownership check, because RLS is
+  row-level and cannot say "only these columns, only these values".
+- **022** adds `is_portal_user()` and three restrictive floors — messages
+  (own client room only), content_drafts (client-visible stages only), and
+  tasks/meetings/transcripts (closing the `client_id is null` branch).
+  Restrictive policies AND with every permissive grant, which is why 020's
+  `and room = 'client'` did nothing next to 016's older, broader one.
+- `revealSecretAction` gained a capability gate and now fails closed on an
+  empty access list (it read empty as "everyone"); `shared_logins.access_roles`
+  defaults to `{founder}`.
+- Every module write now confirms it touched a row. PostgREST answers an UPDATE
+  that matched nothing with `error: null`, so a write blocked by RLS looked
+  exactly like a write that worked.
+- `todayIso()` reads the studio's calendar day (America/São_Paulo) instead of
+  UTC's, which rolled over at 21:00 local.
+- New transition `approve_on_silence`: past the reply date, coordination can run
+  a piece the client never answered. Without it `client_review` was a dead end
+  and a quiet client froze the calendar — which contradicted the rule the module
+  documents.
+- `/messages` gates the room list by capability; the rewrite had exposed every
+  client's production talk to accountant, developer and designer_identity. Its
+  query also read the OLDEST 600 rows of the tenant, so past that nothing new
+  ever appeared.
+- The old content-engine editor no longer resets a piece's stage: its status
+  list is derived from the enum and `updateDraftAction` validates instead of
+  defaulting to `draft`.
+
+**Left open:** the four prototype screens never built — Report/Performance (for
+staff and client), the client's two-question feedback form, the portal calendar
+(which is a copy-paste of the portal meetings page and predates this work), and
+meeting decisions in the portal. Plus: the module re-derives form styling instead
+of using `src/components/ui`, so **none of its buttons carry a focus ring** —
+a keyboard-only accessibility gap that exists in the new code and not the old.
+Also still open: a daily digest for the client, and Playwright coverage.
+
 ### Backlog — what's next (roughly prioritized)
 1. **Operational / quick**
    - [ ] DNS: `nest.andreafariamkt.com` → CNAME `cname.vercel-dns.com` (Google Cloud DNS); then set `NEXT_PUBLIC_APP_URL` + redeploy.

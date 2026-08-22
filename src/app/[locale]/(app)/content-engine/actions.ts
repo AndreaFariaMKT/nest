@@ -1,6 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { Constants } from "@/types/database.gen";
 import { redirect } from "next/navigation";
 import type { Route } from "next";
 import { createClient as createSupabaseClient } from "@/lib/supabase/server";
@@ -1497,7 +1498,15 @@ export async function updateDraftAction(
   const hook = (formData.get("hook") ?? "").toString().trim() || null;
   const caption = (formData.get("caption") ?? "").toString().trim() || null;
   const hashtags = parseHashtags((formData.get("hashtags") ?? "").toString());
-  const status = (formData.get("status") ?? "draft").toString();
+  // Validated, not defaulted. Falling back to "draft" on an unrecognised value
+  // is how a piece silently leaves the social pipeline.
+  const rawStatus = (formData.get("status") ?? "").toString();
+  const status = (Constants.public.Enums.content_status as readonly string[]).includes(
+    rawStatus,
+  )
+    ? rawStatus
+    : null;
+  if (!status) return { error: "Unknown status." };
   const slides = parseSlidesPayload(
     (formData.get("slides") ?? "[]").toString(),
   );

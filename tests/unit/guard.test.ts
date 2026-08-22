@@ -55,4 +55,28 @@ describe("guardRedirect", () => {
     expect(guardRedirect("/projects/abc/edit", "developer")).toBeNull();
     expect(guardRedirect("/content-engine/drafts/x/edit", "social")).toBeNull();
   });
+
+  // The social media module. The prefix's role list is derived from
+  // socialCaps(), so these cases fail the moment the two drift apart.
+  it("lets the module's roles into /social", () => {
+    for (const role of ["founder", "manager", "social", "designer_social"] as const) {
+      expect(guardRedirect("/social", role)).toBeNull();
+      expect(guardRedirect("/social/backlog", role)).toBeNull();
+    }
+  });
+
+  it("keeps roles outside the module out of it", () => {
+    for (const role of ["accountant", "developer", "designer_identity"] as const) {
+      expect(guardRedirect("/social", role)).toBe("/today");
+      expect(guardRedirect("/social/logins", role)).toBe("/today");
+    }
+  });
+
+  it("sends a client to the portal rather than into the module", () => {
+    expect(guardRedirect("/social", "client")).toBe("/portal");
+  });
+
+  it("does not match a route that merely starts with the same letters", () => {
+    expect(guardRedirect("/socialise", "accountant")).toBeNull();
+  });
 });

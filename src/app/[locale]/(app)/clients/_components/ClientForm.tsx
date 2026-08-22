@@ -16,6 +16,8 @@ type ClientFormValues = {
   website?: string | null;
   notes?: string | null;
   status?: ClientStatus;
+  socialEnabled?: boolean;
+  postsPerCycle?: number;
 };
 
 const statuses: ClientStatus[] = ["prospect", "active", "paused", "archived"];
@@ -115,6 +117,43 @@ export function ClientForm({
             ))}
           </select>
         </div>
+      ) : null}
+
+      {showStatus ? (
+        <fieldset className="space-y-3 rounded-md border border-border p-4">
+          <legend className="px-1 text-sm font-medium text-foreground">
+            {t("social.legend")}
+          </legend>
+          <label className="flex items-center gap-2 text-sm">
+            <input
+              type="checkbox"
+              name="social_enabled"
+              defaultChecked={initial?.socialEnabled ?? true}
+              className="h-4 w-4 rounded border-input"
+            />
+            {t("social.enabled")}
+          </label>
+          <div className="space-y-1.5">
+            <Label htmlFor="posts_per_cycle">{t("social.postsPerCycle")}</Label>
+            <Input
+              id="posts_per_cycle"
+              name="posts_per_cycle"
+              type="number"
+              min={1}
+              max={40}
+              defaultValue={initial?.postsPerCycle ?? 2}
+              className="max-w-[8rem]"
+            />
+            <p className="text-xs text-muted-foreground">
+              {t("social.postsPerCycleHint")}
+            </p>
+          </div>
+          {state.fieldErrors?.posts_per_cycle ? (
+            <p className="text-xs text-destructive">
+              {t(`errors.${state.fieldErrors.posts_per_cycle}`)}
+            </p>
+          ) : null}
+        </fieldset>
       ) : null}
 
       {state.error ? (

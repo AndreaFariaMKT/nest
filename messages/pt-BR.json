@@ -47,7 +47,10 @@
     "content": "Conteúdo",
     "chat": "Chat",
     "invoices": "Faturas",
-    "soon": "Em breve"
+    "soon": "Em breve",
+    "socialMedia": "Social media",
+    "mediaLibrary": "Biblioteca de mídia",
+    "sharedLogins": "Acessos compartilhados"
   },
   "finance": {
     "title": "Financeiro",
@@ -133,7 +136,19 @@
     "placeholder": "Escreva uma mensagem…",
     "send": "Enviar",
     "empty": "Nenhuma mensagem ainda. Manda um oi 👋",
-    "you": "Você"
+    "you": "Você",
+    "roomsSubtitle": "Uma sala por cliente para a equipe, outra para o cliente. Nunca se misturam.",
+    "studioChannel": "Canal do estúdio",
+    "studioChannelWho": "Todo mundo no estúdio",
+    "roomTeam": "Equipe",
+    "roomClient": "Cliente",
+    "teamRoom": "Sala da equipe",
+    "clientRoom": "Sala do cliente",
+    "teamRoomWho": "Coordenação · design · publicação",
+    "clientRoomWho": "Coordenação · direção · cliente",
+    "internalOnly": "só interno",
+    "clientReadsThis": "o cliente lê esta sala",
+    "noMessagesYet": "sem mensagens ainda"
   },
   "portal": {
     "notLinked": "Sua conta ainda não está ligada a um cliente. Peça pro studio conectar.",
@@ -311,13 +326,20 @@
       "archived": "Arquivado"
     },
     "errors": {
-      "tooShort": "O nome precisa ter pelo menos 2 caracteres."
+      "tooShort": "O nome precisa ter pelo menos 2 caracteres.",
+      "outOfRange": "Precisa ficar entre 1 e 40."
     },
     "pagination": {
       "prev": "Anterior",
       "next": "Próximo",
       "pageOf": "Página {page} de {total}",
       "range": "{from}–{to} de {total}"
+    },
+    "social": {
+      "legend": "Módulo de social media",
+      "enabled": "Rodar o módulo de social media para este cliente",
+      "postsPerCycle": "Publicações por quinzena",
+      "postsPerCycleHint": "É o divisor do medidor de backlog — a prateleira é medida em quinzenas, não em itens."
     }
   },
   "projects": {
@@ -418,7 +440,14 @@
       "noClient": "Sem cliente",
       "status": "Status",
       "meetUrl": "Link do Google Meet",
-      "meetHint": "Opcional. Quando a integração do Google entrar no Sprint 9-10, esse link passa a ser criado automaticamente."
+      "meetHint": "Opcional. Quando a integração do Google entrar no Sprint 9-10, esse link passa a ser criado automaticamente.",
+      "summary": "Resumo",
+      "summaryPlaceholder": "Duas linhas sobre o que foi a reunião.",
+      "agendaUrl": "Arquivo da pauta",
+      "transcriptUrl": "Transcrição",
+      "decisions": "O que ficou decidido",
+      "decisionsPlaceholder": "Setembro roda no eixo do método\nHorário de publicação segue 08:00",
+      "decisionsHint": "Uma por linha. Reunião sem decisão escrita é reunião que vai acontecer de novo."
     },
     "errors": {
       "required": "Campo obrigatório.",
@@ -544,7 +573,10 @@
       "approved": "Aprovado",
       "scheduled": "Agendado",
       "published": "Publicado",
-      "archived": "Arquivado"
+      "archived": "Arquivado",
+      "backlog": "No backlog",
+      "changes_requested": "Ajustes pedidos",
+      "rejected": "Não aprovado"
     },
     "fields": {
       "client": "Cliente",
@@ -783,5 +815,433 @@
     "edit": "Editar",
     "search": "Buscar",
     "comingSoon": "Em breve"
+  },
+  "social": {
+    "screens": {
+      "overview": "Visão geral",
+      "waiting": "Esperando você",
+      "backlog": "Backlog",
+      "fortnight": "Quinzena",
+      "production": "Produção",
+      "publishing": "Publicação",
+      "calendar": "Calendário",
+      "media": "Biblioteca de mídia",
+      "logins": "Acessos compartilhados"
+    },
+    "filter": {
+      "client": "Cliente",
+      "allClients": "Todos os clientes"
+    },
+    "stage": {
+      "backlog": "No backlog",
+      "draft": "Em escrita",
+      "text_review": "Texto com a direção",
+      "creative_review": "Em design",
+      "client_review": "Aguardando o cliente",
+      "changes_requested": "Ajustes pedidos",
+      "rejected": "Não aprovado",
+      "approved": "Aprovado",
+      "scheduled": "Agendado",
+      "published": "No ar"
+    },
+    "designState": {
+      "todo": "A fazer",
+      "done": "Feito",
+      "signed_off": "Finalizado"
+    },
+    "format": {
+      "unset": "Formato não definido",
+      "carousel": "Carrossel",
+      "single_image": "Post único",
+      "reel": "Reels",
+      "story": "Story",
+      "text": "Só texto"
+    },
+    "channel": {
+      "instagram": "Instagram",
+      "linkedin": "LinkedIn",
+      "tiktok": "TikTok"
+    },
+    "roleShort": {
+      "founder": "Direção",
+      "manager": "Coordenação",
+      "social": "Social",
+      "designer_social": "Design",
+      "designer_identity": "Identidade",
+      "developer": "Dev",
+      "accountant": "Financeiro",
+      "client": "Cliente"
+    },
+    "overview": {
+      "title": "Social media",
+      "subtitle": "Uma prateleira, uma quinzena, uma ordem. Todo o resto decorre disso.",
+      "clients": "Clientes",
+      "clientsLegend": "Verde está no ritmo · âmbar pede atenção · vermelho está atrasado.",
+      "statBacklog": "{n} no backlog",
+      "statWithClient": "{n} com o cliente",
+      "statLive": "{n} no ar",
+      "noClients": "Nenhum cliente tem o módulo de social ligado ainda.",
+      "fortnight": "A quinzena"
+    },
+    "health": {
+      "onRhythm": "No ritmo",
+      "stockLow": "Backlog abaixo de duas quinzenas",
+      "stockCritical": "Backlog abaixo de uma quinzena",
+      "unwritten": "{count} peça(s) ainda sem texto",
+      "returned": "{count} peça(s) voltaram do cliente",
+      "replyOverdue": "{count} peça(s) passaram da data de resposta"
+    },
+    "rhythm": {
+      "sendingWeek": "Semana de envio",
+      "productionWeek": "Semana de produção",
+      "sending": {
+        "mon": "Seg · o plano vai ao cliente, texto e criativo prontos",
+        "wed": "Qua · corte de aprovação, fim do dia",
+        "thu": "Qui · ordem de publicação montada · próximos temas escolhidos",
+        "fri": "Sex · ajustes e agendamento"
+      },
+      "production": {
+        "mon": "Seg · escrita e checagem de dados · briefing de design fecha",
+        "thu": "Qui · peças voltam do design",
+        "fri": "Sex · revisão, montagem e finalização"
+      },
+      "creedTitle": "Três frases",
+      "creed": {
+        "one": "Semana de envio, semana de produção, alternando.",
+        "two": "Relatório entre o dia 3 e o dia 7.",
+        "three": "Repor quando o backlog cair abaixo de duas quinzenas."
+      },
+      "datedRequest": "Pedido com data — cinco dias úteis.",
+      "undatedIdea": "Ideia sem data — sem prazo, entra no backlog.",
+      "replyWindow": "O cliente responde cinco dias úteis antes de a peça publicar"
+    },
+    "waiting": {
+      "title": "Esperando você",
+      "clear": "Nada esperando por você. O próximo passo é de outra pessoa.",
+      "subtitleFor": {
+        "direction": "Textos esperando sua aprovação, e o que o cliente devolveu.",
+        "coordinate": "Tudo o que a quinzena está segurando em você agora.",
+        "design": "Peças para desenhar, na ordem em que publicam.",
+        "publish": "Publicações para agendar, na ordem em que vão ao ar.",
+        "client": "Peças esperando sua leitura. Chegam uma de cada vez, nunca em bloco."
+      },
+      "footnote": {
+        "direction": "Você aprova o argumento, não a arte — nada foi desenhado ainda, que é o ponto mais barato para mudar.",
+        "coordinate": "Esta lista é a quinzena vista da sua mesa. O que não está aqui é de outra pessoa agora.",
+        "design": "Tudo aqui já passou pela direção, então o texto não muda embaixo de você.",
+        "publish": "Trabalhe de cima para baixo. Se algo estiver errado, não publique — avise a coordenação.",
+        "client": "Cada peça traz sua própria data de resposta, cinco dias úteis antes de publicar. Sem retorno até lá, ela vai ao ar como está."
+      },
+      "reasons": {
+        "approveText": "texto pronto · aprove antes de ir para o design · {client}",
+        "decideRejected": "o cliente não aprovou · decida o destino",
+        "sendTextUp": "texto escrito · envie para a direção",
+        "stillToWrite": "ainda a escrever · publica em {date}",
+        "signOffArt": "arte entregue · finalize",
+        "sendToClient": "finalizada · envie ao cliente",
+        "backToDesign": "o cliente pediu ajustes · devolva ao design",
+        "restock": "backlog em {fortnights} quinzenas · reponha",
+        "toDraw": "a desenhar · publica em {date}",
+        "drawnAwaitingSignOff": "desenhada, aguardando finalização · publica em {date}",
+        "notInOrder": "aprovada · ainda fora da ordem de publicação",
+        "toSchedule": "a agendar · {date} · {time}",
+        "replyBy": "responder até {due} · publica em {date}",
+        "replyPassed": "passou da sua data de resposta · vai ao ar como está se você não escrever"
+      }
+    },
+    "backlog": {
+      "title": "Backlog",
+      "subtitle": "Uma prateleira, não um documento mensal.",
+      "twoFortnights": "duas quinzenas",
+      "stock": "{n} temas disponíveis · {per} publicações por quinzena",
+      "restock": "reponha na próxima semana de produção",
+      "comfortable": "confortável",
+      "cameBack": "Voltaram",
+      "cameBackHint": "decida o destino de cada uma",
+      "available": "Disponíveis",
+      "count": "{n} temas",
+      "emptyShelf": "Prateleira vazia para este filtro.",
+      "pulled": "Puxados",
+      "inFlow": "{n} no fluxo",
+      "emptyPulled": "Nada puxado.",
+      "offShelf": "Fora da prateleira",
+      "publishedCount": "{n} publicados",
+      "emptyPublished": "Nada publicado ainda.",
+      "note": "Um tema sai da prateleira quando vai ao ar, não quando é puxado. É por isso que este contador é o único número que alguém precisa acompanhar."
+    },
+    "themeForm": {
+      "open": "Adicionar um tema",
+      "titleLabel": "Título · afirmativo, específico, sem pergunta genérica",
+      "titlePlaceholder": "O que um líder deve à sala na primeira semana",
+      "client": "Cliente",
+      "axis": "Eixo · o território a que pertence",
+      "axisPlaceholder": "O método",
+      "format": "Formato sugerido",
+      "slides": "Slides",
+      "origin": "De onde veio",
+      "channels": "Canais",
+      "whyNow": "Por que isso, agora · o cliente lê este campo",
+      "whyNowPlaceholder": "O que resolve, e por que merece uma vaga neste trimestre.",
+      "whyNowHint": "É o campo que sobrevive até o cliente. Um tema sem ele é uma linha de planilha.",
+      "window": "Janela · deixe em branco se for livre",
+      "windowPlaceholder": "ex.: antes de 15/10",
+      "source": "Fonte · todo número precisa de fonte primária e data",
+      "sourcePlaceholder": "Em branco se o tema não traz número",
+      "submit": "Adicionar ao backlog",
+      "postType": {
+        "carousel": "Carrossel",
+        "single_image": "Post único",
+        "reel": "Reels",
+        "story": "Story",
+        "text": "Só texto"
+      },
+      "originValue": {
+        "research": "Pesquisa",
+        "client_request": "Pedido do cliente",
+        "meeting": "Reunião",
+        "follow_up": "Desdobramento de um post forte",
+        "dated_event": "Data marcada"
+      },
+      "channel": {
+        "instagram": "Instagram",
+        "linkedin": "LinkedIn",
+        "tiktok": "TikTok"
+      }
+    },
+    "fortnight": {
+      "title": "Quinzena",
+      "subtitle": "Cada peça anda sozinha.",
+      "note": "Texto escrito, a direção aprova o argumento antes de qualquer desenho, o design produz, a coordenação finaliza a arte e a peça vai só para aquele cliente. Nada espera pela peça mais lenta. O corte é por peça: cinco dias úteis antes de publicar — sem retorno até lá, vai ao ar como está.",
+      "releaseAll": "Enviar {n} peça(s) finalizada(s) aos clientes",
+      "empty": "Nada nesta quinzena ainda. Puxe temas do backlog.",
+      "stillToWrite": "Ainda a escrever.",
+      "withDirection": "Com a direção",
+      "inDesign": "Em design",
+      "withClient": "Com o cliente",
+      "waitingForOrder": "Aguardando a ordem"
+    },
+    "actions": {
+      "pull": "Puxar para a quinzena",
+      "sendTextUp": "Enviar texto à direção",
+      "directionNoteLabel": "Se voltar, diga o que mudar",
+      "directionNoteHint": "Uma linha basta. Nada foi desenhado ainda.",
+      "sendBackToWriting": "Devolver para a escrita",
+      "approveText": "Aprovar o texto",
+      "sendToClient": "Enviar para {name}",
+      "backToDesign": "Devolver ao design",
+      "returnReasonLabel": "Por que volta para a prateleira",
+      "returnToBacklog": "Devolver ao backlog",
+      "queue": "Entrar na ordem de publicação",
+      "approveOnSilence": "Publicar como agendado"
+    },
+    "production": {
+      "title": "Produção",
+      "subtitle": "Status de design desta quinzena.",
+      "titleDesign": "Fila de produção",
+      "subtitleDesign": "O que chega até você, em ordem · briefing fecha segunda, peças entregues quinta.",
+      "open": "{n} em aberto",
+      "folderAttached": "pasta anexada",
+      "noFolder": "sem link da pasta",
+      "textApproved": "texto aprovado em {date}",
+      "note": "A direção aprovou o texto antes de qualquer desenho. O design marca Feito, a coordenação marca Finalizado, e a peça vai sozinha para o cliente dela.",
+      "noteDesign": "Tudo aqui já foi aprovado pela direção, então o texto não muda embaixo de você. Se algo estiver errado ou não couber na tela, diga antes de desenhar — corrigir na origem custa uma mensagem, corrigir depois custa a peça inteira."
+    },
+    "publishing": {
+      "title": "Ordem de publicação",
+      "subtitle": "O que está na fila e o que já foi ao ar.",
+      "counter": "{live} no ar · {toGo} a publicar",
+      "notInOrder": "{n} peça(s) aprovada(s) ainda estão fora da ordem. Montar a ordem entrega à publicação uma lista única, com o texto aprovado já aplicado.",
+      "buildOrder": "Montar a ordem",
+      "note": "Copie o texto, abra a pasta, agende e marque como no ar. Se algo estiver errado, um link não abrir ou a data não bater: não publique e avise a coordenação. Uma publicação atrasada se resolve no mesmo dia. Uma publicação errada que já está no ar, não.",
+      "noText": "Sem texto final neste registro.",
+      "copyText": "Copiar texto",
+      "copied": "Copiado",
+      "noFolder": "sem link da pasta",
+      "markLive": "Marcar como no ar",
+      "undo": "Desfazer",
+      "empty": "Nada na ordem para este filtro."
+    },
+    "calendar": {
+      "title": "Calendário",
+      "subtitle": "{month} · {n} publicações",
+      "today": "Hoje"
+    },
+    "media": {
+      "title": "Biblioteca de mídia",
+      "subtitle": "Material bruto — vídeos, fotos, gravações. Peças finalizadas ficam no registro, não aqui.",
+      "subtitlePortal": "O material bruto que gravamos e que você envia.",
+      "empty": "Nada registrado para este filtro.",
+      "shot": "Feito em {date}",
+      "accessNeeded": "precisa de acesso",
+      "openLink": "link aberto",
+      "delete": "Remover",
+      "deleteConfirm": "Remover este material da biblioteca?",
+      "note": "Cada item carrega a data em que foi feito. Material envelhece: um retrato de março e um da semana passada não são intercambiáveis, e a data é o que impede alguém de descobrir isso depois de publicar."
+    },
+    "mediaForm": {
+      "open": "Adicionar mídia",
+      "client": "Cliente",
+      "titleLabel": "Título",
+      "titlePlaceholder": "Sessão de estúdio · setembro",
+      "link": "Link",
+      "access": "Acesso · só se o link pedir algo",
+      "accessPlaceholder": "senha, ou de quem pedir acesso",
+      "capturedOn": "Data em que foi feito",
+      "description": "O que é",
+      "descriptionPlaceholder": "O que tem dentro, para que serve e o que limita o uso.",
+      "submit": "Adicionar"
+    },
+    "logins": {
+      "title": "Acessos compartilhados",
+      "subtitle": "As contas que a equipe compartilha. Cada pessoa vê só aquelas em que está.",
+      "subtitlePortal": "As contas em que trabalhamos por você, e quem está em cada uma.",
+      "guardTitle": "Só ferramentas compartilhadas",
+      "guardScope": "Isto é para contas que várias pessoas realmente usam — os perfis sociais, as ferramentas de design. Nada financeiro, nada com dados de clientes ou funcionários, e nunca um login pessoal.",
+      "guardPartner": "Quando a conta oferece acesso de parceiro em vez de login compartilhado, use. Ele sobrevive à troca de senha, nunca precisa ser rotacionado e some no dia em que o contrato acaba.",
+      "guardEncrypted": "As senhas são cifradas antes de chegar ao banco, e só são decifradas quando alguém que está no acesso pede.",
+      "guardNoKey": "SOCIAL_SECRET_KEY não está configurada, então nenhuma senha pode ser guardada ou revelada. Os registros seguem valendo como ponteiro de onde a credencial vive.",
+      "empty": "Nada registrado para este filtro.",
+      "username": "Usuário",
+      "password": "Senha",
+      "lastChanged": "Última troca",
+      "never": "não registrada",
+      "over30": "mais de 30 dias",
+      "partnerAccess": "sem senha · acesso de parceiro",
+      "heldBy": "{who} é quem guarda",
+      "secondFactor": "Segundo fator · {what}",
+      "none": "nenhum",
+      "delete": "Remover",
+      "deleteConfirm": "Remover este acesso do diretório?",
+      "show": "Mostrar",
+      "hide": "Ocultar",
+      "copy": "Copiar",
+      "revealFailed": "Não deu para mostrar aqui — copie manualmente.",
+      "note": "Cada registro traz a data da última troca de senha. Passando de trinta dias fica âmbar — não é regra, é lembrete, para ninguém descobrir uma credencial velha travado fora da conta do cliente numa segunda de manhã.",
+      "notePortal": "Estas são as contas em que trabalhamos por você. Se você trocar uma senha do seu lado, nos avise — senão uma publicação agendada falha em silêncio."
+    },
+    "loginForm": {
+      "open": "Adicionar um acesso",
+      "client": "Cliente",
+      "account": "Nome da conta",
+      "site": "Site",
+      "username": "Usuário",
+      "password": "Senha",
+      "passwordHint": "Deixe em branco para acesso de parceiro, ou para manter a senha já guardada ao editar.",
+      "noKeyHint": "SOCIAL_SECRET_KEY não está configurada, então a senha não pode ser guardada. Registre só o ponteiro.",
+      "holder": "Quem guarda",
+      "mfa": "Segundo fator",
+      "mfaPlaceholder": "Celular do cliente",
+      "rotatedOn": "Última troca de senha",
+      "whoIsOnIt": "Quem está no acesso",
+      "note": "Observação",
+      "notePlaceholder": "O que a próxima pessoa precisa saber antes de entrar.",
+      "submit": "Salvar acesso"
+    },
+    "piece": {
+      "back": "Voltar para a quinzena",
+      "client": "Cliente",
+      "format": "Formato",
+      "axis": "Eixo",
+      "addedOn": "Entrou no backlog",
+      "publishes": "Publica",
+      "replyByLabel": "Responder até",
+      "replyPassed": "passou da data de resposta",
+      "replyBy": "responder até {date}",
+      "noDate": "ainda sem data",
+      "sentUp": "Enviado à direção",
+      "approvedInternal": "Aprovado internamente",
+      "sentToClient": "Enviado ao cliente",
+      "clientApproved": "Cliente aprovou",
+      "status": "Status",
+      "cameBackBecause": "Voltou porque",
+      "clientNote": "Observação do cliente",
+      "designNote": "Observação do design",
+      "whyNow": "Por que isso, agora",
+      "whyNowEditable": "Por que isso, agora · o cliente lê este campo",
+      "internalForDesign": "Interno · para o design",
+      "internalForPublishing": "Interno · para a publicação",
+      "finalText": "Texto final",
+      "saveText": "Salvar texto",
+      "saved": "Salvo",
+      "textPlaceholder": "A legenda como será publicada.",
+      "noText": "Texto ainda não escrito.",
+      "designPanel": "Design",
+      "folderLink": "Link da pasta · onde a peça foi salva",
+      "notesBack": "Suas observações de volta",
+      "notesBackPlaceholder": "O que mudou em relação ao briefing, e por quê.",
+      "save": "Salvar",
+      "coordinationPanel": "Coordenação",
+      "publishOn": "Publica em",
+      "publishTime": "Às",
+      "signOff": "Finalização",
+      "nextMove": "Próximo passo",
+      "waitingOnDirection": "Aguardando a direção.",
+      "directionNote": "Nada foi desenhado ainda. Você está aprovando o argumento, no ponto mais barato para mudá-lo.",
+      "needsSignOff": "Finalize a arte antes de mandar ao cliente.",
+      "withClient": "Com o cliente.",
+      "nothingForYou": "Nada aqui é seu para mover agora.",
+      "silenceNote": "A data de resposta passou. Publicar como agendado é o que o módulo prometeu ao estúdio — o cliente ainda pode escrever, e fica registrado que ele não escreveu."
+    },
+    "blocked": {
+      "notOnShelf": "Esta peça não está na prateleira.",
+      "notInWriting": "Esta peça não está em escrita.",
+      "needsText": "Escreva o texto primeiro — a direção aprova o argumento, não um espaço reservado.",
+      "notWithDirection": "Esta peça não está com a direção.",
+      "needsDirectionNote": "Diga o que mudar — uma linha basta.",
+      "notInDesign": "Esta peça não está em design.",
+      "needsSignOff": "Finalize a arte primeiro.",
+      "needsMaterial": "Coloque o link da pasta primeiro — uma peça que ninguém acha não está pronta.",
+      "notWithClient": "Esta peça não está com o cliente.",
+      "needsClientNote": "Diga o que muda e por quê — uma linha já resolve em uma rodada.",
+      "needsRejectReason": "Diga se o problema é o tema ou o tratamento — o caminho de volta é diferente.",
+      "notInChanges": "Nenhum ajuste foi pedido nesta peça.",
+      "notReturnable": "Esta peça não pode voltar para a prateleira daqui.",
+      "notApproved": "Esta peça ainda não foi aprovada.",
+      "notScheduled": "Esta peça não está na ordem de publicação.",
+      "notLive": "Esta peça não está no ar.",
+      "notYours": "Este passo não é seu para dar.",
+      "signOffNotYours": "Finalizar é decisão da coordenação.",
+      "notFound": "Esta peça não está mais aqui.",
+      "unknownAction": "Ação desconhecida.",
+      "nothingToSave": "Nada aqui era seu para alterar.",
+      "nothingSignedOff": "Nada finalizado ainda.",
+      "nothingApproved": "Nenhuma peça aprovada esperando.",
+      "needsClient": "Escolha um cliente.",
+      "needsTitle": "Um tema precisa de título.",
+      "needsWhyNow": "Escreva por que isso, agora — é o campo que sobrevive até o cliente.",
+      "needsTitleAndLink": "Título e link são o mínimo.",
+      "needsCapturedOn": "Coloque uma data — material envelhece, e o arquivo não conta isso.",
+      "needsAccountAndUser": "Nome da conta e usuário são o mínimo.",
+      "noSecretKey": "SOCIAL_SECRET_KEY não está configurada, então a senha não pode ser guardada.",
+      "noPassword": "Este acesso não tem senha guardada — é acesso de parceiro.",
+      "secretUnreadable": "Guardada com outra chave. Cadastre a senha de novo.",
+      "notOnLogin": "Você não está neste acesso.",
+      "writeBlocked": "Não salvou — seu login não tem acesso de escrita a este cliente. Peça a um founder para te incluir na equipe do cliente.",
+      "notOverdue": "A data de resposta do cliente ainda não passou.",
+      "needsMaterialToSend": "Coloque o link da pasta antes de enviar — o cliente receberia um pedido de aprovação sem criativo."
+    },
+    "portal": {
+      "contentSubtitle": "Texto e criativo juntos, uma peça de cada vez.",
+      "waitingCount": "{n} esperando você",
+      "allReviewed": "Tudo revisado",
+      "howItWorks": "As peças chegam uma de cada vez, conforme ficam prontas — você nunca recebe a quinzena inteira de uma vez. Cada uma traz sua própria data de resposta: cinco dias úteis antes de publicar. Sem retorno até lá, ela vai ao ar como está.",
+      "pastDue": "Passou da sua data de resposta — vai ao ar como está se você não escrever.",
+      "dueOn": "Responder até {date}.",
+      "commentLabel": "Seu comentário",
+      "commentHint": "Se não estiver aprovando, diga se o problema é o tema ou o tratamento — o caminho de volta é diferente.",
+      "commentPlaceholder": "Refaça a abertura, está dura demais.",
+      "notApproved": "Não aprovar",
+      "approveWithChanges": "Aprovar com ajustes",
+      "approve": "Aprovar"
+    },
+    "moduleCard": {
+      "title": "Social media",
+      "open": "Abrir módulo",
+      "disabled": "O módulo de social está desligado para este cliente.",
+      "backlog": "Backlog",
+      "fortnights": "({n} quinzenas)",
+      "withClient": "Com o cliente",
+      "live": "No ar"
+    }
   }
 }

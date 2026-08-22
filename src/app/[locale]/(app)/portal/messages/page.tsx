@@ -41,6 +41,8 @@ export default async function PortalChat({
       .from("messages")
       .select("id, body, sender_id, created_at")
       .eq("client_id", client.id)
+      // The studio's internal room for this client is a different place.
+      .eq("room", "client")
       .order("created_at", { ascending: true })
       .limit(200),
     supabase.from("profiles").select("id, full_name"),
@@ -95,6 +97,7 @@ export default async function PortalChat({
       <ComposeMessage
         locale={locale}
         clientId={client.id}
+        room="client"
         placeholder={t("chat.placeholder")}
         sendLabel={t("chat.send")}
       />

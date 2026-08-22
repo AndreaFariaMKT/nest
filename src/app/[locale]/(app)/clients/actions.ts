@@ -11,7 +11,7 @@ export type ClientStatus = "prospect" | "active" | "paused" | "archived";
 
 export type ClientFormState = {
   error?: string;
-  fieldErrors?: Partial<Record<"name", string>>;
+  fieldErrors?: Partial<Record<"name" | "posts_per_cycle", string>>;
 };
 
 function localePath(locale: string, path: string): Route {
@@ -88,9 +88,20 @@ export async function updateClientAction(
   const name = parseName(formData);
   const status = (formData.get("status") ?? "active").toString() as ClientStatus;
   const locale = (formData.get("locale") ?? "pt-BR").toString();
+  // How many publications one fortnight buys — the divisor behind the social
+  // module's backlog meter, so a wrong value quietly mis-reads every shelf.
+  const socialEnabled = formData.get("social_enabled") !== null;
+  // An emptied <input type="number"> submits "", which is present — so `?? "2"`
+  // never fires and parseInt("") is NaN. Treat blank as "leave the default"
+  // rather than rejecting a save that only changed the client's name.
+  const rawPerCycle = (formData.get("posts_per_cycle") ?? "").toString().trim();
+  const postsPerCycle = rawPerCycle === "" ? 2 : Number.parseInt(rawPerCycle, 10);
 
   if (!id) return { error: "Missing client id." };
   if (name.length < 2) return { fieldErrors: { name: "tooShort" } };
+  if (!Number.isFinite(postsPerCycle) || postsPerCycle < 1 || postsPerCycle > 40) {
+    return { fieldErrors: { posts_per_cycle: "outOfRange" } };
+  }
 
   const supabase = await createSupabaseClient();
 
@@ -117,6 +128,8 @@ export async function updateClientAction(
       website: parseOptional(formData, "website"),
       notes: parseOptional(formData, "notes"),
       status,
+      social_enabled: socialEnabled,
+      posts_per_cycle: postsPerCycle,
     })
     .eq("id", id);
 
@@ -124,6 +137,7 @@ export async function updateClientAction(
 
   revalidatePath(`/${locale}/clients`);
   revalidatePath(`/${locale}/clients/${slug}`);
+  revalidatePath(`/${locale}/social`);
   redirect(localePath(locale, `/clients/${slug}`));
 }
 

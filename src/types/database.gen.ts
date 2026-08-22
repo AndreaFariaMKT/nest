@@ -7,30 +7,10 @@ export type Json =
   | Json[]
 
 export type Database = {
-  graphql_public: {
-    Tables: {
-      [_ in never]: never
-    }
-    Views: {
-      [_ in never]: never
-    }
-    Functions: {
-      graphql: {
-        Args: {
-          extensions?: Json
-          operationName?: string
-          query?: string
-          variables?: Json
-        }
-        Returns: Json
-      }
-    }
-    Enums: {
-      [_ in never]: never
-    }
-    CompositeTypes: {
-      [_ in never]: never
-    }
+  // Allows to automatically instantiate createClient with right options
+  // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
+  __InternalSupabase: {
+    PostgrestVersion: "14.5"
   }
   public: {
     Tables: {
@@ -423,8 +403,10 @@ export type Database = {
           notes: string | null
           portal_token: string | null
           portal_user_id: string | null
+          posts_per_cycle: number
           primary_contact_id: string | null
           slug: string
+          social_enabled: boolean
           status: Database["public"]["Enums"]["client_status"]
           tenant_id: string
           updated_at: string
@@ -439,8 +421,10 @@ export type Database = {
           notes?: string | null
           portal_token?: string | null
           portal_user_id?: string | null
+          posts_per_cycle?: number
           primary_contact_id?: string | null
           slug: string
+          social_enabled?: boolean
           status?: Database["public"]["Enums"]["client_status"]
           tenant_id?: string
           updated_at?: string
@@ -455,8 +439,10 @@ export type Database = {
           notes?: string | null
           portal_token?: string | null
           portal_user_id?: string | null
+          posts_per_cycle?: number
           primary_contact_id?: string | null
           slug?: string
+          social_enabled?: boolean
           status?: Database["public"]["Enums"]["client_status"]
           tenant_id?: string
           updated_at?: string
@@ -481,16 +467,37 @@ export type Database = {
       }
       content_drafts: {
         Row: {
+          approved_internal_at: string | null
+          backlog_added_on: string
           caption: string | null
+          channels: Database["public"]["Enums"]["platform"][]
+          client_approved_at: string | null
+          client_comment: string | null
           client_id: string
           compliance_report: Json | null
           created_at: string
           created_by: string | null
+          design_feedback: string | null
+          design_state: Database["public"]["Enums"]["design_state"]
+          direction_ok: boolean
           embedding: string | null
           hashtags: string[] | null
           hook: string | null
           id: string
+          material_url: string | null
+          note_design: string | null
+          note_publish: string | null
+          origin: Database["public"]["Enums"]["content_origin"] | null
           pillar: string | null
+          post_type: Database["public"]["Enums"]["post_type"] | null
+          publish_on: string | null
+          publish_time: string
+          published_at: string | null
+          return_reason: string | null
+          sent_to_client_at: string | null
+          sent_up_at: string | null
+          slide_count: number | null
+          source_ref: string | null
           status: Database["public"]["Enums"]["content_status"]
           tenant_id: string
           title: string
@@ -498,18 +505,41 @@ export type Database = {
           updated_at: string
           video_script: string | null
           video_url: string | null
+          why_now: string | null
+          window_note: string | null
         }
         Insert: {
+          approved_internal_at?: string | null
+          backlog_added_on?: string
           caption?: string | null
+          channels?: Database["public"]["Enums"]["platform"][]
+          client_approved_at?: string | null
+          client_comment?: string | null
           client_id: string
           compliance_report?: Json | null
           created_at?: string
           created_by?: string | null
+          design_feedback?: string | null
+          design_state?: Database["public"]["Enums"]["design_state"]
+          direction_ok?: boolean
           embedding?: string | null
           hashtags?: string[] | null
           hook?: string | null
           id?: string
+          material_url?: string | null
+          note_design?: string | null
+          note_publish?: string | null
+          origin?: Database["public"]["Enums"]["content_origin"] | null
           pillar?: string | null
+          post_type?: Database["public"]["Enums"]["post_type"] | null
+          publish_on?: string | null
+          publish_time?: string
+          published_at?: string | null
+          return_reason?: string | null
+          sent_to_client_at?: string | null
+          sent_up_at?: string | null
+          slide_count?: number | null
+          source_ref?: string | null
           status?: Database["public"]["Enums"]["content_status"]
           tenant_id?: string
           title: string
@@ -517,18 +547,41 @@ export type Database = {
           updated_at?: string
           video_script?: string | null
           video_url?: string | null
+          why_now?: string | null
+          window_note?: string | null
         }
         Update: {
+          approved_internal_at?: string | null
+          backlog_added_on?: string
           caption?: string | null
+          channels?: Database["public"]["Enums"]["platform"][]
+          client_approved_at?: string | null
+          client_comment?: string | null
           client_id?: string
           compliance_report?: Json | null
           created_at?: string
           created_by?: string | null
+          design_feedback?: string | null
+          design_state?: Database["public"]["Enums"]["design_state"]
+          direction_ok?: boolean
           embedding?: string | null
           hashtags?: string[] | null
           hook?: string | null
           id?: string
+          material_url?: string | null
+          note_design?: string | null
+          note_publish?: string | null
+          origin?: Database["public"]["Enums"]["content_origin"] | null
           pillar?: string | null
+          post_type?: Database["public"]["Enums"]["post_type"] | null
+          publish_on?: string | null
+          publish_time?: string
+          published_at?: string | null
+          return_reason?: string | null
+          sent_to_client_at?: string | null
+          sent_up_at?: string | null
+          slide_count?: number | null
+          source_ref?: string | null
           status?: Database["public"]["Enums"]["content_status"]
           tenant_id?: string
           title?: string
@@ -536,6 +589,8 @@ export type Database = {
           updated_at?: string
           video_script?: string | null
           video_url?: string | null
+          why_now?: string | null
+          window_note?: string | null
         }
         Relationships: [
           {
@@ -743,47 +798,123 @@ export type Database = {
           },
         ]
       }
+      media_assets: {
+        Row: {
+          access_note: string | null
+          captured_on: string
+          client_id: string
+          created_at: string
+          created_by: string | null
+          description: string | null
+          id: string
+          tenant_id: string
+          title: string
+          updated_at: string
+          url: string
+        }
+        Insert: {
+          access_note?: string | null
+          captured_on?: string
+          client_id: string
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          tenant_id?: string
+          title: string
+          updated_at?: string
+          url: string
+        }
+        Update: {
+          access_note?: string | null
+          captured_on?: string
+          client_id?: string
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          tenant_id?: string
+          title?: string
+          updated_at?: string
+          url?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "media_assets_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "media_assets_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "media_assets_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       meetings: {
         Row: {
+          agenda_url: string | null
           client_id: string | null
           created_at: string
           created_by: string | null
+          decisions: string[]
           ends_at: string | null
           google_event_id: string | null
           google_meet_url: string | null
           id: string
           starts_at: string
           status: Database["public"]["Enums"]["meeting_status"]
+          summary: string | null
           tenant_id: string
           title: string
+          transcript_url: string | null
           updated_at: string
         }
         Insert: {
+          agenda_url?: string | null
           client_id?: string | null
           created_at?: string
           created_by?: string | null
+          decisions?: string[]
           ends_at?: string | null
           google_event_id?: string | null
           google_meet_url?: string | null
           id?: string
           starts_at: string
           status?: Database["public"]["Enums"]["meeting_status"]
+          summary?: string | null
           tenant_id?: string
           title: string
+          transcript_url?: string | null
           updated_at?: string
         }
         Update: {
+          agenda_url?: string | null
           client_id?: string | null
           created_at?: string
           created_by?: string | null
+          decisions?: string[]
           ends_at?: string | null
           google_event_id?: string | null
           google_meet_url?: string | null
           id?: string
           starts_at?: string
           status?: Database["public"]["Enums"]["meeting_status"]
+          summary?: string | null
           tenant_id?: string
           title?: string
+          transcript_url?: string | null
           updated_at?: string
         }
         Relationships: [
@@ -803,6 +934,51 @@ export type Database = {
           },
           {
             foreignKeyName: "meetings_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      messages: {
+        Row: {
+          body: string
+          client_id: string | null
+          created_at: string
+          id: string
+          room: string
+          sender_id: string
+          tenant_id: string
+        }
+        Insert: {
+          body: string
+          client_id?: string | null
+          created_at?: string
+          id?: string
+          room?: string
+          sender_id: string
+          tenant_id: string
+        }
+        Update: {
+          body?: string
+          client_id?: string | null
+          created_at?: string
+          id?: string
+          room?: string
+          sender_id?: string
+          tenant_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "messages_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "messages_tenant_id_fkey"
             columns: ["tenant_id"]
             isOneToOne: false
             referencedRelation: "tenants"
@@ -861,41 +1037,6 @@ export type Database = {
           },
           {
             foreignKeyName: "monthly_reports_tenant_id_fkey"
-            columns: ["tenant_id"]
-            isOneToOne: false
-            referencedRelation: "tenants"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      messages: {
-        Row: {
-          body: string
-          client_id: string | null
-          created_at: string
-          id: string
-          sender_id: string
-          tenant_id: string
-        }
-        Insert: {
-          body: string
-          client_id?: string | null
-          created_at?: string
-          id?: string
-          sender_id: string
-          tenant_id: string
-        }
-        Update: {
-          body?: string
-          client_id?: string | null
-          created_at?: string
-          id?: string
-          sender_id?: string
-          tenant_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "messages_tenant_id_fkey"
             columns: ["tenant_id"]
             isOneToOne: false
             referencedRelation: "tenants"
@@ -1282,6 +1423,82 @@ export type Database = {
           },
         ]
       }
+      shared_logins: {
+        Row: {
+          access_roles: string[]
+          client_id: string
+          created_at: string
+          created_by: string | null
+          holder: string
+          id: string
+          mfa: string | null
+          note: string | null
+          platform: string
+          rotated_on: string | null
+          secret_enc: string | null
+          site: string | null
+          tenant_id: string
+          updated_at: string
+          username: string
+        }
+        Insert: {
+          access_roles?: string[]
+          client_id: string
+          created_at?: string
+          created_by?: string | null
+          holder?: string
+          id?: string
+          mfa?: string | null
+          note?: string | null
+          platform: string
+          rotated_on?: string | null
+          secret_enc?: string | null
+          site?: string | null
+          tenant_id?: string
+          updated_at?: string
+          username: string
+        }
+        Update: {
+          access_roles?: string[]
+          client_id?: string
+          created_at?: string
+          created_by?: string | null
+          holder?: string
+          id?: string
+          mfa?: string | null
+          note?: string | null
+          platform?: string
+          rotated_on?: string | null
+          secret_enc?: string | null
+          site?: string | null
+          tenant_id?: string
+          updated_at?: string
+          username?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "shared_logins_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "shared_logins_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "shared_logins_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       slides: {
         Row: {
           body: string | null
@@ -1582,6 +1799,7 @@ export type Database = {
     Functions: {
       has_client_access: { Args: { target_client: string }; Returns: boolean }
       is_owner: { Args: never; Returns: boolean }
+      is_portal_user: { Args: never; Returns: boolean }
       is_tenant_member: { Args: { target_tenant: string }; Returns: boolean }
       match_drafts: {
         Args: {
@@ -1596,20 +1814,31 @@ export type Database = {
           title: string
         }[]
       }
+      owns_portal_client: { Args: { target_client: string }; Returns: boolean }
       show_limit: { Args: never; Returns: number }
       show_trgm: { Args: { "": string }; Returns: string[] }
     }
     Enums: {
       client_status: "prospect" | "active" | "paused" | "archived"
+      content_origin:
+        | "research"
+        | "client_request"
+        | "meeting"
+        | "follow_up"
+        | "dated_event"
       content_status:
+        | "backlog"
         | "draft"
         | "text_review"
         | "creative_review"
         | "client_review"
+        | "changes_requested"
+        | "rejected"
         | "approved"
         | "scheduled"
         | "published"
         | "archived"
+      design_state: "todo" | "done" | "signed_off"
       meeting_status: "scheduled" | "completed" | "cancelled"
       platform: "instagram" | "linkedin" | "tiktok"
       post_type: "carousel" | "single_image" | "reel" | "story" | "text"
@@ -1741,22 +1970,30 @@ export type CompositeTypes<
     : never
 
 export const Constants = {
-  graphql_public: {
-    Enums: {},
-  },
   public: {
     Enums: {
       client_status: ["prospect", "active", "paused", "archived"],
+      content_origin: [
+        "research",
+        "client_request",
+        "meeting",
+        "follow_up",
+        "dated_event",
+      ],
       content_status: [
+        "backlog",
         "draft",
         "text_review",
         "creative_review",
         "client_review",
+        "changes_requested",
+        "rejected",
         "approved",
         "scheduled",
         "published",
         "archived",
       ],
+      design_state: ["todo", "done", "signed_off"],
       meeting_status: ["scheduled", "completed", "cancelled"],
       platform: ["instagram", "linkedin", "tiktok"],
       post_type: ["carousel", "single_image", "reel", "story", "text"],
@@ -1766,4 +2003,3 @@ export const Constants = {
     },
   },
 } as const
-

@@ -178,3 +178,36 @@ export const FileIcon = (p: IconProps) => (
     <path d="M14 3v4h4" />
   </svg>
 );
+
+export const KeyIcon = (p: IconProps) => (
+  <svg {...base} {...p}>
+    <circle cx="8" cy="15" r="4" />
+    <path d="M11 12l8-8M17 4l2 2M14.5 6.5l2 2" />
+  </svg>
+);
+
+export const FilmIcon = (p: IconProps) => (
+  <svg {...base} {...p}>
+    <rect x="3" y="5" width="18" height="14" rx="2" />
+    <path d="M7 5v14M17 5v14M3 12h4M17 12h4" />
+  </svg>
+);
+
+export const BellIcon = (p: IconProps) => (
+  <svg {...base} {...p}>
+    <path d="M18 9a6 6 0 0 0-12 0c0 6-2.5 7-2.5 7h17S18 15 18 9" />
+    <path d="M13.5 20a2 2 0 0 1-3 0" />
+  </svg>
+);
+
+export const RhythmIcon = (p: IconProps) => (
+  <svg {...base} {...p}>
+    <path d="M3 12h3l2.5-7 4 14 2.5-7H21" />
+  </svg>
+);
+
+export const SendIcon = (p: IconProps) => (
+  <svg {...base} {...p}>
+    <path d="M21 3L10.5 13.5M21 3l-6.5 18-4-8-8-4z" />
+  </svg>
+);

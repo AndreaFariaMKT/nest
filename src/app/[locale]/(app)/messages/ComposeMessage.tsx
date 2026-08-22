@@ -12,11 +12,14 @@ export function ComposeMessage({
   placeholder,
   sendLabel,
   clientId,
+  room,
 }: {
   locale: string;
   placeholder: string;
   sendLabel: string;
   clientId?: string;
+  /** "team" keeps the message inside the studio; "client" is readable by them. */
+  room?: "team" | "client";
 }) {
   const router = useRouter();
   const [state, action, pending] = useActionState(sendMessageAction, initial);
@@ -34,6 +37,7 @@ export function ComposeMessage({
     <form ref={formRef} action={action} className="flex items-center gap-2">
       <input type="hidden" name="locale" value={locale} />
       <input type="hidden" name="client_id" value={clientId ?? ""} />
+      <input type="hidden" name="room" value={room ?? "client"} />
       <input
         name="body"
         autoComplete="off"

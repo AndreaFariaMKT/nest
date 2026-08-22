@@ -16,6 +16,10 @@ type InitialMeeting = {
   endsAt: string | null;
   status: MeetingStatus;
   googleMeetUrl: string | null;
+  summary: string | null;
+  agendaUrl: string | null;
+  transcriptUrl: string | null;
+  decisions: string[];
 };
 
 // Format an ISO timestamp as "YYYY-MM-DDTHH:mm" in the user's local timezone,
@@ -183,6 +187,65 @@ export function MeetingForm({
           className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
         />
         <p className="text-xs text-muted-foreground">{t("fields.meetHint")}</p>
+      </div>
+
+      <div className="space-y-1.5">
+        <label htmlFor="summary" className="text-sm font-medium text-foreground">
+          {t("fields.summary")}
+        </label>
+        <textarea
+          id="summary"
+          name="summary"
+          rows={3}
+          defaultValue={meeting?.summary ?? ""}
+          placeholder={t("fields.summaryPlaceholder")}
+          className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+        />
+      </div>
+
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+        <div className="space-y-1.5">
+          <label htmlFor="agenda_url" className="text-sm font-medium text-foreground">
+            {t("fields.agendaUrl")}
+          </label>
+          <input
+            id="agenda_url"
+            name="agenda_url"
+            type="url"
+            defaultValue={meeting?.agendaUrl ?? ""}
+            className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+          />
+        </div>
+        <div className="space-y-1.5">
+          <label htmlFor="transcript_url" className="text-sm font-medium text-foreground">
+            {t("fields.transcriptUrl")}
+          </label>
+          <input
+            id="transcript_url"
+            name="transcript_url"
+            type="url"
+            defaultValue={meeting?.transcriptUrl ?? ""}
+            className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+          />
+        </div>
+      </div>
+
+      {/* The transcript is the record; this list is what anyone actually reads
+          three months later. A meeting with no decision written down is a
+          meeting that will be held again. */}
+      <div className="space-y-1.5">
+        <label htmlFor="decisions" className="text-sm font-medium text-foreground">
+          {t("fields.decisions")}
+        </label>
+        <textarea
+          id="decisions"
+          name="decisions"
+          rows={4}
+          defaultValue={(meeting?.decisions ?? []).join("\n")}
+          placeholder={t("fields.decisionsPlaceholder")}
+          className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+        />
+        <p className="text-xs text-muted-foreground">{t("fields.decisionsHint")}</p>
       </div>
 
       {state.error ? (

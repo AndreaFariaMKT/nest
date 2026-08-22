@@ -19,6 +19,8 @@ import {
   PenIcon,
   CodeIcon,
   FileIcon,
+  FilmIcon,
+  KeyIcon,
 } from "@/components/icons/NavIcons";
 
 /**
@@ -79,6 +81,7 @@ export const NAV: Record<string, NavItem> = {
   people: { key: "people", href: "/team", label: "people", icon: TeamIcon },
   playbook: { key: "playbook", href: "/playbook", label: "playbook", icon: PlaybookIcon },
   queue: { key: "queue", href: "/production-queue", label: "productionQueue", icon: LayersIcon },
+  social: { key: "social", href: "/social", label: "socialMedia", icon: MegaphoneIcon },
   feedback: { key: "feedback", href: "/feedback", label: "feedback", icon: MeetingsIcon },
   idprojects: { key: "idprojects", href: "/identity-projects", label: "identityProjects", icon: PenIcon },
   builds: { key: "builds", href: "/website-builds", label: "websiteBuilds", icon: CodeIcon },
@@ -89,6 +92,8 @@ export const NAV: Record<string, NavItem> = {
   c_meetings: { key: "c_meetings", href: "/portal/meetings", label: "meetings", icon: MeetingsIcon },
   c_messages: { key: "c_messages", href: "/portal/messages", label: "chat", icon: MessageIcon },
   c_invoices: { key: "c_invoices", href: "/portal/invoices", label: "invoices", icon: FileIcon },
+  c_media: { key: "c_media", href: "/portal/media", label: "mediaLibrary", icon: FilmIcon },
+  c_logins: { key: "c_logins", href: "/portal/logins", label: "sharedLogins", icon: KeyIcon },
 };
 
 export interface NavGroup {
@@ -101,24 +106,24 @@ export const NAV_BY_ROLE: Record<AppRole, NavGroup[]> = {
   founder: [
     { group: "daily", keys: ["home", "tasks", "calendar", "messages"] },
     { group: "leadership", keys: ["bplan", "admin", "finance", "commercial", "marketing"] },
-    { group: "content", keys: ["content", "schedule"] },
+    { group: "content", keys: ["social", "content", "schedule"] },
     { group: "operation", keys: ["overview", "clients"] },
     { group: "directory", keys: ["people", "playbook"] },
   ],
   manager: [
     { group: "daily", keys: ["home", "tasks", "calendar", "messages"] },
-    { group: "marketing", keys: ["marketing", "content", "schedule"] },
+    { group: "marketing", keys: ["marketing", "social", "content", "schedule"] },
     { group: "operation", keys: ["overview", "clients"] },
     { group: "directory", keys: ["people", "playbook"] },
   ],
   social: [
     { group: "daily", keys: ["home", "tasks", "messages"] },
-    { group: "content", keys: ["content", "schedule", "marketing"] },
+    { group: "content", keys: ["social", "content", "schedule", "marketing"] },
     { group: "directory", keys: ["playbook"] },
   ],
   designer_social: [
     { group: "daily", keys: ["home", "calendar", "messages"] },
-    { group: "work", keys: ["queue", "feedback"] },
+    { group: "work", keys: ["social", "queue", "feedback"] },
     { group: "directory", keys: ["playbook"] },
   ],
   designer_identity: [
@@ -136,7 +141,19 @@ export const NAV_BY_ROLE: Record<AppRole, NavGroup[]> = {
     { group: "finance", keys: ["finance", "admin"] },
   ],
   client: [
-    { group: "portal", keys: ["c_overview", "c_content", "c_calendar", "c_meetings", "c_messages", "c_invoices"] },
+    {
+      group: "portal",
+      keys: [
+        "c_overview",
+        "c_content",
+        "c_calendar",
+        "c_meetings",
+        "c_media",
+        "c_logins",
+        "c_messages",
+        "c_invoices",
+      ],
+    },
   ],
 };
 

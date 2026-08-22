@@ -39,7 +39,7 @@ export default async function MeetingDetailPage({
   const { data } = await supabase
     .from("meetings")
     .select(
-      "id, client_id, title, starts_at, ends_at, status, google_meet_url, created_at, updated_at, google_event_id, created_by, client:clients(id, name, slug)",
+      "id, client_id, title, starts_at, ends_at, status, google_meet_url, summary, agenda_url, transcript_url, decisions, created_at, updated_at, google_event_id, created_by, client:clients(id, name, slug)",
     )
     .eq("id", id)
     .maybeSingle();
@@ -132,6 +132,61 @@ export default async function MeetingDetailPage({
           >
             {meeting.google_meet_url}
           </a>
+        </section>
+      ) : null}
+
+      {meeting.summary ? (
+        <section className="mb-6 rounded-lg border border-border bg-card p-4">
+          <div className="mb-1 text-xs uppercase tracking-wider text-muted-foreground">
+            {t("fields.summary")}
+          </div>
+          <p className="text-sm leading-relaxed text-foreground">
+            {meeting.summary}
+          </p>
+        </section>
+      ) : null}
+
+      {/* The decision list is what anyone reads three months later. */}
+      {meeting.decisions?.length ? (
+        <section className="mb-6 rounded-lg border border-border bg-card p-4">
+          <div className="mb-2 text-xs uppercase tracking-wider text-muted-foreground">
+            {t("fields.decisions")}
+          </div>
+          <ul className="space-y-1.5">
+            {meeting.decisions.map((d: string, i: number) => (
+              <li
+                key={i}
+                className="relative pl-4 text-sm leading-relaxed text-foreground before:absolute before:left-0 before:top-2.5 before:h-px before:w-2 before:bg-primary"
+              >
+                {d}
+              </li>
+            ))}
+          </ul>
+        </section>
+      ) : null}
+
+      {meeting.agenda_url || meeting.transcript_url ? (
+        <section className="mb-6 flex flex-wrap gap-4 text-sm">
+          {meeting.agenda_url ? (
+            <a
+              href={meeting.agenda_url}
+              target="_blank"
+              rel="noreferrer noopener"
+              className="text-primary hover:underline"
+            >
+              {t("fields.agendaUrl")}
+            </a>
+          ) : null}
+          {meeting.transcript_url ? (
+            <a
+              href={meeting.transcript_url}
+              target="_blank"
+              rel="noreferrer noopener"
+              className="text-primary hover:underline"
+            >
+              {t("fields.transcriptUrl")}
+            </a>
+          ) : null}
         </section>
       ) : null}
 

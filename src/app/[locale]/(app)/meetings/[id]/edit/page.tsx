@@ -63,6 +63,10 @@ export default async function EditMeetingPage({
           endsAt: meeting.ends_at,
           status: meeting.status,
           googleMeetUrl: meeting.google_meet_url,
+          summary: meeting.summary,
+          agendaUrl: meeting.agenda_url,
+          transcriptUrl: meeting.transcript_url,
+          decisions: meeting.decisions ?? [],
         }}
         action={updateMeetingAction}
         submitLabel={t("saveSubmit")}

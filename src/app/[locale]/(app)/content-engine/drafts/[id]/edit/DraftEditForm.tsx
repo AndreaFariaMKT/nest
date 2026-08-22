@@ -1,6 +1,7 @@
 "use client";
 
 import { useActionState, useMemo, useState } from "react";
+import { Constants } from "@/types/database.gen";
 import { useTranslations } from "next-intl";
 import { Link } from "@/i18n/routing";
 import { Button } from "@/components/ui/Button";
@@ -25,16 +26,11 @@ export type InitialSlide = {
   body: string | null;
 };
 
-const STATUSES = [
-  "draft",
-  "text_review",
-  "creative_review",
-  "client_review",
-  "approved",
-  "scheduled",
-  "published",
-  "archived",
-] as const;
+// Derived from the enum, not restated. A hardcoded list silently drops any
+// stage added later: a <select> whose defaultValue matches no <option> falls
+// back to the first one, so opening a piece the social module put in `backlog`
+// and saving would yank it to `draft` and out of the pipeline.
+const STATUSES = Constants.public.Enums.content_status;
 
 export function DraftEditForm({
   locale,

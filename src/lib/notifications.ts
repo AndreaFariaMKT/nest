@@ -1,4 +1,4 @@
-import { createClient } from "@supabase/supabase-js";
+import { createAdminClient } from "@/lib/supabase/admin";
 
 /**
  * Insert a notification for a different user (bypasses the "own only"
@@ -20,11 +20,7 @@ export async function notifyUser({
 }): Promise<void> {
   if (!userId) return;
 
-  const admin = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!,
-    { auth: { persistSession: false } },
-  );
+  const admin = createAdminClient();
 
   await admin.from("notifications").insert({
     user_id: userId,

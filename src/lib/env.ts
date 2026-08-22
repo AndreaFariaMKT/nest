@@ -92,6 +92,20 @@ const GROUPS: Record<string, Group> = {
       { name: "GOOGLE_OAUTH_REDIRECT_URI", required: true },
     ],
   },
+  socialSecrets: {
+    label: "Shared logins (social media module)",
+    optional: true,
+    vars: [
+      {
+        name: "SOCIAL_SECRET_KEY",
+        required: true,
+        // 32 bytes, hex or base64 — see src/lib/secrets.ts.
+        validate: (v) =>
+          /^[0-9a-fA-F]{64}$/.test(v) || Buffer.from(v, "base64").length === 32,
+        reason: "must decode to 32 bytes (base64 or 64-char hex)",
+      },
+    ],
+  },
   sentry: {
     label: "Sentry (error tracking)",
     optional: true,

@@ -1,4 +1,5 @@
 import type { AppRole } from "@/lib/roles";
+import { canUseSocial } from "@/lib/social";
 
 const ROLES: AppRole[] = [
   "founder",
@@ -32,6 +33,9 @@ const RESTRICTED: { prefix: string; roles: AppRole[] }[] = [
   { prefix: "/commercial", roles: ["founder"] },
   { prefix: "/finance", roles: ["founder", "accountant"] },
   { prefix: "/administration", roles: ["founder", "accountant"] },
+  // Derived, not restated: a hand-copied list drifts the first time a role's
+  // responsibilities change. src/lib/social.ts is pure and Edge-safe.
+  { prefix: "/social", roles: ROLES.filter(canUseSocial) },
 ];
 
 function inPortal(base: string): boolean {
