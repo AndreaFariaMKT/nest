@@ -154,6 +154,16 @@ export const SOCIAL_SCREENS = [
   { key: "media", href: "/social/media", caps: ["direction", "coordinate", "design"] },
   { key: "logins", href: "/social/logins", caps: ["direction", "coordinate", "publish"] },
   { key: "report", href: "/social/report", caps: ["direction", "coordinate"] },
+  // These two live outside /social because the app already had them, and one
+  // meeting record per client is not a social-media-only idea. They are in the
+  // module's nav because that is where the people running a fortnight look for
+  // them.
+  { key: "meetings", href: "/meetings", caps: ["direction", "coordinate"] },
+  {
+    key: "messages",
+    href: "/messages",
+    caps: ["direction", "coordinate", "design", "publish"],
+  },
 ] as const satisfies readonly {
   key: string;
   href: string;

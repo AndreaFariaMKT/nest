@@ -141,6 +141,23 @@ Everything the audit left open, except the two items named below. Needs
   variants. Also: the client's comment box and the caption editor gained bound
   labels, and the month arrows an accessible name.
 
+### Prototype parity — 2026-08
+
+A re-read against the prototype caught three nav items the earlier rounds had
+missed, all of them "the screen exists, nothing links to it":
+
+- **Meetings and Messages** are in the module's nav for the roles the prototype
+  gives them to. Both pages already existed; `/meetings` in particular was in no
+  staff sidebar at all, which predates this module.
+- **The client's "Waiting on you"** (`/portal/waiting`) — the prototype lists it
+  first for that persona. It renders from the same `waitingFor` the studio's
+  screens use, given only the client cap, so the reasons and reply dates cannot
+  drift from the ones the module computes.
+
+Still true: `/reports` and `/reports/kpi` are in no sidebar. They are the older
+AI-generated monthly recap, unrelated to the prototype's Performance screen
+(`/social/report`), so they were left where they were.
+
 ### Nothing left open — 2026-08
 
 The last three items, plus the optional half of the readability review. Needs

@@ -51,7 +51,8 @@
     "socialMedia": "Social media",
     "mediaLibrary": "Media library",
     "sharedLogins": "Shared logins",
-    "performance": "Performance"
+    "performance": "Performance",
+    "waitingOnYou": "Waiting on you"
   },
   "finance": {
     "title": "Finance",
@@ -828,7 +829,9 @@
       "calendar": "Calendar",
       "media": "Media library",
       "logins": "Shared logins",
-      "report": "Performance"
+      "report": "Performance",
+      "meetings": "Meetings",
+      "messages": "Messages"
     },
     "filter": {
       "client": "Client",

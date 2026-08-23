@@ -19,6 +19,7 @@ import {
   PenIcon,
   CodeIcon,
   FileIcon,
+  BellIcon,
   ChartIcon,
   FilmIcon,
   KeyIcon,
@@ -87,6 +88,7 @@ export const NAV: Record<string, NavItem> = {
   idprojects: { key: "idprojects", href: "/identity-projects", label: "identityProjects", icon: PenIcon },
   builds: { key: "builds", href: "/website-builds", label: "websiteBuilds", icon: CodeIcon },
   // Client portal
+  c_waiting: { key: "c_waiting", href: "/portal/waiting", label: "waitingOnYou", icon: BellIcon },
   c_overview: { key: "c_overview", href: "/portal", label: "projectOverview", icon: EyeIcon },
   c_content: { key: "c_content", href: "/portal/content", label: "content", icon: ContentIcon },
   c_calendar: { key: "c_calendar", href: "/portal/calendar", label: "calendar", icon: CalendarIcon },
@@ -146,6 +148,7 @@ export const NAV_BY_ROLE: Record<AppRole, NavGroup[]> = {
     {
       group: "portal",
       keys: [
+        "c_waiting",
         "c_overview",
         "c_content",
         "c_calendar",
