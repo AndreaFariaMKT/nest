@@ -421,6 +421,100 @@ export type Database = {
           },
         ]
       }
+      client_social_accounts: {
+        Row: {
+          account_ref: string | null
+          api_version: string | null
+          client_id: string
+          created_at: string
+          created_by: string | null
+          enabled: boolean
+          id: string
+          note: string | null
+          platform: Database["public"]["Enums"]["platform"]
+          publish_mode: string
+          rotated_on: string | null
+          secret_enc: string | null
+          tenant_id: string
+          updated_at: string
+        }
+        Insert: {
+          account_ref?: string | null
+          api_version?: string | null
+          client_id: string
+          created_at?: string
+          created_by?: string | null
+          enabled?: boolean
+          id?: string
+          note?: string | null
+          platform: Database["public"]["Enums"]["platform"]
+          publish_mode?: string
+          rotated_on?: string | null
+          secret_enc?: string | null
+          tenant_id?: string
+          updated_at?: string
+        }
+        Update: {
+          account_ref?: string | null
+          api_version?: string | null
+          client_id?: string
+          created_at?: string
+          created_by?: string | null
+          enabled?: boolean
+          id?: string
+          note?: string | null
+          platform?: Database["public"]["Enums"]["platform"]
+          publish_mode?: string
+          rotated_on?: string | null
+          secret_enc?: string | null
+          tenant_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "client_social_accounts_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "client_social_accounts_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "portal_client"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "client_social_accounts_client_tenant_fkey"
+            columns: ["client_id", "tenant_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id", "tenant_id"]
+          },
+          {
+            foreignKeyName: "client_social_accounts_client_tenant_fkey"
+            columns: ["client_id", "tenant_id"]
+            isOneToOne: false
+            referencedRelation: "portal_client"
+            referencedColumns: ["id", "tenant_id"]
+          },
+          {
+            foreignKeyName: "client_social_accounts_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "client_social_accounts_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       clients: {
         Row: {
           created_at: string
