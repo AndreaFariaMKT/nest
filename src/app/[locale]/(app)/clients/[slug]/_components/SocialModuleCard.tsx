@@ -80,7 +80,7 @@ export async function SocialModuleCard({
               {stock.count}{" "}
               <span className="text-xs text-muted-foreground">
                 {t("moduleCard.fortnights", {
-                  n: stock.fortnights.toFixed(1),
+                  n: Math.round(stock.fortnights * 10) / 10,
                 })}
               </span>
             </dd>

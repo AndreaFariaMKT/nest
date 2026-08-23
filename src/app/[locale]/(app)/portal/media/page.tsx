@@ -39,6 +39,7 @@ export default async function PortalMedia({
         subtitle={ts("media.subtitlePortal")}
       />
       <MediaList
+        emptyKey="emptyPortal"
         items={(data ?? []) as MediaRow[]}
         clientName={() => client.name}
         locale={locale}

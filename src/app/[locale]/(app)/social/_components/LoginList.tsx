@@ -33,12 +33,20 @@ export function LoginList({
   today,
   canEdit,
   showClient = true,
+  emptyKey,
 }: {
   items: LoginRow[];
   clientName: (id: string) => string;
   locale: string;
   today: string;
   canEdit: boolean;
+  /**
+   * Which empty message to show. The default says "nothing for this filter" —
+   * true on the studio screen, which has a client picker, and false in the
+   * portal, which has none: a client was being pointed at a control that is
+   * not on their screen.
+   */
+  emptyKey?: string;
   showClient?: boolean;
 }) {
   const t = useTranslations("social.logins");
@@ -48,7 +56,7 @@ export function LoginList({
   if (!items.length) {
     return (
       <EmptyState>
-        {t("empty")}
+        {emptyKey ? t(emptyKey) : t("empty")}
       </EmptyState>
     );
   }

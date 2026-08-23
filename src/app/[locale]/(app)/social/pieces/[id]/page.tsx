@@ -5,6 +5,7 @@ import type { Route } from "next";
 
 import { Pill } from "@/components/ui/Pill";
 import {
+  formatIsoDate,
   DESIGN_STATES,
   addWorkingDays,
   dayOf,
@@ -53,6 +54,12 @@ export default async function PiecePage({
   const direction = caps.includes("direction");
   const design = caps.includes("design");
   const publish = caps.includes("publish");
+  // Dates on this screen used to render as raw ISO — the same piece read
+  // "sáb., 12 de set. de 2026" on the fortnight board and "2026-09-12" one
+  // click later, on the record you open precisely to check the deadline.
+  const date = (iso: string | null | undefined) =>
+    formatIsoDate(iso, locale) ?? "—";
+
   const due = replyDueBy(piece.publish_on);
   const overdue = isReplyOverdue(piece.publish_on, today);
   const designState = (piece.design_state ?? "todo") as DesignState;
@@ -77,7 +84,9 @@ export default async function PiecePage({
         </h1>
         <p className="mt-1.5 text-sm text-muted-foreground">
           {formatLabel(piece.post_type, piece.slide_count, (k) => t(`format.${k}`))}
-          {piece.publish_on ? ` · ${piece.publish_on} · ${piece.publish_time.slice(0, 5)}` : ""}
+          {piece.publish_on
+            ? ` · ${date(piece.publish_on)} · ${piece.publish_time.slice(0, 5)}`
+            : ""}
         </p>
       </header>
 
@@ -91,7 +100,7 @@ export default async function PiecePage({
             .join(" + ")}`}
         />
         <Row label={t("piece.axis")} value={piece.pillar ?? "—"} />
-        <Row label={t("piece.addedOn")} value={piece.backlog_added_on} />
+        <Row label={t("piece.addedOn")} value={date(piece.backlog_added_on)} />
         {piece.window_note ? (
           <Row label={t("piece.window")} value={piece.window_note} />
         ) : null}
@@ -101,7 +110,7 @@ export default async function PiecePage({
         {piece.publish_on ? (
           <Row
             label={t("piece.publishes")}
-            value={`${piece.publish_on} · ${piece.publish_time.slice(0, 5)}`}
+            value={`${date(piece.publish_on)} · ${piece.publish_time.slice(0, 5)}`}
           />
         ) : null}
         {due && (piece.status === "client_review" || piece.status === "changes_requested") ? (
@@ -109,7 +118,7 @@ export default async function PiecePage({
             label={t("piece.replyByLabel")}
             value={
               <span className="flex items-center gap-2">
-                {due}
+                {date(due)}
                 {overdue ? (
                   <Pill tone="danger" className="text-[10px]">
                     {t("piece.replyPassed")}
@@ -120,12 +129,12 @@ export default async function PiecePage({
           />
         ) : null}
         {piece.sent_up_at ? (
-          <Row label={t("piece.sentUp")} value={dayOf(piece.sent_up_at) ?? "—"} />
+          <Row label={t("piece.sentUp")} value={date(dayOf(piece.sent_up_at))} />
         ) : null}
         {piece.approved_internal_at ? (
           <Row
             label={t("piece.approvedInternal")}
-            value={dayOf(piece.approved_internal_at) ?? "—"}
+            value={date(dayOf(piece.approved_internal_at))}
           />
         ) : null}
         {piece.sent_to_client_at ? (

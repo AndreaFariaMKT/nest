@@ -4,7 +4,7 @@ import type { Route } from "next";
 
 import { PageHeader } from "@/components/ui/PageHeader";
 import { Pill } from "@/components/ui/Pill";
-import { dayOf, DESIGN_STATES, formatLabel, type DesignState } from "@/lib/social";
+import { formatIsoDate, dayOf, DESIGN_STATES, formatLabel, type DesignState } from "@/lib/social";
 import { loadScope } from "../_data";
 import { ModuleShell } from "../_components/ModuleShell";
 import { ModuleNote } from "../_components/Shared";
@@ -72,7 +72,9 @@ export default async function ProductionPage({
                           t(`format.${k}`),
                         )}
                       </span>
-                      {p.publish_on ? <span>· {p.publish_on}</span> : null}
+                      {p.publish_on ? (
+                        <span>· {formatIsoDate(p.publish_on, locale)}</span>
+                      ) : null}
                     </p>
 
                     {p.note_design ? (
@@ -93,7 +95,7 @@ export default async function ProductionPage({
                     {p.approved_internal_at ? (
                       <p className="mt-1 text-[11px] text-muted-foreground">
                         {t("production.textApproved", {
-                          date: dayOf(p.approved_internal_at) ?? "—",
+                          date: formatIsoDate(dayOf(p.approved_internal_at), locale) ?? "—",
                         })}
                       </p>
                     ) : null}

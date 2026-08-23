@@ -5,7 +5,7 @@ import type { Route } from "next";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { Pill } from "@/components/ui/Pill";
 import { cn } from "@/lib/utils";
-import { backlogStock, IN_FLIGHT_STAGES } from "@/lib/social";
+import { formatIsoDate, backlogStock, IN_FLIGHT_STAGES } from "@/lib/social";
 import { loadScope, type SocialPieceRow } from "../_data";
 import { ModuleShell } from "../_components/ModuleShell";
 import { StageBadge } from "../_components/StageBadge";
@@ -99,7 +99,7 @@ export default async function BacklogPage({
             title={t("backlog.cameBack")}
             hint={t("backlog.cameBackHint")}
           />
-          <List pieces={returned} name={scope.clientName} />
+          <List pieces={returned} name={scope.clientName} locale={locale} />
         </section>
       ) : null}
 
@@ -109,7 +109,12 @@ export default async function BacklogPage({
             title={t("backlog.available")}
             hint={t("backlog.count", { n: shelf.length })}
           />
-          <List pieces={shelf} name={scope.clientName} empty={t("backlog.emptyShelf")} />
+          <List
+            pieces={shelf}
+            name={scope.clientName}
+            locale={locale}
+            empty={t("backlog.emptyShelf")}
+          />
         </section>
 
         <div className="space-y-4">
@@ -118,7 +123,12 @@ export default async function BacklogPage({
               title={t("backlog.pulled")}
               hint={t("backlog.inFlow", { n: pulled.length })}
             />
-            <List pieces={pulled} name={scope.clientName} empty={t("backlog.emptyPulled")} />
+            <List
+              pieces={pulled}
+              name={scope.clientName}
+              locale={locale}
+              empty={t("backlog.emptyPulled")}
+            />
           </section>
 
           <section className="rounded-2xl border border-border bg-muted/40">
@@ -134,7 +144,7 @@ export default async function BacklogPage({
                 >
                   <span className="min-w-0 flex-1 truncate">{p.title}</span>
                   <span className="shrink-0 text-xs text-muted-foreground">
-                    {p.publish_on ?? "—"}
+                    {formatIsoDate(p.publish_on, locale) ?? "—"}
                   </span>
                 </li>
               ))}
@@ -158,10 +168,12 @@ export default async function BacklogPage({
 function List({
   pieces,
   name,
+  locale,
   empty,
 }: {
   pieces: SocialPieceRow[];
   name: (id: string) => string;
+  locale: string;
   empty?: string;
 }) {
   if (!pieces.length) {
@@ -187,7 +199,7 @@ function List({
                 {p.title}
               </span>
               <span className="mt-0.5 block truncate text-xs text-muted-foreground">
-                {[name(p.client_id), p.pillar, p.backlog_added_on]
+                {[name(p.client_id), p.pillar, formatIsoDate(p.backlog_added_on, locale)]
                   .filter(Boolean)
                   .join(" · ")}
               </span>

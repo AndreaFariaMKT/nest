@@ -6,6 +6,7 @@ import { PageHeader } from "@/components/ui/PageHeader";
 import { Pill } from "@/components/ui/Pill";
 import { cn } from "@/lib/utils";
 import {
+  formatIsoDate,
   addDays,
   clientHealth,
   type HealthLevel,
@@ -127,7 +128,8 @@ export default async function SocialOverview({
               <div className="mb-2 flex items-center justify-between text-[10px] font-medium uppercase tracking-widest text-brand">
                 <span>{t("rhythm.sendingWeek")}</span>
                 <span className="text-muted-foreground">
-                  {fortnight.start} → {fortnight.sendingWeekEnd}
+                  {formatIsoDate(fortnight.start, locale)} →{" "}
+                  {formatIsoDate(fortnight.sendingWeekEnd, locale)}
                 </span>
               </div>
               {["mon", "wed", "thu", "fri"].map((d) => (
@@ -141,7 +143,8 @@ export default async function SocialOverview({
               <div className="mb-2 flex items-center justify-between text-[10px] font-medium uppercase tracking-widest text-muted-foreground">
                 <span>{t("rhythm.productionWeek")}</span>
                 <span>
-                  {addDays(fortnight.start, 7)} → {fortnight.end}
+                  {formatIsoDate(addDays(fortnight.start, 7), locale)} →{" "}
+                  {formatIsoDate(fortnight.end, locale)}
                 </span>
               </div>
               {["mon", "thu", "fri"].map((d) => (

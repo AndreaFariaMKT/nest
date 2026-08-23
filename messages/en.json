@@ -218,8 +218,8 @@
     "signInWithEmail": "Continue with email",
     "checkEmail": "Check your inbox for the sign-in link.",
     "invalidCredentials": "Invalid email or password.",
-    "welcomeBack": "Welcome back",
-    "welcomeSubtitle": "Sign in to manage your studio."
+    "welcomeBack": "Good to see you",
+    "welcomeSubtitle": "Sign in with the email you use with the studio."
   },
   "today": {
     "title": "Today",
@@ -894,9 +894,9 @@
       "onRhythm": "On rhythm",
       "stockLow": "Backlog below two fortnights",
       "stockCritical": "Backlog under one fortnight",
-      "unwritten": "{count} piece(s) still without text",
-      "returned": "{count} piece(s) came back from the client",
-      "replyOverdue": "{count} piece(s) past the reply date"
+      "unwritten": "{count, plural, one {# piece still without text} other {# pieces still without text}}",
+      "returned": "{count, plural, one {# piece came back from the client} other {# pieces came back from the client}}",
+      "replyOverdue": "{count, plural, one {# piece is past the reply date} other {# pieces are past the reply date}}"
     },
     "rhythm": {
       "sendingWeek": "Sending week",
@@ -1086,7 +1086,8 @@
       "openLink": "open link",
       "delete": "Remove",
       "deleteConfirm": "Remove this material from the library?",
-      "note": "Every entry carries the date it was shot. Material ages: a portrait from March and a portrait from last week are not interchangeable, and the date is what stops anyone finding that out after publishing."
+      "note": "Every entry carries the date it was shot. Material ages: a portrait from March and a portrait from last week are not interchangeable, and the date is what stops anyone finding that out after publishing.",
+      "emptyPortal": "No material of yours here yet. Footage, stills and recordings — ours and the ones you send — show up in this list."
     },
     "mediaForm": {
       "open": "Add media",
@@ -1128,7 +1129,8 @@
       "revealFailed": "Could not show it here — copy it manually.",
       "note": "Every entry carries the date the password last changed. Past thirty days it turns amber — not a rule, a reminder, so nobody discovers an old credential by being locked out of a client account on a Monday morning.",
       "notePortal": "These are the accounts we work on for you. If you change a password on your side, tell us — otherwise a scheduled post fails silently.",
-      "copyFailed": "Could not copy — select the text instead."
+      "copyFailed": "Could not copy — select the text instead.",
+      "emptyPortal": "We have not registered any of your accounts here yet. When we start working on one it shows up in this list, with who is on it."
     },
     "loginForm": {
       "open": "Add a login",
@@ -1192,27 +1194,27 @@
       "source": "Source"
     },
     "blocked": {
-      "notOnShelf": "This piece is not on the shelf.",
-      "notInWriting": "This piece is not in writing.",
+      "notOnShelf": "This piece has already left the shelf. Refresh to see where it is now.",
+      "notInWriting": "This piece has already left writing — someone moved it while this screen was open. Refresh the page.",
       "needsText": "Write the text first — direction approves the argument, not a placeholder.",
-      "notWithDirection": "This piece is not with direction.",
+      "notWithDirection": "This piece is no longer with direction. Refresh to see where it is now.",
       "needsDirectionNote": "Say what to change — one line is enough.",
-      "notInDesign": "This piece is not in design.",
+      "notInDesign": "This piece has already left design. Refresh to see where it is now.",
       "needsSignOff": "Sign the art off first.",
       "needsMaterial": "Add the folder link first — a piece nobody can find is not done.",
-      "notWithClient": "This piece is not with the client.",
+      "notWithClient": "This piece has already left your review — most likely because you just decided on it. Refresh to see where it is now.",
       "needsClientNote": "Say what changes and why — one line already solves it in a single round.",
       "needsRejectReason": "Tell us whether the problem is the theme or the treatment — they take different routes back.",
-      "notInChanges": "No changes were requested on this piece.",
-      "notReturnable": "This piece cannot go back on the shelf from here.",
-      "notApproved": "This piece is not approved yet.",
-      "notScheduled": "This piece is not in the publishing order.",
-      "notLive": "This piece is not live.",
+      "notInChanges": "No changes are open on this piece, or they have already been picked up. Refresh the page.",
+      "notReturnable": "A piece cannot go back on the shelf from here. It only can after it is not approved, or after the client asks for changes.",
+      "notApproved": "The client has not approved this piece yet — it joins the order only after that.",
+      "notScheduled": "This piece is not in the publishing order. Build the order first.",
+      "notLive": "This piece is not live, so there is nothing to undo.",
       "notYours": "That move is not yours to make.",
       "signOffNotYours": "Signing off is coordination's call.",
-      "notFound": "That piece is no longer here.",
-      "unknownAction": "Unknown action.",
-      "nothingToSave": "Nothing here was yours to change.",
+      "notFound": "That piece is no longer here — it may have been removed. Go back to the fortnight.",
+      "unknownAction": "We do not recognise that command. Refresh the page and try again.",
+      "nothingToSave": "None of the fields in this form are yours to change. Nothing was saved.",
       "nothingSignedOff": "Nothing is signed off yet.",
       "nothingApproved": "No approved pieces waiting.",
       "needsClient": "Pick a client.",
@@ -1226,14 +1228,14 @@
       "secretUnreadable": "Stored under a different key. Re-enter the password.",
       "notOnLogin": "You are not on this login.",
       "writeBlocked": "That did not save — your login does not have write access to this client. Ask a founder to add you to the client's team.",
-      "notOverdue": "The client's reply date has not passed yet.",
+      "notOverdue": "The client's reply date has not passed yet — you can only run it as scheduled after that.",
       "needsMaterialToSend": "Add the folder link before sending — the client would get a review request with no creative.",
-      "dbDenied": "You do not have permission for that change.",
-      "dbDuplicate": "That already exists.",
-      "dbMissingField": "Something is missing, or the value is not accepted here.",
-      "dbBadReference": "One of the things this is linked to no longer exists.",
-      "dbTooLong": "That text is over the limit.",
-      "dbFailed": "That could not be saved. The error has been logged.",
+      "dbDenied": "You do not have permission for that change. Nothing was changed. If you should have, talk to coordination.",
+      "dbDuplicate": "That already exists — nothing was created. Check the list before adding it again.",
+      "dbMissingField": "A field is blank, or holds a value that is not accepted here. Check the form and save again.",
+      "dbBadReference": "One of the things this is linked to no longer exists. Refresh the page — if it keeps happening, tell coordination.",
+      "dbTooLong": "That text is over the field's limit. Shorten it and save again.",
+      "dbFailed": "That could not be saved and nothing changed. Try again — if it repeats, tell coordination; the error is already logged on our side.",
       "needsPlatform": "Pick the network.",
       "needsAccountRef": "The account that will publish is missing its identifier.",
       "needsToken": "An account cannot be switched on without a token. Paste one and save."
@@ -1300,7 +1302,9 @@
       "design": "In design",
       "client": "With the client",
       "order": "Waiting for the publishing order",
-      "writing": "Still to write"
+      "writing": "Still to write",
+      "done": "Nothing left to do here",
+      "notYours": "The next move belongs to someone else"
     },
     "digest": {
       "title": "Your fortnight",

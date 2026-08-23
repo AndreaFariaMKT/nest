@@ -7,7 +7,6 @@ import { Pill } from "@/components/ui/Pill";
 import {
   CLIENT_VISIBLE_STAGES,
   isReplyOverdue,
-  replyDueBy,
   todayIso,
 } from "@/lib/social";
 import { PORTAL_PIECE_COLUMNS, type SocialPieceRow } from "../../social/_data";
@@ -76,7 +75,6 @@ export default async function PortalContent({
           {pieces.map((p) => {
             const decidable =
               p.status === "client_review" || p.status === "changes_requested";
-            const due = replyDueBy(p.publish_on);
             return (
               <PieceCard
                 key={p.id}
@@ -88,11 +86,17 @@ export default async function PortalContent({
               >
                 {decidable ? (
                   <>
-                    <p className="mb-3 text-xs text-muted-foreground">
-                      {isReplyOverdue(p.publish_on, today)
-                        ? ts("portal.pastDue")
-                        : ts("portal.dueOn", { date: due ?? "" })}
-                    </p>
+                    {/* Only the overdue branch. The card's own pill already
+                        says "responder até <data>", formatted — this line
+                        repeated it in raw ISO, so the client read the same
+                        deadline twice, three lines apart, in two shapes.
+                        What the pill does NOT carry is the consequence, and
+                        that is what pastDue adds. */}
+                    {isReplyOverdue(p.publish_on, today) ? (
+                      <p className="mb-3 text-xs text-destructive">
+                        {ts("portal.pastDue")}
+                      </p>
+                    ) : null}
                     <Moves
                       piece={p}
                       caps={["client"]}

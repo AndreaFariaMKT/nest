@@ -46,6 +46,7 @@ export default async function PortalLogins({
         subtitle={ts("logins.subtitlePortal")}
       />
       <LoginList
+        emptyKey="emptyPortal"
         items={items}
         clientName={() => client.name}
         locale={locale}

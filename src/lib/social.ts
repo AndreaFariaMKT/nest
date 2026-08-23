@@ -650,7 +650,17 @@ export interface MoveSet {
    * i18n key under social.waitingOn.*, set when the reader has nothing to do
    * but knows who does. Null when they simply have no business here.
    */
-  waitingOn: "direction" | "design" | "client" | "order" | "writing" | null;
+  waitingOn:
+    | "direction"
+    | "design"
+    | "client"
+    | "order"
+    | "writing"
+    /** The piece is finished. Nobody is holding it. */
+    | "done"
+    /** Someone can move it — just not this reader. */
+    | "notYours"
+    | null;
 }
 
 /**
@@ -672,7 +682,13 @@ export function movesFor(
   today: string = todayIso(),
 ): MoveSet {
   const has = (c: SocialCap) => caps.includes(c);
-  const none: MoveSet = { moves: [], waitingOn: null };
+  // `none` used to be `waitingOn: null`, which the UI renders as nothing at
+  // all — so a designer opening a piece they drew, that has since gone live,
+  // got a section headed "Próximo passo" containing an empty box. Absence of
+  // UI is not an explanation. A piece with no move for this reader is in one
+  // of two states, and they mean different things.
+  const none: MoveSet = { moves: [], waitingOn: "notYours" };
+  const finished: MoveSet = { moves: [], waitingOn: "done" };
   const one = (
     action: SocialAction,
     tone: MoveTone = "primary",
@@ -757,7 +773,7 @@ export function movesFor(
     case "published":
       return has("publish") || has("coordinate")
         ? one("unmark_live", "secondary")
-        : none;
+        : finished;
   }
 }
 
@@ -971,7 +987,11 @@ export function waitingFor(
           clientId,
           title: c.name,
           reason: "restock",
-          values: { fortnights: stock.fortnights.toFixed(1) },
+          // A number, not a string. toFixed(1) produced "1.5", which landed
+          // inside Portuguese copy as "backlog em 1.5 quinzenas" — a Brazilian
+          // writes 1,5. Handing ICU a number lets it format per locale, and
+          // keeps decimal separators out of a module that has no locale.
+          values: { fortnights: Math.round(stock.fortnights * 10) / 10 },
         });
       }
     }

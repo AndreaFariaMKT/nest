@@ -25,12 +25,20 @@ export function MediaList({
   locale,
   canEdit,
   showClient = true,
+  emptyKey,
 }: {
   items: MediaRow[];
   clientName: (id: string) => string;
   locale: string;
   canEdit: boolean;
   showClient?: boolean;
+  /**
+   * Which empty message to show. The default says "nothing for this filter" —
+   * true on the studio screen, which has a client picker, and false in the
+   * portal, which has none: a client was being pointed at a control that is
+   * not on their screen.
+   */
+  emptyKey?: string;
 }) {
   const t = useTranslations("social.media");
   const date = useDateLabel();
@@ -38,7 +46,7 @@ export function MediaList({
   if (!items.length) {
     return (
       <EmptyState>
-        {t("empty")}
+        {emptyKey ? t(emptyKey) : t("empty")}
       </EmptyState>
     );
   }

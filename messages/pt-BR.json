@@ -218,8 +218,8 @@
     "signInWithEmail": "Continuar com e-mail",
     "checkEmail": "Verifique sua caixa de entrada para o link de acesso.",
     "invalidCredentials": "E-mail ou senha inválidos.",
-    "welcomeBack": "Bem-vinda de volta",
-    "welcomeSubtitle": "Entre para gerenciar seu studio."
+    "welcomeBack": "Que bom te ver",
+    "welcomeSubtitle": "Entre com o e-mail que você usa com o studio."
   },
   "today": {
     "title": "Hoje",
@@ -894,9 +894,9 @@
       "onRhythm": "No ritmo",
       "stockLow": "Backlog abaixo de duas quinzenas",
       "stockCritical": "Backlog abaixo de uma quinzena",
-      "unwritten": "{count} peça(s) ainda sem texto",
-      "returned": "{count} peça(s) voltaram do cliente",
-      "replyOverdue": "{count} peça(s) passaram da data de resposta"
+      "unwritten": "{count, plural, one {# peça ainda sem texto} other {# peças ainda sem texto}}",
+      "returned": "{count, plural, one {# peça voltou do cliente} other {# peças voltaram do cliente}}",
+      "replyOverdue": "{count, plural, one {# peça passou da data de resposta} other {# peças passaram da data de resposta}}"
     },
     "rhythm": {
       "sendingWeek": "Semana de envio",
@@ -1086,7 +1086,8 @@
       "openLink": "link aberto",
       "delete": "Remover",
       "deleteConfirm": "Remover este material da biblioteca?",
-      "note": "Cada item carrega a data em que foi feito. Material envelhece: um retrato de março e um da semana passada não são intercambiáveis, e a data é o que impede alguém de descobrir isso depois de publicar."
+      "note": "Cada item carrega a data em que foi feito. Material envelhece: um retrato de março e um da semana passada não são intercambiáveis, e a data é o que impede alguém de descobrir isso depois de publicar.",
+      "emptyPortal": "Ainda não há material seu aqui. Fotos, vídeos e gravações — nossos e os que você envia — aparecem nesta lista."
     },
     "mediaForm": {
       "open": "Adicionar mídia",
@@ -1128,7 +1129,8 @@
       "revealFailed": "Não deu para mostrar aqui — copie manualmente.",
       "note": "Cada registro traz a data da última troca de senha. Passando de trinta dias fica âmbar — não é regra, é lembrete, para ninguém descobrir uma credencial velha travado fora da conta do cliente numa segunda de manhã.",
       "notePortal": "Estas são as contas em que trabalhamos por você. Se você trocar uma senha do seu lado, nos avise — senão uma publicação agendada falha em silêncio.",
-      "copyFailed": "Não deu para copiar — selecione o texto."
+      "copyFailed": "Não deu para copiar — selecione o texto.",
+      "emptyPortal": "Ainda não registramos nenhuma conta sua aqui. Quando a gente passar a trabalhar em alguma, ela aparece nesta lista com quem está nela."
     },
     "loginForm": {
       "open": "Adicionar um acesso",
@@ -1192,27 +1194,27 @@
       "source": "Fonte"
     },
     "blocked": {
-      "notOnShelf": "Esta peça não está na prateleira.",
-      "notInWriting": "Esta peça não está em escrita.",
+      "notOnShelf": "Esta peça já saiu da prateleira. Atualize a página para ver onde ela está.",
+      "notInWriting": "Esta peça já saiu da escrita — alguém a moveu enquanto esta tela estava aberta. Atualize a página.",
       "needsText": "Escreva o texto primeiro — a direção aprova o argumento, não um espaço reservado.",
-      "notWithDirection": "Esta peça não está com a direção.",
+      "notWithDirection": "Esta peça já não está com a direção. Atualize a página para ver onde ela está.",
       "needsDirectionNote": "Diga o que mudar — uma linha basta.",
-      "notInDesign": "Esta peça não está em design.",
+      "notInDesign": "Esta peça já saiu do design. Atualize a página para ver onde ela está.",
       "needsSignOff": "Finalize a arte primeiro.",
       "needsMaterial": "Coloque o link da pasta primeiro — uma peça que ninguém acha não está pronta.",
-      "notWithClient": "Esta peça não está com o cliente.",
+      "notWithClient": "Esta peça já saiu da sua aprovação — provavelmente porque você acabou de decidir. Atualize a página para ver onde ela está.",
       "needsClientNote": "Diga o que muda e por quê — uma linha já resolve em uma rodada.",
       "needsRejectReason": "Diga se o problema é o tema ou o tratamento — o caminho de volta é diferente.",
-      "notInChanges": "Nenhum ajuste foi pedido nesta peça.",
-      "notReturnable": "Esta peça não pode voltar para a prateleira daqui.",
-      "notApproved": "Esta peça ainda não foi aprovada.",
-      "notScheduled": "Esta peça não está na ordem de publicação.",
-      "notLive": "Esta peça não está no ar.",
+      "notInChanges": "Ninguém pediu ajustes nesta peça, ou os ajustes já foram retomados. Atualize a página.",
+      "notReturnable": "Daqui esta peça não volta para a prateleira. Ela só volta quando não é aprovada ou quando o cliente pede ajustes.",
+      "notApproved": "Esta peça ainda não foi aprovada pelo cliente — só entra na ordem depois disso.",
+      "notScheduled": "Esta peça não está na ordem de publicação. Monte a ordem primeiro.",
+      "notLive": "Esta peça não está no ar, então não há o que desfazer.",
       "notYours": "Este passo não é seu para dar.",
       "signOffNotYours": "Finalizar é decisão da coordenação.",
-      "notFound": "Esta peça não está mais aqui.",
-      "unknownAction": "Ação desconhecida.",
-      "nothingToSave": "Nada aqui era seu para alterar.",
+      "notFound": "Esta peça não está mais aqui — ela pode ter sido removida. Volte para a quinzena.",
+      "unknownAction": "Não reconhecemos esse comando. Atualize a página e tente de novo.",
+      "nothingToSave": "Nenhum dos campos deste formulário é seu para alterar. Nada foi salvo.",
       "nothingSignedOff": "Nada finalizado ainda.",
       "nothingApproved": "Nenhuma peça aprovada esperando.",
       "needsClient": "Escolha um cliente.",
@@ -1226,14 +1228,14 @@
       "secretUnreadable": "Guardada com outra chave. Cadastre a senha de novo.",
       "notOnLogin": "Você não está neste acesso.",
       "writeBlocked": "Não salvou — seu login não tem acesso de escrita a este cliente. Peça a um founder para te incluir na equipe do cliente.",
-      "notOverdue": "A data de resposta do cliente ainda não passou.",
+      "notOverdue": "A data de resposta do cliente ainda não passou — você só pode publicar como agendado depois dela.",
       "needsMaterialToSend": "Coloque o link da pasta antes de enviar — o cliente receberia um pedido de aprovação sem criativo.",
-      "dbDenied": "Você não tem permissão para essa alteração.",
-      "dbDuplicate": "Isso já existe.",
-      "dbMissingField": "Faltou preencher algo, ou o valor não é aceito aqui.",
-      "dbBadReference": "Um dos itens ligados a isso não existe mais.",
-      "dbTooLong": "O texto passou do limite.",
-      "dbFailed": "Não deu para salvar. O erro foi registrado.",
+      "dbDenied": "Você não tem permissão para essa alteração. Nada mudou. Se deveria ter, fale com a coordenação.",
+      "dbDuplicate": "Isso já existe — nada foi criado. Confira a lista antes de cadastrar de novo.",
+      "dbMissingField": "Algum campo ficou em branco ou com um valor que não vale aqui. Revise o formulário e salve de novo.",
+      "dbBadReference": "Um dos itens ligados a isso não existe mais. Atualize a página — se continuar, avise a coordenação.",
+      "dbTooLong": "O texto passou do limite deste campo. Encurte um pouco e salve de novo.",
+      "dbFailed": "Não deu para salvar e nada mudou. Tente de novo — se repetir, avise a coordenação; o erro já está registrado do nosso lado.",
       "needsPlatform": "Escolha a rede.",
       "needsAccountRef": "Falta o identificador da conta que vai publicar.",
       "needsToken": "Não dá para ligar uma conta sem token. Cole o token e salve."
@@ -1300,7 +1302,9 @@
       "design": "Em design",
       "client": "Com o cliente",
       "order": "Aguardando a ordem de publicação",
-      "writing": "Ainda a escrever"
+      "writing": "Ainda a escrever",
+      "done": "Nada mais a fazer aqui",
+      "notYours": "O próximo passo é de outra pessoa"
     },
     "digest": {
       "title": "Sua quinzena",
