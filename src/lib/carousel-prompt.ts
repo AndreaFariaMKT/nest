@@ -3,6 +3,8 @@
 // Keeping these isolated + unit-tested is the only sane way to verify the
 // LLM pipeline without paying for real Claude calls in tests.
 
+import { pseudonymiseSpeakers } from "@/lib/sanitize";
+
 import type { BrandColor, BrandTypography } from "@/types/database";
 
 export type SlideDraft = {
@@ -122,7 +124,7 @@ export function buildUser(
   return `Language: ${lang}.
 
 <transcript>
-${transcript.trim()}
+${pseudonymiseSpeakers(transcript.trim())}
 </transcript>
 
 <recent_drafts>

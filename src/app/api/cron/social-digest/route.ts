@@ -78,7 +78,7 @@ async function handler(request: NextRequest) {
   // Only clients with someone to write to and the module switched on.
   const { data: clients, error } = await admin
     .from("clients")
-    .select("id, name, portal_user_id, social_digest_at")
+    .select("id, name, tenant_id, portal_user_id, social_digest_at")
     .eq("social_enabled", true)
     .neq("status", "archived")
     .not("portal_user_id", "is", null);
@@ -124,6 +124,10 @@ async function handler(request: NextRequest) {
 
     const { error: notifyError } = await admin.from("notifications").insert({
       user_id: client.portal_user_id!,
+      // notifications.tenant_id defaults to AFM and carries the restrictive
+      // tenant_isolation floor, so an omitted tenant files a Nest client's
+      // digest where that client can never read it.
+      tenant_id: client.tenant_id,
       type: "social_digest",
       title: t("title"),
       body: digestBody(digest, t),

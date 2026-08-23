@@ -782,7 +782,8 @@
     },
     "errors": {
       "invalid": "Enter a valid email address.",
-      "ownerOnly": "Only the owner can invite teammates."
+      "ownerOnly": "Only the owner can invite teammates.",
+      "inviteFailed": "The invite could not be sent. Check the address and try again."
     }
   },
   "notifications": {
@@ -1225,7 +1226,13 @@
       "notOnLogin": "You are not on this login.",
       "writeBlocked": "That did not save — your login does not have write access to this client. Ask a founder to add you to the client's team.",
       "notOverdue": "The client's reply date has not passed yet.",
-      "needsMaterialToSend": "Add the folder link before sending — the client would get a review request with no creative."
+      "needsMaterialToSend": "Add the folder link before sending — the client would get a review request with no creative.",
+      "dbDenied": "You do not have permission for that change.",
+      "dbDuplicate": "That already exists.",
+      "dbMissingField": "Something is missing, or the value is not accepted here.",
+      "dbBadReference": "One of the things this is linked to no longer exists.",
+      "dbTooLong": "That text is over the limit.",
+      "dbFailed": "That could not be saved. The error has been logged."
     },
     "portal": {
       "contentSubtitle": "Text and creative together, one piece at a time.",

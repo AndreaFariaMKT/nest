@@ -6,6 +6,7 @@ import { redirect } from "next/navigation";
 import type { Route } from "next";
 import { createClient as createSupabaseClient } from "@/lib/supabase/server";
 import { currentTenantId } from "@/lib/tenant-server";
+import { pseudonymiseSpeakers } from "@/lib/sanitize";
 import { getCurrentRole } from "@/lib/roles-server";
 import { canUseSocial } from "@/lib/social";
 import {
@@ -246,9 +247,11 @@ export async function generateCarouselsAction(
   // Recent drafts to avoid repetition — prefer semantic similarity when
   // embeddings exist for this client, fall back to chronological recency.
   let recent: RecentDraft[] = [];
-  const transcriptEmbed = await embedText(trow.content.slice(0, 8000)).catch(
-    () => null,
-  );
+  // Pseudonymised before it leaves: an embedding is derived from the text it
+  // was made of, so it inherits the same obligation as the transcript itself.
+  const transcriptEmbed = await embedText(
+    pseudonymiseSpeakers(trow.content).slice(0, 8000),
+  ).catch(() => null);
   if (transcriptEmbed) {
     const { data: similarRows } = await supabase.rpc("match_drafts", {
       query_embedding: vectorToSql(transcriptEmbed.vector),

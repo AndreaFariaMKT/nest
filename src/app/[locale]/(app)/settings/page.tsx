@@ -34,7 +34,9 @@ export default async function SettingsPage({
   const profile = await getCurrentProfile();
   if (!profile) redirect("/sign-in");
 
-  const googleConnected = !!profile.google_refresh_token;
+  // google_email, not the refresh token: the token is service-role only now
+  // (029), and disconnecting nulls both, so this says the same thing.
+  const googleConnected = !!profile.google_email;
   const googleEmail = profile.google_email;
   const googleConfigured = env.google.ok;
 

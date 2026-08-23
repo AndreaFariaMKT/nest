@@ -48,7 +48,7 @@ export function InviteForm({ locale }: { locale: string }) {
         <p className="text-sm text-destructive">
           {state.error === "unauthorized"
             ? t("errors.ownerOnly")
-            : state.error}
+            : t("errors.inviteFailed")}
         </p>
       ) : null}
       {state.success ? (

@@ -782,7 +782,8 @@
     },
     "errors": {
       "invalid": "Informe um e-mail válido.",
-      "ownerOnly": "Apenas o owner pode convidar integrantes."
+      "ownerOnly": "Apenas o owner pode convidar integrantes.",
+      "inviteFailed": "Não deu para enviar o convite. Confira o endereço e tente de novo."
     }
   },
   "notifications": {
@@ -1225,7 +1226,13 @@
       "notOnLogin": "Você não está neste acesso.",
       "writeBlocked": "Não salvou — seu login não tem acesso de escrita a este cliente. Peça a um founder para te incluir na equipe do cliente.",
       "notOverdue": "A data de resposta do cliente ainda não passou.",
-      "needsMaterialToSend": "Coloque o link da pasta antes de enviar — o cliente receberia um pedido de aprovação sem criativo."
+      "needsMaterialToSend": "Coloque o link da pasta antes de enviar — o cliente receberia um pedido de aprovação sem criativo.",
+      "dbDenied": "Você não tem permissão para essa alteração.",
+      "dbDuplicate": "Isso já existe.",
+      "dbMissingField": "Faltou preencher algo, ou o valor não é aceito aqui.",
+      "dbBadReference": "Um dos itens ligados a isso não existe mais.",
+      "dbTooLong": "O texto passou do limite.",
+      "dbFailed": "Não deu para salvar. O erro foi registrado."
     },
     "portal": {
       "contentSubtitle": "Texto e criativo juntos, uma peça de cada vez.",

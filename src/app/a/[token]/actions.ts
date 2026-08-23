@@ -49,7 +49,7 @@ async function persistResponse(
   // Notify the draft's creator (or the owner if no creator recorded)
   const { data: draft } = await supabase
     .from("content_drafts")
-    .select("id, client_id, title, created_by")
+    .select("id, client_id, tenant_id, title, created_by")
     .eq("id", approval.draft_id)
     .maybeSingle();
   if (!draft) return;
@@ -68,6 +68,9 @@ async function persistResponse(
   for (const userId of targets) {
     await notifyUser({
       userId,
+      // No session here — this runs off a bearer token — so the tenant comes
+      // from the draft being approved, not from the caller.
+      tenantId: draft.tenant_id,
       type: "approval.response",
       title: `Cliente ${verb} "${draft.title}"`,
       body: comment ?? null,

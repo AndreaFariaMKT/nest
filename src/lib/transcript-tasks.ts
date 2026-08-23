@@ -8,6 +8,8 @@
 // All exports here are pure: prompt builders + a strict response parser.
 // IO (Claude call + Supabase insert) lives in the cron route.
 
+import { pseudonymiseSpeakers } from "@/lib/sanitize";
+
 import type { TaskPriority } from "@/types/database";
 
 export const VALID_PRIORITIES: TaskPriority[] = [
@@ -53,7 +55,7 @@ Shape:
       "title": "short imperative phrase in ${promptLanguage}, max 120 chars",
       "priority": "low" | "medium" | "high" | "urgent" | null,
       "due_at": "ISO 8601 timestamp" | null,
-      "assignee_hint": "speaker name or null"
+      "assignee_hint": "the speaker label who committed to this, e.g. \"Speaker B\", or null"
     }
   ]
 }
@@ -76,7 +78,7 @@ export function buildTaskExtractionUser(
 Reference time (for relative dates): ${ctx.nowIso}
 
 <transcript>
-${transcript}
+${pseudonymiseSpeakers(transcript)}
 </transcript>
 
 Return the JSON now.`;

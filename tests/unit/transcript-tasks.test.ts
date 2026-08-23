@@ -35,7 +35,9 @@ describe("buildTaskExtractionUser", () => {
     expect(user).toContain("Client: Studio X");
     expect(user).toContain("Meeting title: Strategy review");
     expect(user).toContain("Reference time (for relative dates): 2026-05-10T14:00:00.000Z");
-    expect(user).toContain("<transcript>\nSpeaker: hello\n</transcript>");
+    // The name is stripped on the way out — see pseudonymise.test.ts. The
+    // transcript reaches Anthropic with labels, not with who was in the room.
+    expect(user).toContain("<transcript>\nSpeaker A: hello\n</transcript>");
   });
 
   it("omits the Client line when clientName is null", () => {

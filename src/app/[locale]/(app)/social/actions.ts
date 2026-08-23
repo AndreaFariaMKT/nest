@@ -15,6 +15,8 @@
 import { revalidatePath } from "next/cache";
 
 import type { Database } from "@/types/database.gen";
+import { dbError, type PgLikeError } from "@/lib/db-error";
+import { log } from "@/lib/log";
 
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
@@ -69,9 +71,15 @@ const fail = (error: BlockedReason | (string & {})): Result => ({
  * and nothing has moved. That is the silent "no" this file's header is against.
  */
 function wrote(
-  result: { data: unknown[] | null; error: { message: string } | null },
+  result: { data: unknown[] | null; error: PgLikeError | null },
+  area = "social.write",
 ): Result {
-  if (result.error) return fail(result.error.message);
+  if (result.error) {
+    // The code, never the message: a `value too long` echoes part of the value,
+    // and a unique violation echoes the conflicting one.
+    log.error(area, "write_failed", { code: result.error.code ?? "unknown" });
+    return fail(dbError(result.error));
+  }
   if (!result.data || result.data.length === 0) return fail("writeBlocked");
   return OK;
 }
@@ -199,7 +207,10 @@ export async function createThemeAction(
     backlog_added_on: todayIso(),
     created_by: user?.id ?? null,
   });
-  if (error) return fail(error.message);
+  if (error) {
+    log.error("social.write", "write_failed", { code: error.code ?? "unknown" });
+    return fail(dbError(error));
+  }
 
   revalidateModule(str(formData, "locale") || "pt-BR");
   return OK;
@@ -481,7 +492,10 @@ export async function releaseSignedOffAction(
       "id",
       ready.map((p) => p.id),
     );
-  if (error) return fail(error.message);
+  if (error) {
+    log.error("social.write", "write_failed", { code: error.code ?? "unknown" });
+    return fail(dbError(error));
+  }
 
   // Likewise silent: the daily digest tells each client what arrived.
 
@@ -521,7 +535,10 @@ export async function buildOrderAction(
       "id",
       approved.map((p) => p.id),
     );
-  if (error) return fail(error.message);
+  if (error) {
+    log.error("social.write", "write_failed", { code: error.code ?? "unknown" });
+    return fail(dbError(error));
+  }
 
   revalidateModule(locale);
   return OK;

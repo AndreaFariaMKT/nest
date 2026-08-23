@@ -6,7 +6,10 @@ import { isOwner } from "@/lib/auth";
 import type { Database, UserRole } from "@/types/database";
 import { InviteForm } from "./_components/InviteForm";
 
-type Profile = Database["public"]["Tables"]["profiles"]["Row"];
+type Profile = Pick<
+  Database["public"]["Tables"]["profiles"]["Row"],
+  "id" | "email" | "full_name" | "avatar_url" | "locale" | "role" | "created_at"
+>;
 
 const roleTone: Record<UserRole, "default" | "muted" | "warning"> = {
   owner: "warning",
@@ -30,7 +33,9 @@ export default async function TeamPage({
   const supabase = await createClient();
   const { data } = await supabase
     .from("profiles")
-    .select("*")
+    // Not `*`: 029 revokes the google_* token columns from `authenticated`,
+    // and a star select expands to them.
+    .select("id, email, full_name, avatar_url, locale, role, created_at")
     .order("role", { ascending: true })
     .order("full_name", { ascending: true });
   const members = (data ?? []) as Profile[];

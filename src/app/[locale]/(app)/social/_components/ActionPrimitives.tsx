@@ -7,6 +7,7 @@ import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/Button";
 import { cn } from "@/lib/utils";
 import { isBlockedReason } from "@/lib/social";
+import { isDbError } from "@/lib/db-error";
 import type { Result } from "../actions";
 
 export const initialResult: Result = { ok: false };
@@ -39,16 +40,17 @@ export function Btn({
   );
 }
 
-/** Renders a refusal as a sentence. `error` is an i18n key, or a raw DB message. */
+/** Renders a refusal as a sentence. `error` is always an i18n key now. */
 export function Refusal({ error }: { error?: string }) {
   const t = useTranslations("social.blocked");
   if (!error) return null;
-  // Anything not in the dictionary came from Postgres — show it verbatim rather
-  // than swallowing a real failure behind a friendly noise word.
+  // Both dictionaries live under social.blocked: the domain's own refusals and
+  // the six database ones. Postgres messages no longer reach here — they name
+  // tables, columns and constraints, and the portal renders this component for
+  // clients. The real error is in the log, keyed by area.
+  const key = isBlockedReason(error) || isDbError(error) ? error : "dbFailed";
   return (
-    <p className="mt-2 text-xs text-destructive">
-      {isBlockedReason(error) ? t(error) : error}
-    </p>
+    <p className="mt-2 text-xs text-destructive">{t(key)}</p>
   );
 }
 

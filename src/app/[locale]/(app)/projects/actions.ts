@@ -128,6 +128,7 @@ export async function createTaskAction(
   ) {
     await notifyUser({
       userId: form.assigneeId,
+      tenantId,
       type: "task.assigned",
       title: `Nova tarefa: ${form.title}`,
       link: `/projects/${data.id}/edit`,
@@ -190,6 +191,8 @@ export async function updateTaskAction(
   const { error } = await supabase.from("tasks").update(update).eq("id", id);
   if (error) return { error: error.message };
 
+  const tenantId = await currentTenantId();
+
   // Notify on assignee handoff (skip for self-assign and templates).
   if (
     !form.isTemplate &&
@@ -199,6 +202,7 @@ export async function updateTaskAction(
   ) {
     await notifyUser({
       userId: form.assigneeId,
+      tenantId,
       type: "task.assigned",
       title: `Tarefa atribuída: ${form.title}`,
       link: `/projects/${id}/edit`,

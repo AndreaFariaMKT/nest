@@ -323,8 +323,12 @@ async function extractAndInsertTasks(params: {
   const rows = extracted.map((t) => ({
     client_id: clientId,
     title: t.title,
+    // The hint is a pseudonym now ("Speaker B"), not a name — transcripts are
+    // stripped before they reach Claude. It still says "one specific person on
+    // the call committed to this", which is what the line was for; it no
+    // longer says who, and Claude is no longer asked to extract that.
     description: t.assigneeHint
-      ? `From transcript · mentioned: ${t.assigneeHint}`
+      ? `From transcript · committed by ${t.assigneeHint}`
       : null,
     status: "todo" as const,
     priority: t.priority ?? "medium",

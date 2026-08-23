@@ -76,3 +76,64 @@ export function cleanLine(input: string, maxLength?: number): string {
   }
   return collapsed;
 }
+
+// ───────────────────────────────────────────────────────────────────────────
+// Speaker pseudonymisation
+// ───────────────────────────────────────────────────────────────────────────
+
+/**
+ * Replace speaker names in a transcript with stable labels.
+ *
+ * Meeting transcripts are the highest-risk data this platform holds: verbatim
+ * speech, attributed by name, of people who never signed up for anything — a
+ * client's staff, a supplier on the call, whoever was in the room. Nest sends
+ * them to Anthropic to write carousels and to Voyage to embed, and prompt
+ * caching means what goes there persists.
+ *
+ * Sending them is the product; sending the NAMES is not. Nothing downstream
+ * needs to know who said a line — the model is looking for what the business
+ * decided, not who decided it. `entriesToPlainText` already writes one
+ * `Name: text` line per utterance (google-meet.ts), so the structure to strip
+ * is already there.
+ *
+ * Deterministic within a transcript: the same speaker is the same label
+ * throughout, so who-agreed-with-whom survives while the identity does not.
+ * Not deterministic ACROSS transcripts, on purpose — a stable pseudonym that
+ * followed someone between meetings would be an identifier again.
+ *
+ * Only touches the speaker position at the start of a line. Names spoken
+ * inside a sentence are not reachable by shape and are not claimed to be
+ * removed — this shrinks the exposure, it does not eliminate it.
+ */
+export function pseudonymiseSpeakers(transcript: string): string {
+  const labels = new Map<string, string>();
+  const labelFor = (name: string): string => {
+    const existing = labels.get(name);
+    if (existing) return existing;
+    const next = `Speaker ${indexToLetters(labels.size)}`;
+    labels.set(name, next);
+    return next;
+  };
+
+  return transcript
+    .split("\n")
+    .map((line) => {
+      // `Name: said something`. Bounded name length so a sentence that merely
+      // contains a colon ("the plan is this: ship on Friday") is left alone.
+      const m = /^([^:\n]{1,40}):\s(.*)$/.exec(line);
+      if (!m) return line;
+      return `${labelFor(m[1].trim())}: ${m[2]}`;
+    })
+    .join("\n");
+}
+
+/** 0 → A, 25 → Z, 26 → AA. Keeps labels short for the common case. */
+function indexToLetters(index: number): string {
+  let n = index;
+  let out = "";
+  do {
+    out = String.fromCharCode(65 + (n % 26)) + out;
+    n = Math.floor(n / 26) - 1;
+  } while (n >= 0);
+  return out;
+}

@@ -4,7 +4,14 @@ import type { User } from "@supabase/supabase-js";
 import { createClient } from "@/lib/supabase/server";
 import type { Database } from "@/types/database";
 
-type Profile = Database["public"]["Tables"]["profiles"]["Row"];
+/** What getCurrentProfile actually returns — see PROFILE_COLUMNS. */
+type Profile = Omit<
+  Database["public"]["Tables"]["profiles"]["Row"],
+  | "google_refresh_token"
+  | "google_access_token"
+  | "google_token_expires_at"
+  | "google_scopes"
+>;
 
 /**
  * The authenticated user for the current request. Wrapped in React.cache() so
@@ -21,6 +28,21 @@ export const getSessionUser = cache(async (): Promise<User | null> => {
 });
 
 /** Current user's profile row (null when unauthenticated). Cached per request. */
+/**
+ * Columns a session may read off its own profile row.
+ *
+ * Explicit rather than `*` because migration 029 revokes SELECT on the four
+ * `google_*` token columns from `authenticated` — they are service-role only,
+ * as migration 012's own comment always said they should be. A `select("*")`
+ * expands to every column and would fail outright against that grant.
+ *
+ * `google_email` stays: it is the user's own connected address, it is what the
+ * settings screen shows, and disconnecting nulls it — so it doubles as the
+ * "is Google connected" signal that used to read the refresh token.
+ */
+const PROFILE_COLUMNS =
+  "id, email, full_name, avatar_url, locale, role, google_email, created_at, updated_at";
+
 export const getCurrentProfile = cache(async (): Promise<Profile | null> => {
   const user = await getSessionUser();
   if (!user) return null;
@@ -28,7 +50,7 @@ export const getCurrentProfile = cache(async (): Promise<Profile | null> => {
   const supabase = await createClient();
   const { data } = await supabase
     .from("profiles")
-    .select("*")
+    .select(PROFILE_COLUMNS)
     .eq("id", user.id)
     .maybeSingle();
 

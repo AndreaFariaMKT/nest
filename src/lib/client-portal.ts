@@ -20,6 +20,10 @@ export const getPortalClient = cache(async (): Promise<PortalClient | null> => {
     .select("id, name, slug")
     .eq("tenant_id", tenantId)
     .eq("portal_user_id", user.id)
+    // Agrees with owns_portal_client (029). Without it an archived client
+    // would resolve here and then read nothing, which renders as an account
+    // that is signed in and permanently empty rather than one that ended.
+    .neq("status", "archived")
     .maybeSingle();
   return (data as PortalClient | null) ?? null;
 });
