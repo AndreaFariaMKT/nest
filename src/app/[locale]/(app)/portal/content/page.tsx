@@ -83,6 +83,7 @@ export default async function PortalContent({
                 piece={p}
                 clientName={client.name}
                 today={today}
+                showFull
                 href={`/portal/content#${p.id}`}
               >
                 {decidable ? (

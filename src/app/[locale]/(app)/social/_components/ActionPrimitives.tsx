@@ -2,7 +2,6 @@
 
 import { useActionState, useEffect } from "react";
 import { useTranslations } from "next-intl";
-import { useRouter } from "next/navigation";
 
 import { Button } from "@/components/ui/Button";
 import { cn } from "@/lib/utils";
@@ -55,24 +54,35 @@ export function Refusal({ error }: { error?: string }) {
 }
 
 /**
- * Every form in the module does the same three things: run a server action,
- * refresh the route when it succeeds, and show the refusal when it does not.
- * This was written out nine times before it was a hook.
+ * Every form in the module does the same two things: run a server action, and
+ * show the refusal when it does not succeed.
+ *
+ * It used to do a third — call `router.refresh()` on success — and that was
+ * redundant. A server action that called `revalidatePath` already returns a
+ * freshly rendered tree for the CURRENT route in its own response (Next sets
+ * `skipFlight: !pathWasRevalidated`), and the client applies it and wipes its
+ * router cache in the same step. Every action dispatched here revalidates —
+ * tests/unit/social-actions-revalidate.test.ts holds that — so the refresh
+ * fetched an identical tree a second time: another auth hop in middleware,
+ * another full layout render, another listPieces() over the whole tenant, and
+ * another copy of the message catalogue.
+ *
+ * It also fired from an effect outside the transition, so the buttons
+ * re-enabled and the page looked settled before the second payload repainted
+ * it. That was the flicker.
  */
 export function useRefreshingAction(
   action: (prev: Result, formData: FormData) => Promise<Result>,
   onSuccess?: () => void,
 ) {
   const [state, dispatch, pending] = useActionState(action, initialResult);
-  const router = useRouter();
 
   useEffect(() => {
     if (!state.ok) return;
     onSuccess?.();
-    router.refresh();
     // onSuccess is a fresh closure each render; re-running on it would loop.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [state, router]);
+  }, [state]);
 
   return { state, dispatch, pending } as const;
 }

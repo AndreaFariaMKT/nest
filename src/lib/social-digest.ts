@@ -71,15 +71,21 @@ export function digestBody(
   digest: Digest,
   t: (key: string, values?: Record<string, number>) => string,
 ): string {
+  // Singular and plural are separate keys, chosen here, because the digest's
+  // translator is a plain {name} interpolator — it does not parse ICU, so an
+  // ICU plural written in the dictionary would reach the client as literal
+  // syntax. And n === 1 is the COMMON case in a piece-by-piece pipeline: the
+  // strings used to read "1 vencem hoje", which is broken Portuguese in the
+  // one message a client receives every working day.
+  const pick = (base: string, n: number) => `${base}${n === 1 ? "One" : "Other"}`;
+
   const parts: string[] = [];
-  if (digest.arrived.length) {
-    parts.push(t("arrived", { n: digest.arrived.length }));
-  }
-  if (digest.dueToday.length) {
-    parts.push(t("dueToday", { n: digest.dueToday.length }));
-  }
-  if (digest.overdue.length) {
-    parts.push(t("overdue", { n: digest.overdue.length }));
+  for (const [base, list] of [
+    ["arrived", digest.arrived],
+    ["dueToday", digest.dueToday],
+    ["overdue", digest.overdue],
+  ] as const) {
+    if (list.length) parts.push(t(pick(base, list.length), { n: list.length }));
   }
   return parts.join(" · ");
 }

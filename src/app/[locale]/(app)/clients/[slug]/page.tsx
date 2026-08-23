@@ -69,40 +69,102 @@ export default async function ClientDetailPage({
   if (!data) notFound();
   const client = data as Client;
 
-  const { data: kitData } = await supabase
-    .from("brand_kits")
-    .select("palette, typography")
-    .eq("client_id", client.id)
-    .maybeSingle();
-  const kit = (kitData ?? null) as BrandKitPreview | null;
-
+  // isOwner() is React.cache()-wrapped, so this costs nothing beyond the
+  // profile read the layout already did.
   const ownerView = await isOwner();
-  let contracts: ContractPreview[] = [];
-  let mrrCents = 0;
-  if (ownerView) {
-    const { data: contractData } = await supabase
-      .from("contracts")
-      .select("id, title, monthly_value_cents, starts_on, ends_on, auto_renew")
-      .eq("client_id", client.id)
-      .order("starts_on", { ascending: false });
-    contracts = (contractData ?? []) as ContractPreview[];
-    const today = new Date().toISOString().slice(0, 10);
-    mrrCents = sumCents(
-      contracts
-        .filter(
-          (c) => c.starts_on <= today && (!c.ends_on || c.ends_on >= today),
-        )
-        .map((c) => c.monthly_value_cents),
-    );
-  }
 
-  const { data: csData } = await supabase
-    .from("client_services")
-    .select(
-      "service_id, started_on, ended_on, services(id, name, default_monthly_cents)",
-    )
-    .eq("client_id", client.id)
-    .is("ended_on", null);
+  const nowIsoForClient = new Date().toISOString();
+  const todayIsoForClient = new Date().toISOString().slice(0, 10);
+  const { year: cycleYear, month: cycleMonth } = currentYearMonth();
+
+  // One wave, not nine. Every read below is keyed on `client.id` and none
+  // consumes another's result, but they used to run strictly one after the
+  // other — so opening a client cost nine sequential round trips to the
+  // database before the page could render. The three owner-only ones stay
+  // gated, so a non-owner issues no query rather than one RLS would refuse.
+  const [
+    kitRes,
+    contractRes,
+    csRes,
+    catalogRes,
+    upcomingRes,
+    pastRes,
+    memberRes,
+    staffRes,
+    cycleRes,
+  ] = await Promise.all([
+    supabase
+      .from("brand_kits")
+      .select("palette, typography")
+      .eq("client_id", client.id)
+      .maybeSingle(),
+    ownerView
+      ? supabase
+          .from("contracts")
+          .select("id, title, monthly_value_cents, starts_on, ends_on, auto_renew")
+          .eq("client_id", client.id)
+          .order("starts_on", { ascending: false })
+      : null,
+    supabase
+      .from("client_services")
+      .select(
+        "service_id, started_on, ended_on, services(id, name, default_monthly_cents)",
+      )
+      .eq("client_id", client.id)
+      .is("ended_on", null),
+    supabase
+      .from("services")
+      .select("id, name")
+      .order("name", { ascending: true }),
+    supabase
+      .from("meetings")
+      .select("id, title, starts_at, status")
+      .eq("client_id", client.id)
+      .gte("starts_at", nowIsoForClient)
+      .neq("status", "cancelled")
+      .order("starts_at", { ascending: true })
+      .limit(3),
+    supabase
+      .from("meetings")
+      .select("id, title, starts_at, status")
+      .eq("client_id", client.id)
+      .lt("starts_at", nowIsoForClient)
+      .order("starts_at", { ascending: false })
+      .limit(3),
+    ownerView
+      ? supabase
+          .from("client_members")
+          .select("user_id, profiles!inner(full_name, email)")
+          .eq("client_id", client.id)
+      : null,
+    ownerView
+      ? supabase
+          .from("profiles")
+          .select("id, full_name, email")
+          .eq("role", "staff")
+          .order("full_name", { ascending: true })
+      : null,
+    supabase
+      .from("cycles")
+      .select("year, month, starts_on, ends_on")
+      .eq("client_id", client.id)
+      .eq("year", cycleYear)
+      .eq("month", cycleMonth)
+      .maybeSingle(),
+  ]);
+
+  const kit = (kitRes.data ?? null) as BrandKitPreview | null;
+
+  const contracts = (contractRes?.data ?? []) as ContractPreview[];
+  const mrrCents = sumCents(
+    contracts
+      .filter(
+        (c) =>
+          c.starts_on <= todayIsoForClient &&
+          (!c.ends_on || c.ends_on >= todayIsoForClient),
+      )
+      .map((c) => c.monthly_value_cents),
+  );
 
   type CsRow = {
     service_id: string;
@@ -121,7 +183,7 @@ export default async function ClientDetailPage({
         }>;
   };
   const activeServices: ActiveAssignment[] = (
-    (csData ?? []) as unknown as CsRow[]
+    (csRes.data ?? []) as unknown as CsRow[]
   )
     .map((r) => {
       const svc = Array.isArray(r.services) ? r.services[0] : r.services;
@@ -135,85 +197,47 @@ export default async function ClientDetailPage({
     })
     .filter((x): x is ActiveAssignment => x !== null);
 
-  const { data: catalogData } = await supabase
-    .from("services")
-    .select("id, name")
-    .order("name", { ascending: true });
-  const catalog: CatalogService[] = (catalogData ?? []) as CatalogService[];
+  const catalog: CatalogService[] = (catalogRes.data ?? []) as CatalogService[];
 
   // Upcoming + recent meetings for this client — small overview card.
   type ClientMeetingRow = Pick<
     Database["public"]["Tables"]["meetings"]["Row"],
     "id" | "title" | "starts_at" | "status"
   >;
-  const nowIsoForClient = new Date().toISOString();
-  const { data: upcomingMeetingsData } = await supabase
-    .from("meetings")
-    .select("id, title, starts_at, status")
-    .eq("client_id", client.id)
-    .gte("starts_at", nowIsoForClient)
-    .neq("status", "cancelled")
-    .order("starts_at", { ascending: true })
-    .limit(3);
-  const upcomingMeetings = (upcomingMeetingsData ?? []) as ClientMeetingRow[];
-  const { data: pastMeetingsData } = await supabase
-    .from("meetings")
-    .select("id, title, starts_at, status")
-    .eq("client_id", client.id)
-    .lt("starts_at", nowIsoForClient)
-    .order("starts_at", { ascending: false })
-    .limit(3);
-  const pastMeetings = (pastMeetingsData ?? []) as ClientMeetingRow[];
+  const upcomingMeetings = (upcomingRes.data ?? []) as ClientMeetingRow[];
+  const pastMeetings = (pastRes.data ?? []) as ClientMeetingRow[];
 
   // Client members (staff assigned to this client). Owner-only.
-  let assignedMembers: AssignedMember[] = [];
-  let memberCandidates: MemberChoice[] = [];
-  if (ownerView) {
-    type MembRow = {
-      user_id: string;
-      profiles:
-        | { full_name: string | null; email: string }
-        | Array<{ full_name: string | null; email: string }>
-        | null;
-    };
-    const { data: memberRows } = await supabase
-      .from("client_members")
-      .select("user_id, profiles!inner(full_name, email)")
-      .eq("client_id", client.id);
-    assignedMembers = ((memberRows ?? []) as unknown as MembRow[])
-      .map((row) => {
-        const p = Array.isArray(row.profiles) ? row.profiles[0] : row.profiles;
-        if (!p) return null;
-        return {
-          userId: row.user_id,
-          label: p.full_name ?? p.email,
-          email: p.email,
-        };
-      })
-      .filter((x): x is AssignedMember => x !== null);
+  type MembRow = {
+    user_id: string;
+    profiles:
+      | { full_name: string | null; email: string }
+      | Array<{ full_name: string | null; email: string }>
+      | null;
+  };
+  const assignedMembers: AssignedMember[] = (
+    (memberRes?.data ?? []) as unknown as MembRow[]
+  )
+    .map((row) => {
+      const p = Array.isArray(row.profiles) ? row.profiles[0] : row.profiles;
+      if (!p) return null;
+      return {
+        userId: row.user_id,
+        label: p.full_name ?? p.email,
+        email: p.email,
+      };
+    })
+    .filter((x): x is AssignedMember => x !== null);
 
-    const { data: staffData } = await supabase
-      .from("profiles")
-      .select("id, full_name, email")
-      .eq("role", "staff")
-      .order("full_name", { ascending: true });
-    memberCandidates = (staffData ?? []).map((p) => ({
-      id: p.id,
-      label: p.full_name ?? p.email,
-    }));
-  }
+  const memberCandidates: MemberChoice[] = (staffRes?.data ?? []).map((p) => ({
+    id: p.id,
+    label: p.full_name ?? p.email,
+  }));
 
   // Current cycle (created by the monthly cron; fall back to computed bounds
   // if the cron hasn't run yet for this month)
-  const { year: cycleYear, month: cycleMonth } = currentYearMonth();
   const fallback = cycleBounds(cycleYear, cycleMonth);
-  const { data: cycleRow } = await supabase
-    .from("cycles")
-    .select("year, month, starts_on, ends_on")
-    .eq("client_id", client.id)
-    .eq("year", cycleYear)
-    .eq("month", cycleMonth)
-    .maybeSingle();
+  const cycleRow = cycleRes.data;
   const currentCycle = {
     year: cycleRow?.year ?? cycleYear,
     month: cycleRow?.month ?? cycleMonth,

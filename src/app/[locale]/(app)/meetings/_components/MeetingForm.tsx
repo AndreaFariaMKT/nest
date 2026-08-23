@@ -49,7 +49,7 @@ export function MeetingForm({
   submitLabel: string;
 }) {
   const t = useTranslations("meetings");
-  const [state, formAction] = useActionState<MeetingFormState, FormData>(
+  const [state, formAction, isPending] = useActionState<MeetingFormState, FormData>(
     action,
     {},
   );
@@ -253,9 +253,12 @@ export function MeetingForm({
       ) : null}
 
       <div className="flex items-center justify-end">
+        {/* This was the one submit in the app with no pending state, so a
+            double-click fired the action twice — creating two meetings. */}
         <button
           type="submit"
-          className="inline-flex h-10 items-center rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground hover:bg-primary/90"
+          disabled={isPending}
+          className="inline-flex h-10 items-center rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground hover:bg-primary/90 disabled:opacity-60"
           data-testid="meeting-submit"
         >
           {submitLabel}

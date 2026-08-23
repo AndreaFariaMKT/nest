@@ -1253,7 +1253,10 @@
         "cycle": "Any observation about this cycle?",
         "send": "Send",
         "sent": "Sent to coordination"
-      }
+      },
+      "finalText": "The caption as it will be published",
+      "openArtwork": "Open the artwork",
+      "noArtworkYet": "The artwork is not attached yet. Do not approve without seeing it — tell us in the chat."
     },
     "moduleCard": {
       "title": "Social media",
@@ -1301,9 +1304,12 @@
     },
     "digest": {
       "title": "Your fortnight",
-      "arrived": "{n} new for your read",
-      "dueToday": "{n} due today",
-      "overdue": "{n} past the reply date"
+      "arrivedOne": "{n} new for your read",
+      "arrivedOther": "{n} new for your read",
+      "dueTodayOne": "{n} due today",
+      "dueTodayOther": "{n} due today",
+      "overdueOne": "{n} past its reply date",
+      "overdueOther": "{n} past their reply date"
     },
     "waitingSince": "since {date}",
     "accounts": {

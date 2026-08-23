@@ -87,6 +87,20 @@ describe("what belongs in a digest", () => {
 });
 
 describe("the digest sentence", () => {
+  it("switches to the plural key past one", () => {
+    const d = buildDigest(
+      [
+        piece({ id: "a", sent_to_client_at: "2026-09-03T09:00:00.000Z" }),
+        piece({ id: "b", sent_to_client_at: "2026-09-03T10:00:00.000Z" }),
+      ],
+      TODAY,
+      "2026-09-02T00:00:00.000Z",
+    );
+    expect(digestBody(d, (k, v) => (v ? `${k}:${v.n}` : k))).toContain(
+      "arrivedOther:2",
+    );
+  });
+
   const t = (key: string, values?: Record<string, number>) =>
     values ? `${key}:${values.n}` : key;
 
@@ -96,7 +110,9 @@ describe("the digest sentence", () => {
       TODAY,
       "2026-09-02T00:00:00.000Z",
     );
-    expect(digestBody(d, t)).toBe("arrived:1 · dueToday:1");
+    // Singular keys, because n === 1 — the common case, and the one the old
+    // strings got wrong ("1 vencem hoje").
+    expect(digestBody(d, t)).toBe("arrivedOne:1 · dueTodayOne:1");
   });
 
   it("says all three when all three apply", () => {
@@ -109,9 +125,9 @@ describe("the digest sentence", () => {
       "2026-09-05T00:00:00.000Z",
     );
     const body = digestBody(d, t);
-    expect(body).toContain("arrived:1");
-    expect(body).toContain("dueToday:1");
-    expect(body).toContain("overdue:1");
+    expect(body).toContain("arrivedOne:1");
+    expect(body).toContain("dueTodayOne:1");
+    expect(body).toContain("overdueOne:1");
   });
 
   it("is empty text for an empty digest", () => {

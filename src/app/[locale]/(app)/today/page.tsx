@@ -75,65 +75,77 @@ export default async function TodayPage({
   const tenantId = await currentTenantId();
 
   const ownerView = (await getCurrentRole()) === "founder";
-  let activeClients = 0;
-  let activeServices = 0;
-  let mrrCents = 0;
-  if (ownerView) {
-    const { count } = await supabase
-      .from("clients")
-      .select("id", { count: "exact", head: true })
-      .eq("tenant_id", tenantId)
-      .eq("status", "active");
-    activeClients = count ?? 0;
-
-    const { count: serviceCount } = await supabase
-      .from("client_services")
-      .select("client_id", { count: "exact", head: true })
-      .eq("tenant_id", tenantId)
-      .is("ended_on", null);
-    activeServices = serviceCount ?? 0;
-
-    const today = new Date().toISOString().slice(0, 10);
-    const { data: contracts } = await supabase
-      .from("contracts")
-      .select("monthly_value_cents, starts_on, ends_on")
-      .eq("tenant_id", tenantId)
-      .lte("starts_on", today)
-      .or(`ends_on.is.null,ends_on.gte.${today}`);
-    mrrCents = sumCents((contracts ?? []).map((c) => c.monthly_value_cents));
-  }
-
-  // My tasks due today or earlier, still open.
-  let tasks: TodayTask[] = [];
-  if (profile) {
-    const { data } = await supabase
-      .from("tasks")
-      .select("id, title, priority, status, due_at")
-      .eq("tenant_id", tenantId)
-      .eq("assignee_id", profile.id)
-      .eq("is_template", false)
-      .neq("status", "done")
-      .or(`due_at.is.null,due_at.lte.${tomorrowUtcMidnight()}`)
-      .order("due_at", { ascending: true, nullsFirst: false })
-      .limit(10);
-    tasks = (data ?? []) as TodayTask[];
-  }
-
-  // Meetings starting between now and the end of tomorrow (local-ish window
-  // via UTC midnight cutoff — good enough for the Today panel).
+  const today = new Date().toISOString().slice(0, 10);
   const nowIso = new Date().toISOString();
-  const { data: meetingsData } = await supabase
-    .from("meetings")
-    .select(
-      "id, title, starts_at, status, google_meet_url, client:clients(name)",
-    )
-    .eq("tenant_id", tenantId)
-    .gte("starts_at", nowIso)
-    .lt("starts_at", dayAfterTomorrowUtcMidnight())
-    .neq("status", "cancelled")
-    .order("starts_at", { ascending: true })
-    .limit(8);
-  const meetings = (meetingsData ?? []) as unknown as TodayMeeting[];
+
+  // One wave, not five. These five reads are independent — none consumes
+  // another's result — and they used to run strictly one after the other, so
+  // the page cost five sequential round trips to the database before it could
+  // render anything. The owner-only ones stay gated: a non-owner issues no
+  // query at all rather than one RLS would refuse.
+  const [
+    clientCount,
+    serviceCount,
+    contractRows,
+    taskRows,
+    meetingsData,
+  ] = await Promise.all([
+    ownerView
+      ? supabase
+          .from("clients")
+          .select("id", { count: "exact", head: true })
+          .eq("tenant_id", tenantId)
+          .eq("status", "active")
+      : null,
+    ownerView
+      ? supabase
+          .from("client_services")
+          .select("client_id", { count: "exact", head: true })
+          .eq("tenant_id", tenantId)
+          .is("ended_on", null)
+      : null,
+    ownerView
+      ? supabase
+          .from("contracts")
+          .select("monthly_value_cents, starts_on, ends_on")
+          .eq("tenant_id", tenantId)
+          .lte("starts_on", today)
+          .or(`ends_on.is.null,ends_on.gte.${today}`)
+      : null,
+    profile
+      ? supabase
+          .from("tasks")
+          .select("id, title, priority, status, due_at")
+          .eq("tenant_id", tenantId)
+          .eq("assignee_id", profile.id)
+          .eq("is_template", false)
+          .neq("status", "done")
+          .or(`due_at.is.null,due_at.lte.${tomorrowUtcMidnight()}`)
+          .order("due_at", { ascending: true, nullsFirst: false })
+          .limit(10)
+      : null,
+    // Meetings starting between now and the end of tomorrow (local-ish window
+    // via UTC midnight cutoff — good enough for the Today panel).
+    supabase
+      .from("meetings")
+      .select(
+        "id, title, starts_at, status, google_meet_url, client:clients(name)",
+      )
+      .eq("tenant_id", tenantId)
+      .gte("starts_at", nowIso)
+      .lt("starts_at", dayAfterTomorrowUtcMidnight())
+      .neq("status", "cancelled")
+      .order("starts_at", { ascending: true })
+      .limit(8),
+  ]);
+
+  const activeClients = clientCount?.count ?? 0;
+  const activeServices = serviceCount?.count ?? 0;
+  const mrrCents = sumCents(
+    (contractRows?.data ?? []).map((c) => c.monthly_value_cents),
+  );
+  const tasks = (taskRows?.data ?? []) as TodayTask[];
+  const meetings = (meetingsData?.data ?? []) as unknown as TodayMeeting[];
 
   return (
     <div className="">

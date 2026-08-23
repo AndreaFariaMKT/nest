@@ -18,34 +18,42 @@ export default async function AppLayout({
   const { locale } = await params;
   setRequestLocale(locale);
 
-  const [user, tenant, profile, role, actualRole, viewRole] = await Promise.all([
-    getSessionUser(),
-    getCurrentTenant(),
-    getCurrentProfile(),
-    getCurrentRole(),
-    getActualRole(),
-    getViewRole(),
-  ]);
-
+  // The session first, alone, because everything below needs the user id.
+  // Redirecting here rather than after the second wave also means an
+  // unauthenticated request stops before issuing any query at all.
+  const user = await getSessionUser();
   if (!user) {
     redirect({ href: "/login", locale: locale as "pt-BR" | "en" });
     return null;
   }
 
   const supabase = await createClient();
-  const [list, unread] = await Promise.all([
-    supabase
-      .from("notifications")
-      .select("id, type, title, body, link, read_at, created_at")
-      .eq("user_id", user.id)
-      .order("created_at", { ascending: false })
-      .limit(10),
-    supabase
-      .from("notifications")
-      .select("id", { count: "exact", head: true })
-      .eq("user_id", user.id)
-      .is("read_at", null),
-  ]);
+
+  // One wave, not two. The notifications only need `user.id`, which the line
+  // above already resolved — they used to wait for the tenant/profile/role
+  // reads to finish first, for no reason. The five helpers are all
+  // React.cache()-wrapped, so the layout, Sidebar and every screen below share
+  // one result each.
+  const [tenant, profile, role, actualRole, viewRole, list, unread] =
+    await Promise.all([
+      getCurrentTenant(),
+      getCurrentProfile(),
+      getCurrentRole(),
+      getActualRole(),
+      getViewRole(),
+      supabase
+        .from("notifications")
+        .select("id, type, title, body, link, read_at, created_at")
+        .eq("user_id", user.id)
+        .order("created_at", { ascending: false })
+        .limit(10),
+      supabase
+        .from("notifications")
+        .select("id", { count: "exact", head: true })
+        .eq("user_id", user.id)
+        .is("read_at", null),
+    ]);
+
   const notifications = (list.data ?? []) as NotificationItem[];
   const unreadCount = unread.count ?? 0;
   const collapsed = (await cookies()).get("nest-sidebar")?.value === "1";

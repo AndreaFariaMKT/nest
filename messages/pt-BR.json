@@ -1253,7 +1253,10 @@
         "cycle": "Alguma observação sobre este ciclo?",
         "send": "Enviar",
         "sent": "Enviado à coordenação"
-      }
+      },
+      "finalText": "O texto como vai ser publicado",
+      "openArtwork": "Ver o criativo",
+      "noArtworkYet": "O criativo ainda não foi anexado. Não aprove sem ver — avise a gente no chat."
     },
     "moduleCard": {
       "title": "Social media",
@@ -1301,9 +1304,12 @@
     },
     "digest": {
       "title": "Sua quinzena",
-      "arrived": "{n} novas para sua leitura",
-      "dueToday": "{n} vencem hoje",
-      "overdue": "{n} passaram da data de resposta"
+      "arrivedOne": "{n} nova para sua leitura",
+      "arrivedOther": "{n} novas para sua leitura",
+      "dueTodayOne": "{n} vence hoje",
+      "dueTodayOther": "{n} vencem hoje",
+      "overdueOne": "{n} passou da data de resposta",
+      "overdueOther": "{n} passaram da data de resposta"
     },
     "waitingSince": "desde {date}",
     "accounts": {
