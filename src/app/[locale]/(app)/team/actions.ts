@@ -1,9 +1,9 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { createAdminClient } from "@/lib/supabase/admin";
 
 import { log } from "@/lib/log";
-import { createClient as createServiceClient } from "@supabase/supabase-js";
 import { isOwner } from "@/lib/auth";
 
 export type InviteMemberState = {
@@ -30,11 +30,7 @@ export async function inviteMemberAction(
     return { fieldErrors: { email: "invalid" } };
   }
 
-  const admin = createServiceClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!,
-    { auth: { persistSession: false } },
-  );
+  const admin = createAdminClient();
 
   const { error } = await admin.auth.admin.inviteUserByEmail(email, {
     data: fullName ? { full_name: fullName } : undefined,

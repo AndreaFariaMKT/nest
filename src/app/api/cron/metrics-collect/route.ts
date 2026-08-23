@@ -1,7 +1,7 @@
 import { NextResponse, type NextRequest } from "next/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 
 import { checkCronAuth } from "@/lib/cron-auth";
-import { createClient as createAdminSupabase } from "@supabase/supabase-js";
 import {
   fetchPostMetrics,
   InstagramApiError,
@@ -37,8 +37,7 @@ export const maxDuration = 60;
 const BATCH_SIZE = 50;
 const LOOKBACK_DAYS = 90;
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-type AnyAdmin = any;
+type Admin = ReturnType<typeof createAdminClient>;
 
 async function handler(request: NextRequest) {
   const ip = ipFromHeaders(request.headers);
@@ -74,11 +73,7 @@ async function handler(request: NextRequest) {
   }
   const creds = credsResult.creds;
 
-  const admin: AnyAdmin = createAdminSupabase(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!,
-    { auth: { persistSession: false } },
-  );
+  const admin: Admin = createAdminClient();
 
   const lookbackIso = new Date(
     Date.now() - LOOKBACK_DAYS * 24 * 60 * 60 * 1000,

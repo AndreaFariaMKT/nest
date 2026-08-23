@@ -1,7 +1,7 @@
 import { NextResponse, type NextRequest } from "next/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 
 import { checkCronAuth } from "@/lib/cron-auth";
-import { createClient } from "@supabase/supabase-js";
 import {
   publishCarousel,
   readCredentials,
@@ -71,11 +71,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "missing_draft_id" }, { status: 400 });
   }
 
-  const admin = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!,
-    { auth: { persistSession: false } },
-  );
+  const admin = createAdminClient();
 
   type SlideRow = {
     position: number;

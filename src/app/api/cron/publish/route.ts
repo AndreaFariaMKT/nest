@@ -1,7 +1,8 @@
 import { NextResponse, type NextRequest } from "next/server";
+import { createAdminClient } from "@/lib/supabase/admin";
+import type { Database } from "@/types/database.gen";
 
 import { checkCronAuth } from "@/lib/cron-auth";
-import { createClient } from "@supabase/supabase-js";
 import {
   publishCarousel,
   readCredentials,
@@ -21,6 +22,8 @@ import { log } from "@/lib/log";
 import { checkRateLimit, ipFromHeaders } from "@/lib/rate-limit";
 
 export const dynamic = "force-dynamic";
+
+type Admin = ReturnType<typeof createAdminClient>;
 
 /**
  * Cron endpoint — processes due `scheduled_posts`.
@@ -152,11 +155,7 @@ async function handler(request: NextRequest) {
   const liCreds = liCredsResult.ok ? liCredsResult.creds : null;
   const ttCreds = ttCredsResult.ok ? ttCredsResult.creds : null;
 
-  const admin = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!,
-    { auth: { persistSession: false } },
-  );
+  const admin = createAdminClient();
 
   const publishClientId = process.env.PUBLISH_ENABLED_CLIENT_ID ?? null;
 
@@ -385,9 +384,9 @@ async function handler(request: NextRequest) {
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-async function bumpFailure(admin: any, row: ScheduledRow, reason: string) {
+async function bumpFailure(admin: Admin, row: ScheduledRow, reason: string) {
   const nextAttempt = row.attempt_count + 1;
-  const patch: Record<string, unknown> = {
+  const patch: Database["public"]["Tables"]["scheduled_posts"]["Update"] = {
     attempt_count: nextAttempt,
     last_error: reason.slice(0, 2000),
   };

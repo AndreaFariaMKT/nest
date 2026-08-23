@@ -15,15 +15,16 @@ export const getPortalClient = cache(async (): Promise<PortalClient | null> => {
   if (!user) return null;
   const tenantId = await currentTenantId();
   const supabase = await createClient();
+  // The view, not the table (031). A portal login has no direct grant on
+  // `clients` any more, because a row-level grant is a whole-row grant and
+  // that row carries the studio's private notes and the portal bearer token.
   const { data } = await supabase
-    .from("clients")
+    .from("portal_client")
     .select("id, name, slug")
     .eq("tenant_id", tenantId)
-    .eq("portal_user_id", user.id)
-    // Agrees with owns_portal_client (029). Without it an archived client
-    // would resolve here and then read nothing, which renders as an account
-    // that is signed in and permanently empty rather than one that ended.
-    .neq("status", "archived")
+    // The view already scopes to auth.uid() and excludes archived clients —
+    // the same predicate owns_portal_client uses, so the two agree by
+    // construction rather than by two people remembering to.
     .maybeSingle();
   return (data as PortalClient | null) ?? null;
 });

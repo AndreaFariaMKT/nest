@@ -1,7 +1,8 @@
 import { NextResponse, type NextRequest } from "next/server";
+import { createAdminClient } from "@/lib/supabase/admin";
+import type { Database } from "@/types/database.gen";
 
 import { checkCronAuth } from "@/lib/cron-auth";
-import { createClient } from "@supabase/supabase-js";
 import { currentYearMonth, cycleBounds } from "@/lib/cycles";
 import { checkRateLimit, ipFromHeaders } from "@/lib/rate-limit";
 
@@ -35,11 +36,7 @@ async function handler(request: NextRequest) {
     return NextResponse.json({ error: "unauthorized" }, { status: 401 });
   }
 
-  const supabase = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!,
-    { auth: { persistSession: false } },
-  );
+  const supabase = createAdminClient();
 
   const { year, month } = currentYearMonth();
   const bounds = cycleBounds(year, month);
@@ -96,7 +93,7 @@ async function handler(request: NextRequest) {
     const templates = templatesData ?? [];
 
     if (templates.length > 0) {
-      const clones: Record<string, unknown>[] = [];
+      const clones: Database["public"]["Tables"]["tasks"]["Insert"][] = [];
       for (const cycle of newCycles) {
         for (const tpl of templates) {
           if (tpl.client_id !== null && tpl.client_id !== cycle.client_id) {

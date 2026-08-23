@@ -11,6 +11,9 @@
 // `profiles`. All write paths must use service-role for the persistence step
 // because `profiles.google_*` columns are server-managed.
 
+import type { SupabaseClient } from "@supabase/supabase-js";
+import type { Database } from "@/types/database.gen";
+
 import {
   GoogleApiError,
   isAccessTokenStale,
@@ -33,16 +36,12 @@ export type ProfileGoogleSlice = {
 };
 
 // Loose structural type — matches the bits of @supabase/supabase-js we use
-// without dragging the full SupabaseClient generic into this file. The
-// Supabase chain is a thenable (PromiseLike), not a true Promise, so we
-// declare `then` instead of returning `Promise<...>`.
-export type SupabaseAdminLike = {
-  from: (table: string) => {
-    update: (values: Record<string, unknown>) => {
-      eq: (column: string, value: unknown) => PromiseLike<unknown>;
-    };
-  };
-};
+// Narrowed to the one method this file calls, rather than described
+// structurally. The hand-written shape used to keep the Supabase generics out
+// of here — but once createAdminClient() carried <Database>, checking a real
+// client against that shape sent tsc into "type instantiation is excessively
+// deep". A Pick off the real type is both narrower in intent and cheaper.
+export type SupabaseAdminLike = Pick<SupabaseClient<Database>, "from">;
 
 /**
  * Returns a usable access token. Refreshes via the refresh token when the

@@ -1,18 +1,15 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { createAdminClient } from "@/lib/supabase/admin";
+import type { Database } from "@/types/database.gen";
 import { redirect } from "next/navigation";
-import { createClient as createServiceClient } from "@supabase/supabase-js";
 import { notifyUser } from "@/lib/notifications";
 import { checkRateLimit } from "@/lib/rate-limit";
 import { cleanText } from "@/lib/sanitize";
 
 function admin() {
-  return createServiceClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!,
-    { auth: { persistSession: false } },
-  );
+  return createAdminClient();
 }
 
 async function persistResponse(
@@ -38,7 +35,7 @@ async function persistResponse(
     return;
   }
 
-  const patch: Record<string, unknown> =
+  const patch: Database["public"]["Tables"]["approvals"]["Update"] =
     decision === "approve"
       ? { approved_at: new Date().toISOString() }
       : { rejected_at: new Date().toISOString() };

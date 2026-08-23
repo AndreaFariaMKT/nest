@@ -1,18 +1,14 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { createClient as createAdminSupabase } from "@supabase/supabase-js";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { getCurrentProfile } from "@/lib/auth";
 
 export async function disconnectGoogleAction(): Promise<void> {
   const profile = await getCurrentProfile();
   if (!profile) return;
 
-  const admin = createAdminSupabase(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!,
-    { auth: { persistSession: false } },
-  );
+  const admin = createAdminClient();
   await admin
     .from("profiles")
     .update({

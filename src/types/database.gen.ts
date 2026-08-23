@@ -1,11 +1,3 @@
-// NOTE — hand-edited: `clients.social_digest_at` (migration 024) and
-// `content_drafts.engine` (026) and the `social_month_kpis` (027) and `stale_metrics_posts` (028) functions, and
-// `clients.portal_token_expires_at` (030),
-// were added by hand. Those migrations are written but not yet applied. The digest cron already
-// reads and writes that column, so without this the file describes a schema
-// the code does not target. Run `npx supabase gen types typescript
-// --project-id <id> > src/types/database.gen.ts` once 023/024/025 are applied
-// and this note goes away with the regeneration.
 export type Json =
   | string
   | number
@@ -409,7 +401,6 @@ export type Database = {
           legal_name: string | null
           name: string
           notes: string | null
-          social_digest_at: string | null
           portal_token: string | null
           portal_token_expires_at: string | null
           portal_user_id: string | null
@@ -429,7 +420,6 @@ export type Database = {
           legal_name?: string | null
           name: string
           notes?: string | null
-          social_digest_at?: string | null
           portal_token?: string | null
           portal_token_expires_at?: string | null
           portal_user_id?: string | null
@@ -449,7 +439,6 @@ export type Database = {
           legal_name?: string | null
           name?: string
           notes?: string | null
-          social_digest_at?: string | null
           portal_token?: string | null
           portal_token_expires_at?: string | null
           portal_user_id?: string | null
@@ -493,9 +482,9 @@ export type Database = {
           created_by: string | null
           design_feedback: string | null
           design_state: Database["public"]["Enums"]["design_state"]
-          engine: string
           direction_ok: boolean
           embedding: string | null
+          engine: string
           hashtags: string[] | null
           hook: string | null
           id: string
@@ -536,9 +525,9 @@ export type Database = {
           created_by?: string | null
           design_feedback?: string | null
           design_state?: Database["public"]["Enums"]["design_state"]
-          engine?: string
           direction_ok?: boolean
           embedding?: string | null
+          engine?: string
           hashtags?: string[] | null
           hook?: string | null
           id?: string
@@ -579,9 +568,9 @@ export type Database = {
           created_by?: string | null
           design_feedback?: string | null
           design_state?: Database["public"]["Enums"]["design_state"]
-          engine?: string
           direction_ok?: boolean
           embedding?: string | null
+          engine?: string
           hashtags?: string[] | null
           hook?: string | null
           id?: string
@@ -616,6 +605,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "clients"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "content_drafts_client_tenant_fkey"
+            columns: ["client_id", "tenant_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id", "tenant_id"]
           },
           {
             foreignKeyName: "content_drafts_created_by_fkey"
@@ -862,6 +858,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "clients"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "media_assets_client_tenant_fkey"
+            columns: ["client_id", "tenant_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id", "tenant_id"]
           },
           {
             foreignKeyName: "media_assets_created_by_fkey"
@@ -1501,6 +1504,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "shared_logins_client_tenant_fkey"
+            columns: ["client_id", "tenant_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id", "tenant_id"]
+          },
+          {
             foreignKeyName: "shared_logins_created_by_fkey"
             columns: ["created_by"]
             isOneToOne: false
@@ -1832,26 +1842,10 @@ export type Database = {
         }[]
       }
       owns_portal_client: { Args: { target_client: string }; Returns: boolean }
-      stale_metrics_posts: {
-        Args: {
-          batch: number
-          lookback_ts: string
-          platform_name: string
-        }
-        Returns: {
-          external_id: string
-          id: string
-          last_captured_at: string | null
-          platform: string
-          published_at: string
-        }[]
-      }
+      show_limit: { Args: never; Returns: number }
+      show_trgm: { Args: { "": string }; Returns: string[] }
       social_month_kpis: {
-        Args: {
-          from_ts: string
-          target_clients: string[]
-          to_ts: string
-        }
+        Args: { from_ts: string; target_clients: string[]; to_ts: string }
         Returns: {
           captured_at: string
           comments: number
@@ -1863,8 +1857,6 @@ export type Database = {
           shares: number
         }[]
       }
-      show_limit: { Args: never; Returns: number }
-      show_trgm: { Args: { "": string }; Returns: string[] }
     }
     Enums: {
       client_status: "prospect" | "active" | "paused" | "archived"

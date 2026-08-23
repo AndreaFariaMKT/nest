@@ -1,6 +1,7 @@
 import { NextResponse, type NextRequest } from "next/server";
+import { createAdminClient } from "@/lib/supabase/admin";
+import type { Database } from "@/types/database.gen";
 import { createClient as createServerSupabase } from "@/lib/supabase/server";
-import { createClient as createAdminSupabase } from "@supabase/supabase-js";
 import {
   exchangeCode,
   expiresAtIso,
@@ -105,13 +106,9 @@ export async function GET(request: NextRequest) {
 
   // Persist on profiles. Use service-role: the user is authenticated (we
   // verified above) but `profiles.google_*` columns are server-managed.
-  const admin = createAdminSupabase(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!,
-    { auth: { persistSession: false } },
-  );
+  const admin = createAdminClient();
 
-  const update: Record<string, unknown> = {
+  const update: Database["public"]["Tables"]["profiles"]["Update"] = {
     google_access_token: tokens.accessToken,
     google_token_expires_at: expiresAtIso(tokens.expiresInSec),
     google_email: userInfo.email,

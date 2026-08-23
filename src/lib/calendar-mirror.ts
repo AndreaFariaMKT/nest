@@ -10,7 +10,7 @@
 //      mirror; the meeting's RLS policy is owner-write but service-role short-
 //      circuits it for this server-only flow.
 
-import { createClient as createAdminSupabase } from "@supabase/supabase-js";
+import { createAdminClient } from "@/lib/supabase/admin";
 import {
   createEvent,
   deleteEvent,
@@ -22,11 +22,7 @@ import { readCredentials, type GoogleOAuthCreds } from "@/lib/google";
 import { log } from "@/lib/log";
 
 function adminClient() {
-  return createAdminSupabase(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!,
-    { auth: { persistSession: false } },
-  );
+  return createAdminClient();
 }
 
 async function loadCredsAndProfile(

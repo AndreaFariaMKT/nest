@@ -21,7 +21,9 @@ export default async function PortalInvoices({
 
   const supabase = await createClient();
   const { data } = await supabase
-    .from("contracts")
+    // The view, not the table (031): contracts.notes and document_url are
+    // internal, and a row-level grant hands over the whole row.
+    .from("portal_contract")
     .select("id, title, monthly_value_cents, starts_on, ends_on")
     .eq("client_id", client.id)
     .order("starts_on", { ascending: false });

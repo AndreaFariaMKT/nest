@@ -1,7 +1,7 @@
 import { NextResponse, type NextRequest } from "next/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 
 import { checkCronAuth } from "@/lib/cron-auth";
-import { createClient as createAdminSupabase } from "@supabase/supabase-js";
 import {
   GoogleApiError,
   readCredentials as readGoogleCreds,
@@ -26,6 +26,8 @@ import { log } from "@/lib/log";
 import { checkRateLimit, ipFromHeaders } from "@/lib/rate-limit";
 
 export const dynamic = "force-dynamic";
+
+type Admin = ReturnType<typeof createAdminClient>;
 
 /**
  * Cron endpoint — pulls Meet transcripts for finished meetings, persists them,
@@ -100,11 +102,7 @@ async function handler(request: NextRequest) {
     ? googleCredsResult.creds
     : ({} as GoogleOAuthCreds);
 
-  const admin = createAdminSupabase(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!,
-    { auth: { persistSession: false } },
-  );
+  const admin = createAdminClient();
 
   const lookbackIso = new Date(
     Date.now() - LOOKBACK_DAYS * 24 * 60 * 60 * 1000,
@@ -170,7 +168,7 @@ async function processMeeting(
   meeting: MeetingCandidate,
   googleCreds: GoogleOAuthCreds,
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  admin: any,
+  admin: Admin,
 ): Promise<ProcessResult> {
   const { data: profile } = await admin
     .from("profiles")
@@ -272,7 +270,7 @@ function pickClosestConference<
 
 async function extractAndInsertTasks(params: {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  admin: any;
+  admin: Admin;
   meetingId: string;
   clientId: string | null;
   creatorId: string;

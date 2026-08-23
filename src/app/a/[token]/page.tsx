@@ -1,6 +1,6 @@
 import { notFound } from "next/navigation";
+import { createAdminClient } from "@/lib/supabase/admin";
 import Image from "next/image";
-import { createClient as createServiceClient } from "@supabase/supabase-js";
 import { approveViaTokenAction, rejectViaTokenAction } from "./actions";
 
 export const dynamic = "force-dynamic";
@@ -51,11 +51,7 @@ export default async function ApprovalPage({
   const rawLocale = (Array.isArray(sp.locale) ? sp.locale[0] : sp.locale) ?? "pt-BR";
   const locale = rawLocale.startsWith("en") ? "en" : "pt-BR";
 
-  const admin = createServiceClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!,
-    { auth: { persistSession: false } },
-  );
+  const admin = createAdminClient();
 
   const { data } = await admin
     .from("approvals")
