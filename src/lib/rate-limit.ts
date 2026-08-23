@@ -15,6 +15,31 @@ type Bucket = {
 
 const buckets = new Map<string, Bucket>();
 
+/**
+ * How often to sweep buckets that have gone quiet.
+ *
+ * The Map used to grow for the life of the process: an emptied bucket was left
+ * in place, and the key is per-IP, so it grew with every distinct caller and
+ * never shrank. Bounded in practice today — the limiter is only reachable from
+ * the cron routes and /a/[token] — but "bounded because of who happens to call
+ * it" is not a property worth relying on, and it costs eight lines not to.
+ */
+const SWEEP_EVERY_MS = 60_000;
+let lastSweep = 0;
+
+function sweep(now: number, windowMs: number): void {
+  if (now - lastSweep < SWEEP_EVERY_MS) return;
+  lastSweep = now;
+  const cutoff = now - windowMs;
+  for (const [key, bucket] of buckets) {
+    // A bucket whose newest hit is outside the window can say nothing about
+    // any future request, so it is not state — it is a leak.
+    if (bucket.hits.length === 0 || bucket.hits[bucket.hits.length - 1] < cutoff) {
+      buckets.delete(key);
+    }
+  }
+}
+
 export type RateLimitResult = {
   allowed: boolean;
   remaining: number;
@@ -36,6 +61,7 @@ export type RateLimitOptions = {
 export function checkRateLimit(opts: RateLimitOptions): RateLimitResult {
   const now = Date.now();
   const windowStart = now - opts.windowMs;
+  sweep(now, opts.windowMs);
 
   let bucket = buckets.get(opts.key);
   if (!bucket) {
@@ -75,6 +101,7 @@ export function checkRateLimit(opts: RateLimitOptions): RateLimitResult {
 /** Test-only: wipe all buckets so unit tests don't leak state. */
 export function _resetRateLimitStore(): void {
   buckets.clear();
+  lastSweep = 0;
 }
 
 /**
@@ -82,9 +109,19 @@ export function _resetRateLimitStore(): void {
  * "unknown" so the limiter still works (one shared bucket for unknown IPs).
  */
 export function ipFromHeaders(headers: Headers): string {
+  // ⚠ On Vercel this header is set by the platform, but a caller reaching the
+  // function directly controls it — so the FIRST entry is attacker-chosen and
+  // a limiter keyed on it can be sidestepped by varying the value. Vercel also
+  // sets `x-vercel-forwarded-for`, which it does not let a client forge, so
+  // that is preferred where present. Read the trustworthy one first.
+  const vercel = headers.get("x-vercel-forwarded-for");
+  if (vercel) {
+    const first = vercel.split(",")[0]?.trim();
+    if (first) return first;
+  }
   const xff = headers.get("x-forwarded-for");
   if (xff) {
-    // First entry is the original client.
+    // First entry is the original client — as reported by the caller.
     const first = xff.split(",")[0]?.trim();
     if (first) return first;
   }

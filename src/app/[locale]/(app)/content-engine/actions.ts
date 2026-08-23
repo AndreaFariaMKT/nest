@@ -6,6 +6,7 @@ import { redirect } from "next/navigation";
 import type { Route } from "next";
 import { createClient as createSupabaseClient } from "@/lib/supabase/server";
 import { currentTenantId } from "@/lib/tenant-server";
+import { log } from "@/lib/log";
 import { pseudonymiseSpeakers } from "@/lib/sanitize";
 import { getCurrentRole } from "@/lib/roles-server";
 import { canUseSocial } from "@/lib/social";
@@ -205,7 +206,10 @@ export async function generateCarouselsAction(
 
   type MeetingShape = {
     client_id: string | null;
-    client: { id: string; name: string } | Array<{ id: string; name: string }> | null;
+    client:
+      | { id: string; name: string; tenant_id: string }
+      | Array<{ id: string; name: string; tenant_id: string }>
+      | null;
   };
   type TranscriptRow = {
     id: string;
@@ -217,7 +221,7 @@ export async function generateCarouselsAction(
   const { data: transcript } = await supabase
     .from("transcripts")
     .select(
-      "id, content, language, meeting:meetings!inner(client_id, client:clients(id, name))",
+      "id, content, language, meeting:meetings!inner(client_id, client:clients(id, name, tenant_id))",
     )
     .eq("id", transcriptId)
     .maybeSingle();
@@ -301,13 +305,11 @@ export async function generateCarouselsAction(
     payload = parseDraftsPayload(result.text);
   } catch (err) {
     const msg = err instanceof DraftsParseError ? err.message : "parse failed";
-    console.error(
-      "[generate-carousels] parse error:",
-      msg,
-      "| stop_reason:", result.stopReason,
-      "| text length:", result.text.length,
-      "| tail:", result.text.slice(-300),
-    );
+    log.error("content-engine.generate-carousels", "parse_failed", {
+      reason: msg,
+      stopReason: result.stopReason,
+      textLength: result.text.length,
+    });
     return;
   }
 
@@ -321,6 +323,8 @@ export async function generateCarouselsAction(
       .insert({
         // This row belongs to the engine's workflow, not the social module's.
         engine: "content",
+        // The client's own tenant — see the note on the derived-draft inserts.
+        tenant_id: client.tenant_id,
         client_id: client.id,
         transcript_id: trow.id,
         title: draft.title,
@@ -485,6 +489,7 @@ export async function aiRewriteDraftAction(formData: FormData): Promise<void> {
   type JoinedDraft = {
     id: string;
     client_id: string;
+    tenant_id: string;
     transcript_id: string | null;
     title: string;
     pillar: string | null;
@@ -574,7 +579,7 @@ export async function aiRewriteDraftAction(formData: FormData): Promise<void> {
       maxTokens: 16_000,
     });
   } catch (err) {
-    console.error("[ai-rewrite] claude call failed", err);
+    log.error("content-engine.ai-rewrite", "claude_failed", { err });
     return;
   }
 
@@ -583,7 +588,11 @@ export async function aiRewriteDraftAction(formData: FormData): Promise<void> {
     payload = parseRewritePayload(result.text, orderedSlides.length);
   } catch (err) {
     const msg = err instanceof RewriteParseError ? err.message : "parse failed";
-    console.error("[ai-rewrite] parse error:", msg, result.text.slice(-200));
+    log.error("content-engine.ai-rewrite", "parse_failed", {
+      reason: msg,
+      stopReason: result.stopReason,
+      textLength: result.text.length,
+    });
     return;
   }
 
@@ -640,6 +649,7 @@ export async function checkComplianceAction(formData: FormData): Promise<void> {
   type JoinedDraft = {
     id: string;
     client_id: string;
+    tenant_id: string;
     transcript_id: string | null;
     title: string;
     pillar: string | null;
@@ -701,7 +711,7 @@ export async function checkComplianceAction(formData: FormData): Promise<void> {
       maxTokens: 8_000,
     });
   } catch (err) {
-    console.error("[compliance] Claude call failed", err);
+    log.error("content-engine.compliance", "claude_failed", { err });
     return;
   }
 
@@ -711,7 +721,11 @@ export async function checkComplianceAction(formData: FormData): Promise<void> {
   } catch (err) {
     const msg =
       err instanceof ComplianceParseError ? err.message : "parse failed";
-    console.error("[compliance] parse error:", msg, result.text.slice(-300));
+    log.error("content-engine.compliance", "parse_failed", {
+      reason: msg,
+      stopReason: result.stopReason,
+      textLength: result.text.length,
+    });
     return;
   }
 
@@ -755,6 +769,7 @@ export async function adaptDraftAction(formData: FormData): Promise<void> {
   type JoinedDraft = {
     id: string;
     client_id: string;
+    tenant_id: string;
     transcript_id: string | null;
     title: string;
     pillar: string | null;
@@ -775,7 +790,7 @@ export async function adaptDraftAction(formData: FormData): Promise<void> {
   const { data } = await supabase
     .from("content_drafts")
     .select(
-      `id, client_id, transcript_id, title, pillar, hook, caption, hashtags,
+      `id, client_id, tenant_id, transcript_id, title, pillar, hook, caption, hashtags,
        slides(position, headline, body),
        transcript:transcripts(language)`,
     )
@@ -843,7 +858,7 @@ export async function adaptDraftAction(formData: FormData): Promise<void> {
       maxTokens: 16_000,
     });
   } catch (err) {
-    console.error("[adapt-draft] claude call failed", err);
+    log.error("content-engine.adapt-draft", "claude_failed", { err });
     return;
   }
 
@@ -852,7 +867,11 @@ export async function adaptDraftAction(formData: FormData): Promise<void> {
     payload = parseAdaptPayload(result.text, orderedSlides.length);
   } catch (err) {
     const msg = err instanceof AdaptParseError ? err.message : "parse failed";
-    console.error("[adapt-draft] parse error:", msg, result.text.slice(-300));
+    log.error("content-engine.adapt-draft", "parse_failed", {
+      reason: msg,
+      stopReason: result.stopReason,
+      textLength: result.text.length,
+    });
     return;
   }
 
@@ -866,6 +885,11 @@ export async function adaptDraftAction(formData: FormData): Promise<void> {
     .insert({
       // This row belongs to the engine's workflow, not the social module's.
       engine: "content",
+      // From the parent draft, not from the session. tenant_id has a DEFAULT
+      // (013), so an omitted value silently filed the row under the AFM
+      // tenant; and a session-derived value would be wrong for a founder who
+      // is a member of both. A derived draft belongs where its parent does.
+      tenant_id: draft.tenant_id,
       client_id: draft.client_id,
       transcript_id: draft.transcript_id,
       title: payload.title,
@@ -937,6 +961,7 @@ export async function generateStoriesAction(
   type JoinedDraft = {
     id: string;
     client_id: string;
+    tenant_id: string;
     transcript_id: string | null;
     title: string;
     pillar: string | null;
@@ -957,7 +982,7 @@ export async function generateStoriesAction(
   const { data } = await supabase
     .from("content_drafts")
     .select(
-      `id, client_id, transcript_id, title, pillar, hook, caption, hashtags,
+      `id, client_id, tenant_id, transcript_id, title, pillar, hook, caption, hashtags,
        slides(position, headline, body),
        transcript:transcripts(language)`,
     )
@@ -1025,7 +1050,7 @@ export async function generateStoriesAction(
       maxTokens: 8_000,
     });
   } catch (err) {
-    console.error("[story-gen] claude call failed", err);
+    log.error("content-engine.story-gen", "claude_failed", { err });
     return;
   }
 
@@ -1034,7 +1059,11 @@ export async function generateStoriesAction(
     payload = parseStoryPayload(result.text, count);
   } catch (err) {
     const msg = err instanceof StoryParseError ? err.message : "parse failed";
-    console.error("[story-gen] parse error:", msg, result.text.slice(-300));
+    log.error("content-engine.story-gen", "parse_failed", {
+      reason: msg,
+      stopReason: result.stopReason,
+      textLength: result.text.length,
+    });
     return;
   }
 
@@ -1049,6 +1078,11 @@ export async function generateStoriesAction(
     .insert({
       // This row belongs to the engine's workflow, not the social module's.
       engine: "content",
+      // From the parent draft, not from the session. tenant_id has a DEFAULT
+      // (013), so an omitted value silently filed the row under the AFM
+      // tenant; and a session-derived value would be wrong for a founder who
+      // is a member of both. A derived draft belongs where its parent does.
+      tenant_id: draft.tenant_id,
       client_id: draft.client_id,
       transcript_id: draft.transcript_id,
       title: `${draft.title} — stories`,
@@ -1118,11 +1152,11 @@ export async function uploadReelVideoAction(
   if (!draftId) return;
   if (!(file instanceof File) || file.size === 0) return;
   if (file.size > MAX_REEL_VIDEO_BYTES) {
-    console.error("[reel-video] upload too large", file.size);
+    log.error("content-engine.reel-video", "upload_too_large", { size: file.size });
     return;
   }
   if (!ALLOWED_REEL_MIME.has(file.type)) {
-    console.error("[reel-video] disallowed mime", file.type);
+    log.error("content-engine.reel-video", "disallowed_mime", { mime: file.type });
     return;
   }
 
@@ -1143,7 +1177,7 @@ export async function uploadReelVideoAction(
     .from("reel-videos")
     .upload(path, bytes, { contentType: file.type, upsert: false });
   if (uploadError) {
-    console.error("[reel-video] upload failed", uploadError);
+    log.error("content-engine.reel-video", "upload_failed", { message: uploadError.message });
     return;
   }
 
@@ -1185,6 +1219,7 @@ export async function generateReelScriptAction(
   type JoinedDraft = {
     id: string;
     client_id: string;
+    tenant_id: string;
     transcript_id: string | null;
     title: string;
     pillar: string | null;
@@ -1205,7 +1240,7 @@ export async function generateReelScriptAction(
   const { data } = await supabase
     .from("content_drafts")
     .select(
-      `id, client_id, transcript_id, title, pillar, hook, caption, hashtags,
+      `id, client_id, tenant_id, transcript_id, title, pillar, hook, caption, hashtags,
        slides(position, headline, body),
        transcript:transcripts(language)`,
     )
@@ -1273,7 +1308,7 @@ export async function generateReelScriptAction(
       maxTokens: 8_000,
     });
   } catch (err) {
-    console.error("[reel-script] claude call failed", err);
+    log.error("content-engine.reel-script", "claude_failed", { err });
     return;
   }
 
@@ -1282,7 +1317,11 @@ export async function generateReelScriptAction(
     payload = parseReelPayload(result.text);
   } catch (err) {
     const msg = err instanceof ReelParseError ? err.message : "parse failed";
-    console.error("[reel-script] parse error:", msg, result.text.slice(-300));
+    log.error("content-engine.reel-script", "parse_failed", {
+      reason: msg,
+      stopReason: result.stopReason,
+      textLength: result.text.length,
+    });
     return;
   }
 
@@ -1294,6 +1333,11 @@ export async function generateReelScriptAction(
     .insert({
       // This row belongs to the engine's workflow, not the social module's.
       engine: "content",
+      // From the parent draft, not from the session. tenant_id has a DEFAULT
+      // (013), so an omitted value silently filed the row under the AFM
+      // tenant; and a session-derived value would be wrong for a founder who
+      // is a member of both. A derived draft belongs where its parent does.
+      tenant_id: draft.tenant_id,
       client_id: draft.client_id,
       transcript_id: draft.transcript_id,
       title: payload.title,
@@ -1366,7 +1410,12 @@ export async function generateApprovalLinkAction(
     expires_at: expiresAt.toISOString(),
   });
   if (error) {
-    console.error("[approval-link] insert failed", error);
+    // Never the error object: the insert carries the approval token, and a
+    // unique violation echoes the conflicting value back in `details`. That
+    // is a live bearer credential printed into the Vercel log.
+    log.error("content-engine.approval-link", "insert_failed", {
+      code: error.code,
+    });
     return;
   }
 
@@ -1446,6 +1495,7 @@ export async function renderCreativesAction(
   type JoinedDraft = {
     id: string;
     client_id: string;
+    tenant_id: string;
     transcript_id: string | null;
     slides: Array<{
       id: string;
@@ -1505,7 +1555,7 @@ export async function renderCreativesAction(
     try {
       png = await renderSlideToPng(html);
     } catch (err) {
-      console.error("[render-creatives] render failed for slide", slide.id, err);
+      log.error("content-engine.render-creatives", "render_failed", { slideId: slide.id, err });
       continue;
     }
 
@@ -1514,7 +1564,7 @@ export async function renderCreativesAction(
       .from("creatives")
       .upload(path, png, { contentType: "image/png", upsert: true });
     if (uploadError) {
-      console.error("[render-creatives] upload failed", path, uploadError);
+      log.error("content-engine.render-creatives", "upload_failed", { path, message: uploadError.message });
       continue;
     }
 

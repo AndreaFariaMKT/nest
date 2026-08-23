@@ -8,35 +8,73 @@
 //   - `area` identifies the feature ("cron.publish", "content-engine.adapt")
 //   - `msg` is a short human-readable sentence
 //   - all other context fields are serialized as JSON
-//   - sensitive fields are redacted by name — never add new redactable fields
-//     without updating the REDACT_KEYS set
+//   - sensitive fields are redacted by name — matched as substrings, so
+//     `google_refresh_token` and `secret_enc` are covered without listing
+//     every spelling. Add a pattern, not a name.
+//   - pass the CODE, never a whole PostgrestError or GoTrue error: their
+//     `details` echo the offending value, which is how a token or part of a
+//     message body ends up in a log line.
 
 export type LogLevel = "debug" | "info" | "warn" | "error";
 
-const REDACT_KEYS = new Set([
+/**
+ * Field names whose values never reach a log line.
+ *
+ * Matched as SUBSTRINGS, not exact names. The exact-match version was
+ * technically accurate and materially incomplete for the columns this app
+ * actually moves around: `google_refresh_token` and `google_access_token` did
+ * not match bare `refresh_token` / `access_token`, and calendar-mirror and
+ * transcript-pull select exactly those names. Nor did `secret_enc`, `iv`,
+ * `senha`, `client_secret`, or any camelCase spelling of any of them.
+ */
+const REDACT_PATTERNS = [
   "token",
-  "portal_token",
-  "access_token",
-  "refresh_token",
-  "authorization",
-  "cookie",
-  "password",
   "secret",
-  "anthropic_api_key",
-  "supabase_service_role_key",
-  "meta_long_lived_token",
-]);
+  "password",
+  "senha",
+  "cookie",
+  "authorization",
+  "apikey",
+  "api_key",
+  "credential",
+  "_enc",
+  "email",
+  "phone",
+  "telefone",
+  "cpf",
+  "cnpj",
+] as const;
 
-function redact(value: unknown): unknown {
+/** Depth cap. `redact` used to recurse without one, so passing a Supabase
+ *  client or a Request as context overflowed the stack inside the logger —
+ *  turning a log line into the thing that took the request down. */
+const MAX_DEPTH = 6;
+
+function isSensitive(key: string): boolean {
+  const k = key.toLowerCase().replace(/[^a-z_]/g, "");
+  return REDACT_PATTERNS.some((p) => k.includes(p));
+}
+
+/** Exported for tests. Callers use `log.*`, which applies this. */
+export function redact(value: unknown, depth = 0, seen = new WeakSet<object>()): unknown {
   if (value === null || typeof value !== "object") return value;
-  if (Array.isArray(value)) return value.map(redact);
+  if (depth >= MAX_DEPTH) return "[depth]";
+  // Cycles reach here through anything holding a reference back to itself —
+  // an Error with a `cause` chain, a Supabase client, a Next Request.
+  if (seen.has(value as object)) return "[circular]";
+  seen.add(value as object);
+
+  if (Array.isArray(value)) return value.map((v) => redact(v, depth + 1, seen));
+
+  // An Error serializes to `{}` through Object.entries, which is how a real
+  // failure becomes an empty log line.
+  if (value instanceof Error) {
+    return { name: value.name, message: value.message };
+  }
+
   const out: Record<string, unknown> = {};
   for (const [k, v] of Object.entries(value as Record<string, unknown>)) {
-    if (REDACT_KEYS.has(k.toLowerCase())) {
-      out[k] = "[redacted]";
-    } else {
-      out[k] = redact(v);
-    }
+    out[k] = isSensitive(k) ? "[redacted]" : redact(v, depth + 1, seen);
   }
   return out;
 }

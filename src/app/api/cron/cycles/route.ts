@@ -1,4 +1,6 @@
 import { NextResponse, type NextRequest } from "next/server";
+
+import { checkCronAuth } from "@/lib/cron-auth";
 import { createClient } from "@supabase/supabase-js";
 import { currentYearMonth, cycleBounds } from "@/lib/cycles";
 import { checkRateLimit, ipFromHeaders } from "@/lib/rate-limit";
@@ -29,10 +31,7 @@ async function handler(request: NextRequest) {
     );
   }
 
-  const authHeader = request.headers.get("authorization") ?? "";
-  const expected = process.env.CRON_SECRET;
-
-  if (!expected || authHeader !== `Bearer ${expected}`) {
+  if (checkCronAuth(request.headers.get("authorization")) !== "ok") {
     return NextResponse.json({ error: "unauthorized" }, { status: 401 });
   }
 

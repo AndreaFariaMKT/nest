@@ -161,6 +161,9 @@ export async function archiveClientAction(formData: FormData): Promise<void> {
 // Portal token — mint / rotate a token for /p/[token] read-only access
 // ───────────────────────────────────────────────────────────────────────────
 
+/** How long a freshly minted /p/[token] link stays valid. */
+const PORTAL_TOKEN_DAYS = 90;
+
 function generatePortalToken(): string {
   const buf = new Uint8Array(32);
   crypto.getRandomValues(buf);
@@ -178,10 +181,18 @@ export async function generatePortalTokenAction(
   if (!clientId || !slug) return;
 
   const token = generatePortalToken();
+  // Ninety days. Long enough that nobody is re-minting links every month,
+  // short enough that a link forwarded out of the studio's control stops
+  // working while the relationship it was issued for is still recognisable.
+  // Rotating issues a fresh window; revoking still cuts it immediately.
+  const expiresAt = new Date(Date.now() + PORTAL_TOKEN_DAYS * 86_400_000);
   const supabase = await createSupabaseClient();
   await supabase
     .from("clients")
-    .update({ portal_token: token })
+    .update({
+      portal_token: token,
+      portal_token_expires_at: expiresAt.toISOString(),
+    })
     .eq("id", clientId);
 
   revalidatePath(`/${locale}/clients/${slug}`);
@@ -199,7 +210,7 @@ export async function revokePortalTokenAction(
   const supabase = await createSupabaseClient();
   await supabase
     .from("clients")
-    .update({ portal_token: null })
+    .update({ portal_token: null, portal_token_expires_at: null })
     .eq("id", clientId);
 
   revalidatePath(`/${locale}/clients/${slug}`);

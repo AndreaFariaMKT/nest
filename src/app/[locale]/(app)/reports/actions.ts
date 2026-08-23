@@ -1,6 +1,8 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+
+import { log } from "@/lib/log";
 import { redirect } from "next/navigation";
 import type { Route } from "next";
 import { createClient as createSupabaseClient } from "@/lib/supabase/server";
@@ -187,7 +189,7 @@ export async function generateMonthlyReportAction(
       maxTokens: 4_000,
     });
   } catch (err) {
-    console.error("[monthly-report] claude call failed", err);
+    log.error("reports.monthly", "claude_failed", { err });
     return;
   }
 
@@ -197,7 +199,11 @@ export async function generateMonthlyReportAction(
   } catch (err) {
     const msg =
       err instanceof MonthlyReportParseError ? err.message : "parse failed";
-    console.error("[monthly-report] parse error:", msg, result.text.slice(-300));
+    log.error("reports.monthly", "parse_failed", {
+      reason: msg,
+      stopReason: result.stopReason,
+      textLength: result.text.length,
+    });
     return;
   }
 

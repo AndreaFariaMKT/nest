@@ -1,5 +1,6 @@
 // NOTE — hand-edited: `clients.social_digest_at` (migration 024) and
-// `content_drafts.engine` (026) and the `social_month_kpis` (027) and `stale_metrics_posts` (028) functions
+// `content_drafts.engine` (026) and the `social_month_kpis` (027) and `stale_metrics_posts` (028) functions, and
+// `clients.portal_token_expires_at` (030),
 // were added by hand. Those migrations are written but not yet applied. The digest cron already
 // reads and writes that column, so without this the file describes a schema
 // the code does not target. Run `npx supabase gen types typescript
@@ -410,6 +411,7 @@ export type Database = {
           notes: string | null
           social_digest_at: string | null
           portal_token: string | null
+          portal_token_expires_at: string | null
           portal_user_id: string | null
           posts_per_cycle: number
           primary_contact_id: string | null
@@ -429,6 +431,7 @@ export type Database = {
           notes?: string | null
           social_digest_at?: string | null
           portal_token?: string | null
+          portal_token_expires_at?: string | null
           portal_user_id?: string | null
           posts_per_cycle?: number
           primary_contact_id?: string | null
@@ -448,6 +451,7 @@ export type Database = {
           notes?: string | null
           social_digest_at?: string | null
           portal_token?: string | null
+          portal_token_expires_at?: string | null
           portal_user_id?: string | null
           posts_per_cycle?: number
           primary_contact_id?: string | null

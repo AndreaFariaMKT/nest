@@ -24,7 +24,7 @@ export default async function PortalMeetings({
   const supabase = await createClient();
   const { data } = await supabase
     .from("meetings")
-    .select("id, title, starts_at, google_meet_url, status, summary, agenda_url, transcript_url, decisions")
+    .select("id, title, starts_at, google_meet_url, status, summary, agenda_url, decisions")
     .eq("client_id", client.id)
     .neq("status", "cancelled")
     .order("starts_at", { ascending: true });
@@ -82,18 +82,20 @@ export default async function PortalMeetings({
                 </div>
               ) : null}
 
-              {m.agenda_url || m.transcript_url ? (
+              {/* The agenda is a document written FOR the client. The raw
+                  transcript is not: it is the verbatim speech of everyone who
+                  was on the call, including people who never agreed to be
+                  recorded by us, and whatever the studio said before the
+                  summary was written. The summary and the decision list above
+                  are the deliberate, curated versions of the same meeting —
+                  handing over the transcript link alongside them was not a
+                  decision anyone made, and its sharing scope is Google's, not
+                  ours. Staff still see it on /meetings. */}
+              {m.agenda_url ? (
                 <div className="mt-3 flex flex-wrap gap-4 text-xs">
-                  {m.agenda_url ? (
-                    <a href={m.agenda_url} target="_blank" rel="noopener noreferrer" className="text-brand hover:underline">
-                      {tm("fields.agendaUrl")}
-                    </a>
-                  ) : null}
-                  {m.transcript_url ? (
-                    <a href={m.transcript_url} target="_blank" rel="noopener noreferrer" className="text-brand hover:underline">
-                      {tm("fields.transcriptUrl")}
-                    </a>
-                  ) : null}
+                  <a href={m.agenda_url} target="_blank" rel="noopener noreferrer" className="text-brand hover:underline">
+                    {tm("fields.agendaUrl")}
+                  </a>
                 </div>
               ) : null}
             </li>

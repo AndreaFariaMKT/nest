@@ -1,5 +1,7 @@
 import { NextResponse, type NextRequest } from "next/server";
 
+import { checkCronAuth } from "@/lib/cron-auth";
+
 export const dynamic = "force-dynamic";
 
 /**
@@ -18,11 +20,11 @@ export async function GET(request: NextRequest) {
     return new NextResponse(null, { status: 404 });
   }
 
-  const expected = process.env.CRON_SECRET;
-  if (!expected) {
+  const auth = checkCronAuth(request.headers.get("authorization"));
+  if (auth === "unset") {
     return NextResponse.json({ error: "no CRON_SECRET set" }, { status: 500 });
   }
-  if (request.headers.get("authorization") !== `Bearer ${expected}`) {
+  if (auth !== "ok") {
     return NextResponse.json({ error: "unauthorized" }, { status: 401 });
   }
 

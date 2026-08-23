@@ -61,10 +61,19 @@ export default async function PortalPage({
 
   const { data: clientRow } = await admin
     .from("clients")
-    .select("id, name")
+    .select("id, name, portal_token_expires_at")
     .eq("portal_token", token)
+    .neq("status", "archived")
     .maybeSingle();
-  if (!clientRow) notFound();
+  // Enforced here rather than in RLS: this route is anonymous and reads with
+  // the service role, so there is no policy in the path to carry the rule.
+  // Null means a token minted before 030 — those keep working until rotated.
+  const expired =
+    !!clientRow?.portal_token_expires_at &&
+    new Date(clientRow.portal_token_expires_at).getTime() < Date.now();
+  // notFound, not a "link expired" page: an expired token and a wrong one must
+  // be indistinguishable, or the 404 tells a stranger which guesses were close.
+  if (!clientRow || expired) notFound();
   const client = clientRow as Client;
 
   // Upcoming scheduled posts (status pending/scheduled/published, in the
@@ -82,9 +91,15 @@ export default async function PortalPage({
   };
   const { data: scheduledData } = await admin
     .from("scheduled_posts")
+    // Scoped in SQL, not only in the map below. The limit used to be applied
+    // BEFORE the client filter, so a client with busy peers silently saw fewer
+    // of their own rows than exist — and every other tenant's captions and
+    // titles transited this server process on the way to being discarded,
+    // which is one careless log line away from being a leak.
     .select(
-      "id, scheduled_for, platform, post_type, status, draft:content_drafts(title, caption, client_id)",
+      "id, scheduled_for, platform, post_type, status, draft:content_drafts!inner(title, caption, client_id)",
     )
+    .eq("draft.client_id", client.id)
     .gte("scheduled_for", new Date().toISOString())
     .order("scheduled_for", { ascending: true })
     .limit(20);
@@ -119,8 +134,9 @@ export default async function PortalPage({
   const { data: publishedData } = await admin
     .from("published_posts")
     .select(
-      "id, platform, post_type, published_at, external_id, permalink, draft:content_drafts(title, client_id)",
+      "id, platform, post_type, published_at, external_id, permalink, draft:content_drafts!inner(title, client_id)",
     )
+    .eq("draft.client_id", client.id)
     .order("published_at", { ascending: false })
     .limit(30);
   const published: PublishedRow[] = ((publishedData ?? []) as unknown as PublishedShape[])
@@ -155,8 +171,9 @@ export default async function PortalPage({
   const { data: approvalsData } = await admin
     .from("approvals")
     .select(
-      "id, token, expires_at, created_at, approved_at, rejected_at, draft:content_drafts(title, client_id)",
+      "id, token, expires_at, created_at, approved_at, rejected_at, draft:content_drafts!inner(title, client_id)",
     )
+    .eq("draft.client_id", client.id)
     .is("approved_at", null)
     .is("rejected_at", null)
     .order("created_at", { ascending: false })

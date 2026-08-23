@@ -1,4 +1,6 @@
 import { NextResponse, type NextRequest } from "next/server";
+
+import { checkCronAuth } from "@/lib/cron-auth";
 import { createClient as createAdminSupabase } from "@supabase/supabase-js";
 import {
   GoogleApiError,
@@ -75,11 +77,11 @@ async function handler(request: NextRequest) {
     );
   }
 
-  const expected = process.env.CRON_SECRET;
-  if (!expected) {
+  const auth = checkCronAuth(request.headers.get("authorization"));
+  if (auth === "unset") {
     return NextResponse.json({ error: "no_cron_secret" }, { status: 500 });
   }
-  if (request.headers.get("authorization") !== `Bearer ${expected}`) {
+  if (auth !== "ok") {
     return NextResponse.json({ error: "unauthorized" }, { status: 401 });
   }
 
