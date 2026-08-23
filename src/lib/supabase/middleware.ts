@@ -41,10 +41,15 @@ export async function updateSession(
 
   if (user) {
     // Locale-strip the path (pt-BR default = no prefix, en = /en).
+    // Compared lowercased: a request to /EN/finance would otherwise keep its
+    // prefix, so `base` stays "/EN/finance", matches no RESTRICTED prefix, and
+    // the guard returns "allowed". RLS still stands behind it, but a guard is
+    // not allowed to fail open on capitalisation.
     const path = request.nextUrl.pathname;
-    const isEn = path === "/en" || path.startsWith("/en/");
+    const lower = path.toLowerCase();
+    const isEn = lower === "/en" || lower.startsWith("/en/");
     const prefix = isEn ? "/en" : "";
-    const base = (isEn ? path.slice(3) : path) || "/";
+    const base = (isEn ? lower.slice(3) : lower) || "/";
 
     // Effective role: the login's role, or a founder's "view as" preview.
     const { data: membership } = await supabase

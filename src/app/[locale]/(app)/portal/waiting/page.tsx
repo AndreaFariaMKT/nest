@@ -48,6 +48,7 @@ export default async function PortalWaiting({
   const { data } = await supabase
     .from("content_drafts")
     .select(PORTAL_PIECE_COLUMNS)
+    .eq("engine", "social")
     .eq("client_id", client.id)
     .in("status", CLIENT_VISIBLE_STAGES)
     .order("publish_on", { ascending: true, nullsFirst: false });

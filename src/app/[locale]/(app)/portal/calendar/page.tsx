@@ -70,23 +70,34 @@ export default async function PortalCalendar({
     : today.slice(0, 7);
   const [year, mon] = month.split("-").map((n) => Number.parseInt(n, 10));
 
+  // Exclusive upper bound on the first of the next month. The obvious
+  // `lte(..., "${month}-31")` is a date literal Postgres rejects outright in
+  // February, April, June, September and November — PostgREST answers 400,
+  // `data` comes back null, and `?? []` turns that into an empty calendar for
+  // five months of the year with no error anywhere.
+  const nextMonth = (() => {
+    const d = new Date(Date.UTC(year, mon, 1));
+    return `${d.getUTCFullYear()}-${String(d.getUTCMonth() + 1).padStart(2, "0")}`;
+  })();
+
   const supabase = await createClient();
   const [{ data: pieceData }, { data: meetingData }] = await Promise.all([
     supabase
       .from("content_drafts")
       .select("id, title, status, publish_on, publish_time")
+      .eq("engine", "social")
       .eq("client_id", client.id)
       .in("status", CLIENT_VISIBLE_STAGES)
       .not("publish_on", "is", null)
       .gte("publish_on", `${month}-01`)
-      .lte("publish_on", `${month}-31`),
+      .lt("publish_on", `${nextMonth}-01`),
     supabase
       .from("meetings")
       .select("id, title, starts_at")
       .eq("client_id", client.id)
       .neq("status", "cancelled")
       .gte("starts_at", `${month}-01T00:00:00Z`)
-      .lt("starts_at", `${month}-31T23:59:59Z`),
+      .lt("starts_at", `${nextMonth}-01T00:00:00Z`),
   ]);
 
   const pieces = (pieceData ?? []) as Piece[];

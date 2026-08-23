@@ -32,13 +32,31 @@ export interface ReportMonth {
 
 const MONTH_KEY = /^\d{4}-(0[1-9]|1[0-2])$/;
 
+/**
+ * Brazil has observed no DST since 2019, so the studio's offset is a constant.
+ * Written as an offset rather than a UTC instant because these bounds are
+ * applied to `timestamptz` columns: at UTC, `2026-08-01T00:00:00Z` is
+ * 2026-07-31 21:00 in Sao Paulo, so a piece marked live in the last three
+ * hours of any month landed in the NEXT month's report and the reported month
+ * lost its final evening. Everything else in the module already counts days in
+ * America/Sao_Paulo (see todayIso in src/lib/social.ts); this is the one place
+ * the two representations meet.
+ */
+const STUDIO_UTC_OFFSET = "-03:00";
+
+const pad = (n: number) => String(n).padStart(2, "0");
+
 export function monthOf(year: number, month: number): ReportMonth {
-  const from = new Date(Date.UTC(year, month - 1, 1));
-  const to = new Date(Date.UTC(year, month, 1));
+  const from = new Date(`${year}-${pad(month)}-01T00:00:00${STUDIO_UTC_OFFSET}`);
+  const nextYear = month === 12 ? year + 1 : year;
+  const nextMonth = month === 12 ? 1 : month + 1;
+  const to = new Date(
+    `${nextYear}-${pad(nextMonth)}-01T00:00:00${STUDIO_UTC_OFFSET}`,
+  );
   return {
     year,
     month,
-    key: `${year}-${String(month).padStart(2, "0")}`,
+    key: `${year}-${pad(month)}`,
     fromIso: from.toISOString(),
     toIso: to.toISOString(),
   };

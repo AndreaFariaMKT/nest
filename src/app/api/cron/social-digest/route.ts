@@ -9,6 +9,9 @@ import { todayIso, CLIENT_VISIBLE_STAGES } from "@/lib/social";
 import { buildDigest, digestBody, type DigestPiece } from "@/lib/social-digest";
 
 export const dynamic = "force-dynamic";
+// The run walks clients serially. Belt against the platform default while that
+// is still the shape.
+export const maxDuration = 60;
 
 /**
  * Daily cron — one message per client, never a ping per piece.

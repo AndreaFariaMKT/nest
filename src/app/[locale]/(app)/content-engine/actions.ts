@@ -6,6 +6,12 @@ import { redirect } from "next/navigation";
 import type { Route } from "next";
 import { createClient as createSupabaseClient } from "@/lib/supabase/server";
 import { currentTenantId } from "@/lib/tenant-server";
+import { getCurrentRole } from "@/lib/roles-server";
+import { canUseSocial } from "@/lib/social";
+import {
+  isEditableContentStatus,
+  EDITABLE_CONTENT_STATUSES,
+} from "@/lib/content-status";
 import { parseVtt } from "@/lib/vtt";
 import { generate } from "@/lib/claude";
 import {
@@ -82,10 +88,40 @@ async function readUploadedFile(file: File): Promise<string | null> {
   return buf.toString("utf8");
 }
 
+
+/**
+ * Who may drive the content engine.
+ *
+ * Until now these actions had no role check at all: they leaned entirely on
+ * `content_drafts: write = has_client_access(client_id)`, which any staff
+ * member with a single `client_members` row satisfies. That let a role with no
+ * business touching content — and, through `updateDraftAction`, no business
+ * touching the social pipeline — write drafts, delete slides, and spend the
+ * studio's Anthropic budget.
+ *
+ * The role list is derived from `canUseSocial` rather than restated, for the
+ * same reason `guard.ts` derives its `/social` entry: a hand-copied list drifts
+ * the first time someone's responsibilities change. Clients are excluded on
+ * top of that — `canUseSocial` includes them for the portal's sake, and the
+ * portal is not this.
+ */
+async function contentAccess(): Promise<boolean> {
+  const role = await getCurrentRole();
+  return !!role && role !== "client" && canUseSocial(role);
+}
+
+/** Throwing form, for the actions that return `void` and cannot say "no". */
+async function assertContentAccess(): Promise<void> {
+  if (!(await contentAccess())) {
+    throw new Error("content-engine: role not permitted");
+  }
+}
+
 export async function createTranscriptAction(
   _prev: TranscriptFormState,
   formData: FormData,
 ): Promise<TranscriptFormState> {
+  if (!(await contentAccess())) return { error: "Your role does not have access to the content engine." };
   const clientId = (formData.get("client_id") ?? "").toString();
   const pasted = (formData.get("content") ?? "").toString();
   const language = (formData.get("language") ?? "pt-BR").toString();
@@ -159,6 +195,7 @@ export async function createTranscriptAction(
 export async function generateCarouselsAction(
   formData: FormData,
 ): Promise<void> {
+  await assertContentAccess();
   const transcriptId = (formData.get("transcriptId") ?? "").toString();
   const locale = (formData.get("locale") ?? "pt-BR").toString();
   if (!transcriptId) return;
@@ -279,6 +316,8 @@ export async function generateCarouselsAction(
     const { data: inserted } = await supabase
       .from("content_drafts")
       .insert({
+        // This row belongs to the engine's workflow, not the social module's.
+        engine: "content",
         client_id: client.id,
         transcript_id: trow.id,
         title: draft.title,
@@ -386,6 +425,7 @@ function parseHashtags(raw: string): string[] {
 // ───────────────────────────────────────────────────────────────────────────
 
 export async function approveDraftAction(formData: FormData): Promise<void> {
+  await assertContentAccess();
   const draftId = (formData.get("draftId") ?? "").toString();
   const locale = (formData.get("locale") ?? "pt-BR").toString();
   if (!draftId) return;
@@ -428,6 +468,7 @@ export async function approveDraftAction(formData: FormData): Promise<void> {
 // ───────────────────────────────────────────────────────────────────────────
 
 export async function aiRewriteDraftAction(formData: FormData): Promise<void> {
+  await assertContentAccess();
   const draftId = (formData.get("draftId") ?? "").toString();
   const locale = (formData.get("locale") ?? "pt-BR").toString();
   const instruction = (formData.get("instruction") ?? "").toString().trim();
@@ -586,6 +627,7 @@ export async function aiRewriteDraftAction(formData: FormData): Promise<void> {
 // ───────────────────────────────────────────────────────────────────────────
 
 export async function checkComplianceAction(formData: FormData): Promise<void> {
+  await assertContentAccess();
   const draftId = (formData.get("draftId") ?? "").toString();
   const locale = (formData.get("locale") ?? "pt-BR").toString();
   if (!draftId) return;
@@ -694,6 +736,7 @@ export async function checkComplianceAction(formData: FormData): Promise<void> {
 // ───────────────────────────────────────────────────────────────────────────
 
 export async function adaptDraftAction(formData: FormData): Promise<void> {
+  await assertContentAccess();
   const draftId = (formData.get("draftId") ?? "").toString();
   const locale = (formData.get("locale") ?? "pt-BR").toString();
   const platformRaw = (formData.get("platform") ?? "").toString();
@@ -818,6 +861,8 @@ export async function adaptDraftAction(formData: FormData): Promise<void> {
   const { data: inserted } = await supabase
     .from("content_drafts")
     .insert({
+      // This row belongs to the engine's workflow, not the social module's.
+      engine: "content",
       client_id: draft.client_id,
       transcript_id: draft.transcript_id,
       title: payload.title,
@@ -870,6 +915,7 @@ const DEFAULT_STORY_COUNT = 3;
 export async function generateStoriesAction(
   formData: FormData,
 ): Promise<void> {
+  await assertContentAccess();
   const draftId = (formData.get("draftId") ?? "").toString();
   const locale = (formData.get("locale") ?? "pt-BR").toString();
   const rawCount = (formData.get("count") ?? "").toString().trim();
@@ -998,6 +1044,8 @@ export async function generateStoriesAction(
   const { data: inserted } = await supabase
     .from("content_drafts")
     .insert({
+      // This row belongs to the engine's workflow, not the social module's.
+      engine: "content",
       client_id: draft.client_id,
       transcript_id: draft.transcript_id,
       title: `${draft.title} — stories`,
@@ -1060,6 +1108,7 @@ const ALLOWED_REEL_MIME = new Set([
 export async function uploadReelVideoAction(
   formData: FormData,
 ): Promise<void> {
+  await assertContentAccess();
   const draftId = (formData.get("draftId") ?? "").toString();
   const locale = (formData.get("locale") ?? "pt-BR").toString();
   const file = formData.get("video");
@@ -1120,6 +1169,7 @@ export async function uploadReelVideoAction(
 export async function generateReelScriptAction(
   formData: FormData,
 ): Promise<void> {
+  await assertContentAccess();
   const draftId = (formData.get("draftId") ?? "").toString();
   const locale = (formData.get("locale") ?? "pt-BR").toString();
   if (!draftId) return;
@@ -1239,6 +1289,8 @@ export async function generateReelScriptAction(
   const { data: inserted } = await supabase
     .from("content_drafts")
     .insert({
+      // This row belongs to the engine's workflow, not the social module's.
+      engine: "content",
       client_id: draft.client_id,
       transcript_id: draft.transcript_id,
       title: payload.title,
@@ -1288,6 +1340,7 @@ function generateToken(): string {
 export async function generateApprovalLinkAction(
   formData: FormData,
 ): Promise<void> {
+  await assertContentAccess();
   const draftId = (formData.get("draftId") ?? "").toString();
   const locale = (formData.get("locale") ?? "pt-BR").toString();
   if (!draftId) return;
@@ -1325,6 +1378,7 @@ export async function generateApprovalLinkAction(
 export async function scheduleDraftAction(
   formData: FormData,
 ): Promise<void> {
+  await assertContentAccess();
   const draftId = (formData.get("draftId") ?? "").toString();
   const locale = (formData.get("locale") ?? "pt-BR").toString();
   const scheduledForRaw = (formData.get("scheduled_for") ?? "")
@@ -1373,6 +1427,7 @@ export async function scheduleDraftAction(
 export async function renderCreativesAction(
   formData: FormData,
 ): Promise<void> {
+  await assertContentAccess();
   const draftId = (formData.get("draftId") ?? "").toString();
   const locale = (formData.get("locale") ?? "pt-BR").toString();
   if (!draftId) return;
@@ -1488,6 +1543,7 @@ export async function updateDraftAction(
   _prev: DraftEditState,
   formData: FormData,
 ): Promise<DraftEditState> {
+  if (!(await contentAccess())) return { error: "Your role does not have access to the content engine." };
   const draftId = (formData.get("draftId") ?? "").toString();
   const locale = (formData.get("locale") ?? "pt-BR").toString();
   if (!draftId) return { error: "Missing draft id." };
@@ -1501,13 +1557,13 @@ export async function updateDraftAction(
   const hashtags = parseHashtags((formData.get("hashtags") ?? "").toString());
   // Validated, not defaulted. Falling back to "draft" on an unrecognised value
   // is how a piece silently leaves the social pipeline.
+  //
+  // Validated against the EDITABLE set, not the whole enum: the social module
+  // owns client_review, changes_requested, rejected and published, and reaches
+  // them only through runTransitionAction, which checks the capability and the
+  // stage the piece is actually in. A dropdown is not allowed to skip that.
   const rawStatus = (formData.get("status") ?? "").toString();
-  const status = (
-    Constants.public.Enums.content_status as readonly string[]
-  ).includes(rawStatus)
-    ? (rawStatus as Database["public"]["Enums"]["content_status"])
-    : null;
-  if (!status) return { error: "Unknown status." };
+  const status = rawStatus as Database["public"]["Enums"]["content_status"];
   const slides = parseSlidesPayload(
     (formData.get("slides") ?? "[]").toString(),
   );
@@ -1516,10 +1572,17 @@ export async function updateDraftAction(
 
   const { data: draft } = await supabase
     .from("content_drafts")
-    .select("id, transcript_id")
+    .select("id, transcript_id, status")
     .eq("id", draftId)
     .maybeSingle();
   if (!draft) return { error: "Draft not found." };
+
+  // Leaving a social-only stage is the social module's call. Staying in one is
+  // fine — a piece parked at client_review must still be editable for its
+  // title and caption without the save being refused.
+  if (!isEditableContentStatus(status) && status !== draft.status) {
+    return { error: "Unknown status." };
+  }
 
   const { error: updateError } = await supabase
     .from("content_drafts")

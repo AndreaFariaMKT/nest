@@ -156,6 +156,8 @@ async function handler(request: NextRequest) {
     { auth: { persistSession: false } },
   );
 
+  const publishClientId = process.env.PUBLISH_ENABLED_CLIENT_ID ?? null;
+
   // Pick due rows. We filter by scheduled_for <= now in SQL, cap at BATCH_SIZE
   // so a single run never blocks for too long.
   const { data: dueData, error: pickError } = await admin
@@ -217,7 +219,7 @@ async function handler(request: NextRequest) {
     const { data: draftData } = await admin
       .from("content_drafts")
       .select(
-        "id, title, caption, hashtags, video_url, slides(position, creatives(image_url, version))",
+        "id, client_id, title, caption, hashtags, video_url, slides(position, creatives(image_url, version))",
       )
       .eq("id", row.draft_id)
       .maybeSingle();
@@ -225,6 +227,29 @@ async function handler(request: NextRequest) {
     if (!draftData) {
       summary.failed += 1;
       summary.errors.push({ scheduledId: row.id, reason: "draft_not_found" });
+      continue;
+    }
+
+    // The publish credentials are deployment-wide singletons — one
+    // META_LONG_LIVED_TOKEN, one INSTAGRAM_BUSINESS_ACCOUNT_ID, one
+    // LINKEDIN_ORGANIZATION_URN, one TIKTOK_ACCESS_TOKEN — while this query
+    // picks due rows across every client and both tenants. Nothing in the
+    // publish path resolves credentials per client, so onboarding a second
+    // client into the module would publish their carousel to the FIRST
+    // client's feed: publicly, irreversibly, under the wrong brand.
+    //
+    // Until the credentials key off client_id, this is the guard. Rows for any
+    // other client are skipped without bumping attempt_count, so they wait
+    // rather than burning their retries. Unset means nobody publishes, which
+    // is the right default for a mistake that cannot be taken back.
+    if (draftData.client_id !== publishClientId) {
+      summary.skipped += 1;
+      summary.errors.push({
+        scheduledId: row.id,
+        reason: publishClientId
+          ? "client_not_publish_enabled"
+          : "publish_client_unset",
+      });
       continue;
     }
 

@@ -29,11 +29,26 @@ Without #1 and #2 this runbook can't finish.
    - anon key
    - service_role key
    - DB password (for direct psql access)
-3. Apply migrations from the local checkout:
+3. Apply migrations from the local checkout, one file at a time, in order:
    ```bash
-   npx supabase link --project-ref <ref>
-   npx supabase db push   # applies every file in supabase/migrations/
+   for f in supabase/migrations/*.sql; do
+     echo "── $f"
+     psql "$SUPABASE_PROD_URL" -v ON_ERROR_STOP=1 -f "$f" || break
+   done
    ```
+   > **Not `supabase db push`.** This project's migrations were hand-applied,
+   > so `supabase_migrations.schema_migrations` was never populated — `db push`
+   > would start again from `001`, whose bare `create type user_role` aborts on
+   > `duplicate_object`. That accident is currently the only thing preventing a
+   > re-run, and a re-run is not harmless: several migrations deliberately undo
+   > an earlier one (021 drops a policy 020 created; 025 replaces a policy from
+   > 001). Applying them out of order or twice can restore what a later file
+   > exists to remove. If you want `db push` to become the truth, backfill the
+   > ledger first with `npx supabase migration repair --status applied <n>` for
+   > every file already in the database.
+   >
+   > `019` in particular must not be wrapped in an explicit transaction that
+   > also uses the enum values it adds — see the header of that file.
 4. Run the seed in prod (idempotent; creates the dev owner + a sample client):
    ```bash
    psql "$SUPABASE_PROD_URL" -f supabase/seed.sql

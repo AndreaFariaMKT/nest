@@ -1,7 +1,8 @@
 "use client";
 
+import { statusOptionsFor } from "@/lib/content-status";
+
 import { useActionState, useMemo, useState } from "react";
-import { Constants } from "@/types/database.gen";
 import { useTranslations } from "next-intl";
 import { Link } from "@/i18n/routing";
 import { Button } from "@/components/ui/Button";
@@ -30,7 +31,7 @@ export type InitialSlide = {
 // stage added later: a <select> whose defaultValue matches no <option> falls
 // back to the first one, so opening a piece the social module put in `backlog`
 // and saving would yank it to `draft` and out of the pipeline.
-const STATUSES = Constants.public.Enums.content_status;
+
 
 export function DraftEditForm({
   locale,
@@ -121,7 +122,7 @@ export function DraftEditForm({
             defaultValue={draft.status}
             className="flex h-10 w-full rounded-md border border-input bg-background px-3 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
           >
-            {STATUSES.map((s) => (
+            {statusOptionsFor(draft.status).map((s) => (
               <option key={s} value={s}>
                 {t(`draftStatus.${s}`)}
               </option>

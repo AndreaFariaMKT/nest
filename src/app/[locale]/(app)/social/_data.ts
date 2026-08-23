@@ -83,25 +83,58 @@ export const listSocialClients = cache(async (): Promise<SocialClient[]> => {
 });
 
 /**
+ * How many rows one PostgREST response can carry. Declared in
+ * supabase/config.toml as `max_rows = 1000`, and the same on Supabase hosted.
+ * A request for more is not an error — it is silently served this many.
+ */
+const PAGE = 1000;
+
+/** Refuse to loop forever if the cap ever changes underneath us. */
+const MAX_PAGES = 20;
+
+/**
  * Every piece in the tenant. Screens filter in memory rather than per-screen in
- * SQL, which is fine to a few thousand pieces per tenant — past that this
- * becomes the thing to paginate.
+ * SQL, which is fine to a few thousand pieces per tenant — past that the right
+ * answer is a query per screen with a real WHERE clause, not a bigger page.
+ *
+ * Paged rather than fetched in one shot, because a plain select stopped at
+ * PostgREST's cap and said nothing about it — and the truncation order was the
+ * worst possible one. The sort is `publish_on ASC NULLS LAST`, and backlog
+ * themes are exactly the rows with no publish date, so the shelf was the FIRST
+ * thing to disappear: /social/backlog would empty, `backlogStock` would report
+ * `critical`, and every client dot on /social would turn red, with no error
+ * anywhere to explain it.
  */
 export const listPieces = cache(async (): Promise<SocialPieceRow[]> => {
   const supabase = await createClient();
   const tenantId = await currentTenantId();
-  const { data } = await supabase
-    .from("content_drafts")
-    .select(PIECE_COLUMNS)
-    .eq("tenant_id", tenantId)
-    .order("publish_on", { ascending: true, nullsFirst: false })
-    .order("updated_at", { ascending: false });
+
+  const rows: SocialPieceRow[] = [];
+  for (let page = 0; page < MAX_PAGES; page++) {
+    const { data, error } = await supabase
+      .from("content_drafts")
+      .select(PIECE_COLUMNS)
+      // content_drafts carries two workflows over one status column. Without
+      // this every content-engine draft shows up here as unstarted social work.
+      .eq("engine", "social")
+      .eq("tenant_id", tenantId)
+      .order("publish_on", { ascending: true, nullsFirst: false })
+      .order("updated_at", { ascending: false })
+      // `id` breaks ties: without a unique tiebreaker two rows sharing a
+      // publish_on and updated_at can order differently between pages, which
+      // is how a paged read silently drops one row and repeats another.
+      .order("id", { ascending: true })
+      .range(page * PAGE, page * PAGE + PAGE - 1);
+    if (error) break;
+    const batch = (data ?? []) as unknown as SocialPieceRow[];
+    rows.push(...batch);
+    if (batch.length < PAGE) break;
+  }
+
   // `content_status` still carries `archived` from before this module existed.
   // Such rows are not part of the pipeline and have no stage colour, so they
   // are dropped here rather than rendering as an unstyled chip on the calendar.
-  return ((data ?? []) as unknown as SocialPieceRow[]).filter((p) =>
-    isSocialStage(p.status),
-  );
+  return rows.filter((p) => isSocialStage(p.status));
 });
 
 export async function getPiece(id: string): Promise<SocialPieceRow | null> {

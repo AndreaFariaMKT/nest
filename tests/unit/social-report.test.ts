@@ -34,14 +34,27 @@ describe("which month the report is about", () => {
     expect(resolveMonth("2026-00", "2026-09-04").key).toBe("2026-08");
   });
 
-  it("spans exactly one month, half-open", () => {
+  it("spans exactly one month, half-open, in the studio's timezone", () => {
+    // 03:00Z is midnight in Sao Paulo. These bounds are applied to timestamptz
+    // columns, so a UTC month would have counted a piece marked live at 22:00
+    // on the 31st into the FOLLOWING month, and left the reported month three
+    // hours short. Every other date in the module is already a Sao Paulo day.
     const m = monthOf(2026, 2);
-    expect(m.fromIso).toBe("2026-02-01T00:00:00.000Z");
-    expect(m.toIso).toBe("2026-03-01T00:00:00.000Z");
+    expect(m.fromIso).toBe("2026-02-01T03:00:00.000Z");
+    expect(m.toIso).toBe("2026-03-01T03:00:00.000Z");
   });
 
   it("handles February in a leap year", () => {
-    expect(monthOf(2024, 2).toIso).toBe("2024-03-01T00:00:00.000Z");
+    expect(monthOf(2024, 2).toIso).toBe("2024-03-01T03:00:00.000Z");
+  });
+
+  it("covers the last evening of the month, which UTC bounds dropped", () => {
+    // 2026-08-31 22:00 in Sao Paulo is 2026-09-01T01:00Z. Under UTC bounds it
+    // fell outside August and inside September.
+    const aug = monthOf(2026, 8);
+    const lastEvening = new Date("2026-09-01T01:00:00.000Z").toISOString();
+    expect(lastEvening >= aug.fromIso && lastEvening < aug.toIso).toBe(true);
+    expect(lastEvening < monthOf(2026, 9).fromIso).toBe(true);
   });
 
   it("shifts across year boundaries in both directions", () => {

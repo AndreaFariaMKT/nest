@@ -9,7 +9,6 @@
 import { createClient } from "@/lib/supabase/server";
 import {
   aggregateKpis,
-  latestPerPost,
   type AggregatedKpis,
   type MetricSnapshot,
 } from "@/lib/kpi";
@@ -51,19 +50,22 @@ async function kpisFor(
   clientIds: string[],
   month: ReportMonth,
 ): Promise<AggregatedKpis> {
-  const supabase = await createClient();
-  const { data } = await supabase
-    .from("post_metrics")
-    .select(
-      "published_post_id, captured_at, reach, impressions, likes, comments, saves, shares, published_posts!inner(id, draft_id, content_drafts!inner(client_id))",
-    )
-    .gte("captured_at", month.fromIso)
-    .lt("captured_at", month.toIso)
-    .in("published_posts.content_drafts.client_id", clientIds)
-    .order("captured_at", { ascending: false })
-    .limit(2000);
+  if (clientIds.length === 0) return aggregateKpis([]);
 
-  const snapshots: MetricSnapshot[] = (data ?? []).map((r) => ({
+  // One row per post, picked by DISTINCT ON in migration 027 — not one row per
+  // post per day reduced here. The old shape asked for `.limit(2000)`, which
+  // PostgREST silently served as 1000, and a month of ~34 tracked posts
+  // already writes more snapshots than that. Posts whose snapshots fell early
+  // in the month dropped out of the totals with nothing reporting it.
+  const supabase = await createClient();
+  const { data, error } = await supabase.rpc("social_month_kpis", {
+    target_clients: clientIds,
+    from_ts: month.fromIso,
+    to_ts: month.toIso,
+  });
+  if (error) return aggregateKpis([]);
+
+  const latest: MetricSnapshot[] = (data ?? []).map((r) => ({
     publishedPostId: r.published_post_id,
     capturedAt: r.captured_at,
     reach: r.reach,
@@ -73,7 +75,7 @@ async function kpisFor(
     saves: r.saves,
     shares: r.shares,
   }));
-  return aggregateKpis(latestPerPost(snapshots));
+  return aggregateKpis(latest);
 }
 
 /** The pieces that actually went live inside the month. */

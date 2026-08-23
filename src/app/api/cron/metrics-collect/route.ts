@@ -9,14 +9,18 @@ import { log } from "@/lib/log";
 import { checkRateLimit, ipFromHeaders } from "@/lib/rate-limit";
 
 export const dynamic = "force-dynamic";
+// Each post costs two Graph API calls, so a full batch is well past the 10s
+// default before any of it is Supabase's fault.
+export const maxDuration = 60;
 
 /**
  * Daily cron — pulls post-level metrics for every recent Instagram
  * `published_post` and writes a `post_metrics` row (time-series).
  *
  * Per run:
- *   1. Find the most recently published IG posts (LOOKBACK_DAYS window) up
- *      to BATCH_SIZE rows.
+ *   1. Find the IG posts in the LOOKBACK_DAYS window that have gone longest
+ *      without a snapshot, up to BATCH_SIZE rows — so coverage rotates and
+ *      every post is reached within ceil(total / BATCH_SIZE) days.
  *   2. For each: call IG Graph API for likes/comments + insights (reach,
  *      saves, shares, views, total_interactions).
  *   3. Insert one row in `post_metrics` per post — every run produces a new
@@ -78,13 +82,17 @@ async function handler(request: NextRequest) {
     Date.now() - LOOKBACK_DAYS * 24 * 60 * 60 * 1000,
   ).toISOString();
 
-  const { data: posts } = await admin
-    .from("published_posts")
-    .select("id, platform, external_id, published_at")
-    .eq("platform", "instagram")
-    .gte("published_at", lookbackIso)
-    .order("published_at", { ascending: false })
-    .limit(BATCH_SIZE);
+  // Least-recently-captured first (migration 028), not newest-published first.
+  // The old ordering re-picked the same newest BATCH_SIZE rows on every run, so
+  // once a tenant had more than that inside the lookback window — one client
+  // publishing four times a week reaches it in three months — every post past
+  // the batch stopped accumulating metrics for good, and the report measured a
+  // sample that shrank as the studio published more.
+  const { data: posts } = await admin.rpc("stale_metrics_posts", {
+    platform_name: "instagram",
+    lookback_ts: lookbackIso,
+    batch: BATCH_SIZE,
+  });
 
   const summary = {
     candidates: posts?.length ?? 0,
