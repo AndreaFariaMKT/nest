@@ -12,6 +12,7 @@ import {
   isReplyOverdue,
   replyDueBy,
   type DesignState,
+  PULL_LEAD_WORKING_DAYS,
 } from "@/lib/social";
 import { getPiece, listSocialClients } from "../../_data";
 import { getCurrentRole } from "@/lib/roles-server";
@@ -431,7 +432,7 @@ export default async function PiecePage({
                   id="pull-date"
                   name="publish_on"
                   type="date"
-                  defaultValue={addWorkingDays(today, 10)}
+                  defaultValue={addWorkingDays(today, PULL_LEAD_WORKING_DAYS)}
                   className={field}
                 />
               </div>

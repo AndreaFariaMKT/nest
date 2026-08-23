@@ -27,9 +27,12 @@ import { encryptSecret, decryptSecret, secretsAvailable } from "@/lib/secrets";
 import { APP_ROLES } from "@/lib/roles";
 type DraftUpdate = Database["public"]["Tables"]["content_drafts"]["Update"];
 type LoginRow = Database["public"]["Tables"]["shared_logins"]["Insert"];
+type AccountRow =
+  Database["public"]["Tables"]["client_social_accounts"]["Insert"];
 
 import {
   actionAllowedForRole,
+  PULL_LEAD_WORKING_DAYS,
   addWorkingDays,
   canRun,
   canSetDesignState,
@@ -51,8 +54,10 @@ import { POST_TYPES } from "@/types/database";
 import { listSocialClients } from "./_data";
 
 /**
- * `error` is a BlockedReason the UI can translate, or a raw Postgres message
- * when something failed for a reason the domain does not model.
+ * `error` is always an i18n key under `social.blocked` — either a
+ * `BlockedReason` the domain models, or one of the six `DbError` keys a
+ * database failure maps to. Never a Postgres message: those name tables and
+ * columns, and portal clients read these refusals.
  */
 export type Result = { ok: boolean; error?: BlockedReason | (string & {}) };
 
@@ -145,15 +150,30 @@ async function loadPiece(id: string) {
   return data;
 }
 
-/** The portal login behind a client, so a hand-off can actually reach someone. */
-async function portalUserFor(clientId: string): Promise<string | null> {
+/**
+ * Whether the calling portal login owns this client.
+ *
+ * Reads the `portal_client` view, not the `clients` table. Migration 031 moved
+ * the portal off the table — a row-level grant is a whole-row grant, and that
+ * row carries the studio's private notes and the portal bearer token — and
+ * this function was reading the table with the CALLER's client. After 031 a
+ * portal login had no SELECT path to `clients` at all, so this returned null
+ * for every client including their own, and every client decision failed with
+ * `notYours`. It failed closed, so nothing leaked; the whole approval loop
+ * simply stopped, silently.
+ *
+ * Expressed as ownership rather than as "give me the owner's id" because that
+ * is the question both callers actually ask, and because the view answers it
+ * by construction: it only ever contains the caller's own, non-archived client.
+ */
+async function callerOwnsClient(clientId: string): Promise<boolean> {
   const { supabase } = await ctx();
   const { data } = await supabase
-    .from("clients")
-    .select("portal_user_id")
+    .from("portal_client")
+    .select("id")
     .eq("id", clientId)
     .maybeSingle();
-  return data?.portal_user_id ?? null;
+  return !!data;
 }
 
 // ───────────────────────────────────────────────────────────────────────────
@@ -250,8 +270,9 @@ export async function runTransitionAction(
   // the columns and values it can move stay inside this function.
   const asClient = hasCap(role, "client") && !hasCap(role, "coordinate");
   if (asClient) {
-    const owner = await portalUserFor(piece.client_id);
-    if (!user || owner !== user.id) return fail("notYours");
+    if (!user || !(await callerOwnsClient(piece.client_id))) {
+      return fail("notYours");
+    }
   }
 
   const verdict = canRun(
@@ -276,7 +297,7 @@ export async function runTransitionAction(
       // calendar, can never be overdue, and the client is asked to approve a
       // post with no date — so the default lives here, not only in the form.
       patch.publish_on =
-        optional(formData, "publish_on") ?? addWorkingDays(todayIso(), 10);
+        optional(formData, "publish_on") ?? addWorkingDays(todayIso(), PULL_LEAD_WORKING_DAYS);
       patch.design_state = "todo";
       patch.return_reason = null;
       break;
@@ -756,12 +777,148 @@ export async function revealSecretAction(
   if (!onTheLogin) return { ok: false, error: "notOnLogin" };
 
   if (hasCap(role, "client") && !hasCap(role, "coordinate")) {
-    const owner = await portalUserFor(data.client_id);
-    if (owner !== user.id) return { ok: false, error: "notYours" };
+    if (!(await callerOwnsClient(data.client_id))) {
+      return { ok: false, error: "notYours" };
+    }
   }
 
   if (!data.secret_enc) return { ok: false, error: "noPassword" };
   const secret = decryptSecret(data.secret_enc);
   if (!secret) return { ok: false, error: "secretUnreadable" };
   return { ok: true, secret };
+}
+
+
+// ───────────────────────────────────────────────────────────────────────────
+// Publishing accounts
+//
+// Distinct from shared logins on purpose. A shared login is a REGISTER of who
+// holds a client's password; these are machine credentials the platform uses
+// to act AS the client on a network. Conflating them would mean one access
+// rule governing both "who may see a password" and "what may post publicly".
+// ───────────────────────────────────────────────────────────────────────────
+
+const PLATFORMS = ["instagram", "linkedin", "tiktok"] as const;
+type PlatformValue = (typeof PLATFORMS)[number];
+
+function isPlatform(v: string): v is PlatformValue {
+  return (PLATFORMS as readonly string[]).includes(v);
+}
+
+export async function saveSocialAccountAction(
+  _prev: Result,
+  formData: FormData,
+): Promise<Result> {
+  const { supabase, tenantId, role, user } = await ctx();
+  // coordinate only. Publishing as a client is the highest-consequence thing
+  // this module can do — the result is public and cannot be taken back — so it
+  // is not delegated the way design or scheduling are.
+  if (!hasCap(role, "coordinate")) return fail("notYours");
+
+  const id = optional(formData, "id");
+  const clientId = str(formData, "client_id");
+  const rawPlatform = str(formData, "platform");
+  const secret = str(formData, "secret");
+  const locale = str(formData, "locale") || "pt-BR";
+
+  if (!clientId) return fail("needsClient");
+  if (!isPlatform(rawPlatform)) return fail("needsPlatform");
+
+  const accountRef = optional(formData, "account_ref");
+  // Instagram authors as a business account id and LinkedIn as an organization
+  // URN; without one there is nothing to post to. TikTok's token identifies the
+  // account by itself, so requiring a reference there would be inventing a
+  // field to keep the form symmetrical.
+  if (rawPlatform !== "tiktok" && !accountRef) return fail("needsAccountRef");
+
+  const row: AccountRow = {
+    client_id: clientId,
+    tenant_id: tenantId,
+    platform: rawPlatform,
+    account_ref: accountRef,
+    api_version: optional(formData, "api_version"),
+    publish_mode: str(formData, "publish_mode") === "direct" ? "direct" : "inbox",
+    // A checkbox that is off submits nothing, so absence means off. Read from
+    // the field rather than left alone on edit: turning publishing OFF must be
+    // possible through the same form that turned it on.
+    enabled: formData.get("enabled") === "on",
+    note: optional(formData, "note"),
+    rotated_on: optional(formData, "rotated_on"),
+    created_by: user?.id ?? null,
+  };
+
+  // Blank on an edit means "keep the stored token". Blank on a create means the
+  // account is registered but not yet usable — a real onboarding state, and the
+  // reason `enabled` is a separate switch rather than derived from the token.
+  if (secret) {
+    if (!secretsAvailable()) return fail("noSecretKey");
+    row.secret_enc = encryptSecret(secret);
+  } else if (!id) {
+    row.secret_enc = null;
+  }
+
+  // Refuse to switch on an account that has nothing to publish with, rather
+  // than letting the cron discover it every five minutes.
+  if (row.enabled && !secret) {
+    const { data: existing } = await supabase
+      .from("client_social_accounts")
+      .select("secret_enc")
+      .eq("id", id ?? "")
+      .maybeSingle();
+    if (!existing?.secret_enc) return fail("needsToken");
+  }
+
+  // `platform` is dropped alongside the identity columns: it is half of the
+  // `unique (client_id, platform)` key, and a blank secret on an edit means
+  // "keep the stored token". Editing an Instagram row into a LinkedIn one
+  // would leave a Meta token in a row resolveAccount hands to LinkedIn as a
+  // Bearer — the exact credential/network mispairing this table exists to
+  // make impossible. Changing the network means a new row.
+  const { client_id, tenant_id, created_by, platform, ...editable } = row;
+  const written = id
+    ? wrote(
+        await supabase
+          .from("client_social_accounts")
+          .update(editable)
+          .eq("id", id)
+          .eq("tenant_id", tenantId)
+          .select("id"),
+        "social.account",
+      )
+    : wrote(
+        await supabase
+          .from("client_social_accounts")
+          .insert(row)
+          .select("id"),
+        "social.account",
+      );
+  if (!written.ok) return written;
+
+  revalidateModule(locale);
+  return { ok: true };
+}
+
+export async function deleteSocialAccountAction(
+  formData: FormData,
+): Promise<Result> {
+  const { supabase, tenantId, role } = await ctx();
+  if (!hasCap(role, "coordinate")) return fail("notYours");
+
+  const id = str(formData, "id");
+  const locale = str(formData, "locale") || "pt-BR";
+  if (!id) return fail("notFound");
+
+  const written = wrote(
+    await supabase
+      .from("client_social_accounts")
+      .delete()
+      .eq("id", id)
+      .eq("tenant_id", tenantId)
+      .select("id"),
+    "social.account",
+  );
+  if (!written.ok) return written;
+
+  revalidateModule(locale);
+  return { ok: true };
 }

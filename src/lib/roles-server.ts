@@ -11,8 +11,17 @@ export const VIEW_ROLE_COOKIE = "nest-view-role";
 /** Map any legacy tenant_members.role value onto an app role. */
 function mapRole(role: string | null | undefined): AppRole {
   if (isAppRole(role)) return role;
+  // The legacy values this app actually wrote before app roles existed. Named
+  // explicitly so they keep mapping to what they meant.
   if (role === "owner" || role === "admin") return "founder";
-  return "manager";
+  if (role === "member" || role === "staff") return "manager";
+  // Anything else is a value nobody planned for — including the null a user
+  // with NO membership row for the active tenant produces. That used to land
+  // on "manager", which carries coordinate + publish, so such a user was
+  // handed the capability to register publishing credentials. The tenant floor
+  // denied every read and write behind it, but that floor was the only layer
+  // and it does not cover `profiles`. Fail closed instead.
+  return "client";
 }
 
 /** The user's real role for the active tenant (their login's view). */

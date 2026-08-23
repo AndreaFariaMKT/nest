@@ -5,8 +5,10 @@ import { timingSafeEqual } from "node:crypto";
  *
  * Constant-time on purpose. `!==` on strings short-circuits at the first
  * differing byte, so response time leaks a prefix — and CRON_SECRET is not a
- * throwaway: it gates four public cron endpoints and, until recently, two
- * debug routes, one of which returned the secret's own first eight characters.
+ * throwaway: it gates seven routes — six crons plus /api/instagram/publish —
+ * and the two debug routes, which still exist and still use it. /api/debug/env
+ * still returns this secret's own first eight characters; what stops that is
+ * the NODE_ENV 404 at the top of the route, not their removal.
  *
  * Returns a discriminated result rather than a boolean so callers keep the
  * distinction they already made between "not configured" (a deploy problem,

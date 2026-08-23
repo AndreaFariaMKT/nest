@@ -92,23 +92,6 @@ const GROUPS: Record<string, Group> = {
       { name: "GOOGLE_OAUTH_REDIRECT_URI", required: true },
     ],
   },
-  publishing: {
-    label: "Publishing target (single-client guard)",
-    optional: true,
-    vars: [
-      {
-        // The publish credentials are one set for the whole deployment. This
-        // names the only client those credentials belong to, so a second
-        // client's approved post cannot go live on the first client's feed.
-        // Unset means the publish cron publishes nothing.
-        name: "PUBLISH_ENABLED_CLIENT_ID",
-        required: true,
-        validate: (v) =>
-          /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(v),
-        reason: "must be the clients.id UUID whose accounts these credentials publish to",
-      },
-    ],
-  },
   socialSecrets: {
     label: "Shared logins (social media module)",
     optional: true,

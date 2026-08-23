@@ -42,6 +42,8 @@ export async function SocialModuleCard({
   const { data } = await supabase
     .from("content_drafts")
     .select("status, caption, publish_on")
+    // Social pieces only — the client card's health dot — the exact symptom 026 exists to prevent.
+    .eq("engine", "social")
     .eq("client_id", clientId);
 
   const pieces = (data ?? []) as unknown as SocialPiece[];

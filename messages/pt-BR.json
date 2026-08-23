@@ -832,7 +832,8 @@
       "logins": "Acessos compartilhados",
       "report": "Performance",
       "meetings": "Reuniões",
-      "messages": "Mensagens"
+      "messages": "Mensagens",
+      "accounts": "Contas de publicação"
     },
     "filter": {
       "client": "Cliente",
@@ -1232,7 +1233,10 @@
       "dbMissingField": "Faltou preencher algo, ou o valor não é aceito aqui.",
       "dbBadReference": "Um dos itens ligados a isso não existe mais.",
       "dbTooLong": "O texto passou do limite.",
-      "dbFailed": "Não deu para salvar. O erro foi registrado."
+      "dbFailed": "Não deu para salvar. O erro foi registrado.",
+      "needsPlatform": "Escolha a rede.",
+      "needsAccountRef": "Falta o identificador da conta que vai publicar.",
+      "needsToken": "Não dá para ligar uma conta sem token. Cole o token e salve."
     },
     "portal": {
       "contentSubtitle": "Texto e criativo juntos, uma peça de cada vez.",
@@ -1301,6 +1305,63 @@
       "dueToday": "{n} vencem hoje",
       "overdue": "{n} passaram da data de resposta"
     },
-    "waitingSince": "desde {date}"
+    "waitingSince": "desde {date}",
+    "accounts": {
+      "title": "Contas de publicação",
+      "subtitle": "Em qual conta cada cliente publica.",
+      "guardTitle": "Isto decide o que sai em público",
+      "guardScope": "Cada peça só publica pela credencial cadastrada no próprio cliente dela. Sem conta ligada, a peça espera — ela não vai para a conta de outro cliente.",
+      "guardEncrypted": "Os tokens ficam cifrados no banco (AES-256-GCM) e nunca chegam ao navegador.",
+      "guardNoKey": "SOCIAL_SECRET_KEY não está configurada — sem ela não é possível guardar token nenhum.",
+      "note": "Ligar uma conta é uma decisão separada de cadastrar o token: um onboarding pela metade não pode colocar nada no ar.",
+      "empty": "Nenhuma conta cadastrada ainda. Enquanto isso, nada publica.",
+      "rotated": "Trocado em {date}",
+      "neverRotated": "Token nunca trocado",
+      "statusLive": "No ar",
+      "statusNoToken": "Sem token",
+      "statusOff": "Desligada",
+      "remove": "Remover",
+      "removeConfirm": "Confirmar",
+      "platforms": {
+        "instagram": "Instagram",
+        "linkedin": "LinkedIn",
+        "tiktok": "TikTok"
+      },
+      "modes": {
+        "inbox": "Rascunho no app",
+        "direct": "Publica direto"
+      },
+      "edit": "Editar"
+    },
+    "accountForm": {
+      "open": "Cadastrar conta",
+      "submit": "Salvar conta",
+      "client": "Cliente",
+      "platform": "Rede",
+      "platforms": {
+        "instagram": "Instagram",
+        "linkedin": "LinkedIn",
+        "tiktok": "TikTok"
+      },
+      "refInstagram": "ID da conta Instagram Business",
+      "refInstagramHint": "É o mesmo ID que aparece nas configurações do app Meta. Confira de quem é a conta antes de salvar.",
+      "refLinkedIn": "URN da organização",
+      "refLinkedInHint": "No formato urn:li:organization:12345678.",
+      "token": "Token de acesso",
+      "tokenHint": "Ao editar, deixe em branco para manter o token atual.",
+      "tokenNoKey": "Indisponível: falta SOCIAL_SECRET_KEY.",
+      "apiVersion": "Versão da API (opcional)",
+      "rotatedOn": "Trocado em",
+      "publishMode": "Modo de publicação",
+      "publishModeHint": "Rascunho no app deixa a postagem para alguém finalizar no TikTok. É o padrão.",
+      "modes": {
+        "inbox": "Rascunho no app",
+        "direct": "Publica direto"
+      },
+      "note": "Observação",
+      "enabled": "Publicar por esta conta",
+      "enabledHint": "Desligada, a conta fica cadastrada e nada sai por ela.",
+      "save": "Salvar alterações"
+    }
   }
 }

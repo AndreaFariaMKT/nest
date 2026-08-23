@@ -832,7 +832,8 @@
       "logins": "Shared logins",
       "report": "Performance",
       "meetings": "Meetings",
-      "messages": "Messages"
+      "messages": "Messages",
+      "accounts": "Publishing accounts"
     },
     "filter": {
       "client": "Client",
@@ -1232,7 +1233,10 @@
       "dbMissingField": "Something is missing, or the value is not accepted here.",
       "dbBadReference": "One of the things this is linked to no longer exists.",
       "dbTooLong": "That text is over the limit.",
-      "dbFailed": "That could not be saved. The error has been logged."
+      "dbFailed": "That could not be saved. The error has been logged.",
+      "needsPlatform": "Pick the network.",
+      "needsAccountRef": "The account that will publish is missing its identifier.",
+      "needsToken": "An account cannot be switched on without a token. Paste one and save."
     },
     "portal": {
       "contentSubtitle": "Text and creative together, one piece at a time.",
@@ -1301,6 +1305,63 @@
       "dueToday": "{n} due today",
       "overdue": "{n} past the reply date"
     },
-    "waitingSince": "since {date}"
+    "waitingSince": "since {date}",
+    "accounts": {
+      "title": "Publishing accounts",
+      "subtitle": "Which account each client publishes as.",
+      "guardTitle": "This decides what goes out in public",
+      "guardScope": "A piece only publishes through a credential registered against its own client. With no account switched on, the piece waits — it does not go out on someone else's feed.",
+      "guardEncrypted": "Tokens are encrypted at rest (AES-256-GCM) and never reach the browser.",
+      "guardNoKey": "SOCIAL_SECRET_KEY is not configured — no token can be stored without it.",
+      "note": "Switching an account on is a separate decision from storing its token: a half-finished onboarding must not put anything on a live feed.",
+      "empty": "No accounts registered yet. Until then, nothing publishes.",
+      "rotated": "Rotated {date}",
+      "neverRotated": "Token never rotated",
+      "statusLive": "Live",
+      "statusNoToken": "No token",
+      "statusOff": "Switched off",
+      "remove": "Remove",
+      "removeConfirm": "Confirm",
+      "platforms": {
+        "instagram": "Instagram",
+        "linkedin": "LinkedIn",
+        "tiktok": "TikTok"
+      },
+      "modes": {
+        "inbox": "Draft in app",
+        "direct": "Publish outright"
+      },
+      "edit": "Edit"
+    },
+    "accountForm": {
+      "open": "Register an account",
+      "submit": "Save account",
+      "client": "Client",
+      "platform": "Network",
+      "platforms": {
+        "instagram": "Instagram",
+        "linkedin": "LinkedIn",
+        "tiktok": "TikTok"
+      },
+      "refInstagram": "Instagram Business account ID",
+      "refInstagramHint": "The same ID the Meta app settings show. Check whose account it is before saving.",
+      "refLinkedIn": "Organization URN",
+      "refLinkedInHint": "In the form urn:li:organization:12345678.",
+      "token": "Access token",
+      "tokenHint": "When editing, leave blank to keep the stored token.",
+      "tokenNoKey": "Unavailable: SOCIAL_SECRET_KEY is missing.",
+      "apiVersion": "API version (optional)",
+      "rotatedOn": "Rotated on",
+      "publishMode": "Publish mode",
+      "publishModeHint": "Draft in app leaves the post for a human to finalise in TikTok. It is the default.",
+      "modes": {
+        "inbox": "Draft in app",
+        "direct": "Publish outright"
+      },
+      "note": "Note",
+      "enabled": "Publish through this account",
+      "enabledHint": "Switched off, the account stays registered and nothing goes out through it.",
+      "save": "Save changes"
+    }
   }
 }

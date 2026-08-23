@@ -3,21 +3,18 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import type { Database } from "@/types/database.gen";
 
 import { checkCronAuth } from "@/lib/cron-auth";
-import {
-  publishCarousel,
-  readCredentials,
-  InstagramApiError,
-} from "@/lib/instagram";
+import { publishCarousel, InstagramApiError } from "@/lib/instagram";
 import {
   publishCarousel as publishCarouselLinkedIn,
-  readCredentials as readLinkedInCredentials,
   LinkedInApiError,
 } from "@/lib/linkedin";
+import { publishVideo as publishTikTokVideo, TikTokApiError } from "@/lib/tiktok";
 import {
-  publishVideo as publishTikTokVideo,
-  readCredentials as readTikTokCredentials,
-  TikTokApiError,
-} from "@/lib/tiktok";
+  accountIndex,
+  accountKey,
+  resolveAccount,
+  type SocialAccountRow,
+} from "@/lib/social-accounts";
 import { log } from "@/lib/log";
 import { checkRateLimit, ipFromHeaders } from "@/lib/rate-limit";
 
@@ -131,33 +128,8 @@ async function handler(request: NextRequest) {
     return NextResponse.json({ error: "unauthorized" }, { status: 401 });
   }
 
-  const igCredsResult = readCredentials();
-  const liCredsResult = readLinkedInCredentials();
-  const ttCredsResult = readTikTokCredentials();
-  // We let the cron run even when one platform's creds are missing — only
-  // rows for that platform get skipped. Returning 503 unless ALL are
-  // missing keeps a partial config (e.g., IG live, LinkedIn + TikTok
-  // pending) from blocking the queue.
-  if (!igCredsResult.ok && !liCredsResult.ok && !ttCredsResult.ok) {
-    return NextResponse.json(
-      {
-        error: "no_platform_creds",
-        missing: {
-          instagram: igCredsResult.ok ? [] : igCredsResult.missing,
-          linkedin: liCredsResult.ok ? [] : liCredsResult.missing,
-          tiktok: ttCredsResult.ok ? [] : ttCredsResult.missing,
-        },
-      },
-      { status: 503 },
-    );
-  }
-  const creds = igCredsResult.ok ? igCredsResult.creds : null;
-  const liCreds = liCredsResult.ok ? liCredsResult.creds : null;
-  const ttCreds = ttCredsResult.ok ? ttCredsResult.creds : null;
-
   const admin = createAdminClient();
 
-  const publishClientId = process.env.PUBLISH_ENABLED_CLIENT_ID ?? null;
 
   // Pick due rows. We filter by scheduled_for <= now in SQL, cap at BATCH_SIZE
   // so a single run never blocks for too long.
@@ -178,6 +150,21 @@ async function handler(request: NextRequest) {
   }
   log.info("cron.publish", "run started", { dueCount: due.length });
 
+  // Every account that could serve this batch, fetched once. The batch is at
+  // most BATCH_SIZE rows, so this is one query rather than up to ten.
+  const { data: accountData } = await admin
+    .from("client_social_accounts")
+    .select(
+      "client_id, platform, account_ref, secret_enc, api_version, publish_mode, enabled",
+    );
+  // Deliberately NOT filtered on `enabled`. Filtering here would remove a
+  // switched-off account from the index entirely, so resolveAccount would
+  // report `no_account` for it — and telling "never registered" apart from
+  // "registered but switched off" is the whole reason that module returns six
+  // distinct problems instead of null. The classification belongs to the one
+  // place that can explain itself.
+  const accounts = accountIndex((accountData ?? []) as SocialAccountRow[]);
+
   const summary = {
     processed: 0,
     published: 0,
@@ -188,34 +175,6 @@ async function handler(request: NextRequest) {
 
   for (const row of due) {
     summary.processed += 1;
-
-    // Per-platform cred guard. Skip rows whose platform's creds are missing
-    // without bumping attempt_count — operators can land creds and the row
-    // gets retried on the next tick.
-    if (row.platform === "instagram" && !creds) {
-      summary.skipped += 1;
-      summary.errors.push({
-        scheduledId: row.id,
-        reason: "platform_creds_missing:instagram",
-      });
-      continue;
-    }
-    if (row.platform === "linkedin" && !liCreds) {
-      summary.skipped += 1;
-      summary.errors.push({
-        scheduledId: row.id,
-        reason: "platform_creds_missing:linkedin",
-      });
-      continue;
-    }
-    if (row.platform === "tiktok" && !ttCreds) {
-      summary.skipped += 1;
-      summary.errors.push({
-        scheduledId: row.id,
-        reason: "platform_creds_missing:tiktok",
-      });
-      continue;
-    }
 
     const { data: draftData } = await admin
       .from("content_drafts")
@@ -231,25 +190,27 @@ async function handler(request: NextRequest) {
       continue;
     }
 
-    // The publish credentials are deployment-wide singletons — one
-    // META_LONG_LIVED_TOKEN, one INSTAGRAM_BUSINESS_ACCOUNT_ID, one
-    // LINKEDIN_ORGANIZATION_URN, one TIKTOK_ACCESS_TOKEN — while this query
-    // picks due rows across every client and both tenants. Nothing in the
-    // publish path resolves credentials per client, so onboarding a second
-    // client into the module would publish their carousel to the FIRST
-    // client's feed: publicly, irreversibly, under the wrong brand.
+    // Which account this piece publishes as, decided by the piece's own client.
     //
-    // Until the credentials key off client_id, this is the guard. Rows for any
-    // other client are skipped without bumping attempt_count, so they wait
-    // rather than burning their retries. Unset means nobody publishes, which
-    // is the right default for a mistake that cannot be taken back.
-    if (draftData.client_id !== publishClientId) {
+    // This is the guard that used to be PUBLISH_ENABLED_CLIENT_ID, and before
+    // that was nothing at all: the credentials were one set for the whole
+    // deployment, so a second client's approved carousel would have gone live
+    // on the FIRST client's feed — publicly, irreversibly, under the wrong
+    // brand. Now a piece can only publish through a credential registered
+    // against, and enabled for, its own client.
+    //
+    // Every refusal here is a skip, not a failure: attempt_count is untouched,
+    // so landing a credential lets the waiting rows go out on the next tick
+    // instead of arriving already out of retries. The reason is specific
+    // enough to act on — "not_enabled" and "no_secret" are different jobs.
+    const resolved = resolveAccount(
+      accounts.get(accountKey(draftData.client_id, row.platform)),
+    );
+    if (!resolved.ok) {
       summary.skipped += 1;
       summary.errors.push({
         scheduledId: row.id,
-        reason: publishClientId
-          ? "client_not_publish_enabled"
-          : "publish_client_unset",
+        reason: `account_${resolved.problem}:${row.platform}`,
       });
       continue;
     }
@@ -289,25 +250,38 @@ async function handler(request: NextRequest) {
 
     const outcome: AttemptOutcome = await (async () => {
       try {
-        if (row.platform === "instagram") {
-          const imageUrls = extractImageUrls(draft);
-          const result = await publishCarousel(creds!, imageUrls, caption);
-          return { ok: true, publishedId: result.publishedId };
+        // Branching on `resolved`, not on `row.platform`. They agree by
+        // construction — the account was looked up with row.platform as part
+        // of the key — but `resolved` is a discriminated union, so this way
+        // the compiler is the thing guaranteeing that Instagram credentials
+        // never reach the LinkedIn call. A mis-paired credential here is a
+        // post on the wrong network, which is the whole point of this change.
+        switch (resolved.platform) {
+          case "instagram": {
+            const result = await publishCarousel(
+              resolved.creds,
+              extractImageUrls(draft),
+              caption,
+            );
+            return { ok: true, publishedId: result.publishedId };
+          }
+          case "linkedin": {
+            const result = await publishCarouselLinkedIn(
+              resolved.creds,
+              extractImageUrls(draft).slice(0, 9),
+              caption,
+            );
+            return { ok: true, publishedId: result.postUrn };
+          }
+          case "tiktok": {
+            const result = await publishTikTokVideo(
+              resolved.creds,
+              draft.video_url!,
+              { title: draft.title },
+            );
+            return { ok: true, publishedId: result.publishId };
+          }
         }
-        if (row.platform === "linkedin") {
-          const imageUrls = extractImageUrls(draft);
-          const result = await publishCarouselLinkedIn(
-            liCreds!,
-            imageUrls.slice(0, 9),
-            caption,
-          );
-          return { ok: true, publishedId: result.postUrn };
-        }
-        // tiktok
-        const result = await publishTikTokVideo(ttCreds!, draft.video_url!, {
-          title: draft.title,
-        });
-        return { ok: true, publishedId: result.publishId };
       } catch (err) {
         if (err instanceof InstagramApiError) {
           return {

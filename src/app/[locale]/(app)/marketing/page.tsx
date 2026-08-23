@@ -21,6 +21,8 @@ export default async function MarketingPage({
   const { data } = await supabase
     .from("content_drafts")
     .select("pillar, status")
+    // Social pieces only — the marketing stats.
+    .eq("engine", "social")
     .eq("tenant_id", tenantId);
 
   const drafts = data ?? [];

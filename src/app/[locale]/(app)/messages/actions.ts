@@ -2,6 +2,9 @@
 
 import { revalidatePath } from "next/cache";
 
+import { dbError } from "@/lib/db-error";
+import { log } from "@/lib/log";
+
 import { createClient } from "@/lib/supabase/server";
 import { getSessionUser } from "@/lib/auth";
 import { currentTenantId } from "@/lib/tenant-server";
@@ -44,7 +47,16 @@ export async function sendMessageAction(
     client_id: clientId,
     room,
   });
-  if (error) return { ok: false, error: error.message };
+  if (error) {
+    // Reached from the PORTAL: portal/content/CycleFeedback.tsx calls this
+    // action directly, and FormData is entirely caller-controlled. A tampered
+    // client_id is refused by portal_room_floor, and the raw message would
+    // hand the client `new row violates row-level security policy for table
+    // "messages"` — plus a distinguishable 42501-vs-23503 that works as a
+    // client-uuid validation oracle.
+    log.error("messages.send", "write_failed", { code: error.code });
+    return { ok: false, error: dbError(error) };
+  }
 
   revalidatePath(`/${locale}/messages`);
   revalidatePath(`/${locale}/portal/messages`);

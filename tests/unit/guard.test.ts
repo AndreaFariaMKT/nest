@@ -11,7 +11,18 @@ describe("mapLegacyRole", () => {
     expect(mapLegacyRole("owner")).toBe("founder");
     expect(mapLegacyRole("admin")).toBe("founder");
     expect(mapLegacyRole("member")).toBe("manager");
-    expect(mapLegacyRole(null)).toBe("manager");
+    expect(mapLegacyRole("staff")).toBe("manager");
+  });
+
+  it("fails closed on a role nobody planned for", () => {
+    // null is what a user with NO tenant_members row for the active tenant
+    // produces. This used to answer "manager", which carries coordinate +
+    // publish — so such a login was handed the capability to register
+    // publishing credentials. RLS denied everything behind it, but that was
+    // the only layer and it does not cover `profiles`.
+    expect(mapLegacyRole(null)).toBe("client");
+    expect(mapLegacyRole(undefined)).toBe("client");
+    expect(mapLegacyRole("something-nobody-wrote")).toBe("client");
   });
 });
 

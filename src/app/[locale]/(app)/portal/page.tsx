@@ -36,11 +36,14 @@ export default async function PortalOverview({
         .from("content_drafts")
         .select("id", { count: "exact", head: true })
         .eq("client_id", client.id)
+        // Social pieces only — the portal dashboard counters, which must agree with the list they link to.
+        .eq("engine", "social")
         .eq("status", "client_review"),
       supabase
         .from("content_drafts")
         .select("id", { count: "exact", head: true })
         .eq("client_id", client.id)
+        .eq("engine", "social")
         .eq("status", "published"),
     ]);
 

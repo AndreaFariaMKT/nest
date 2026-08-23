@@ -153,6 +153,10 @@ export const SOCIAL_SCREENS = [
   { key: "calendar", href: "/social/calendar", caps: ["direction", "coordinate", "design", "publish"] },
   { key: "media", href: "/social/media", caps: ["direction", "coordinate", "design"] },
   { key: "logins", href: "/social/logins", caps: ["direction", "coordinate", "publish"] },
+  // Coordinate only. Everything else in this list is about producing a post;
+  // this one is about what the platform may publish AS, and the result of
+  // getting it wrong is public and permanent.
+  { key: "accounts", href: "/social/accounts", caps: ["coordinate"] },
   { key: "report", href: "/social/report", caps: ["direction", "coordinate"] },
   // These two live outside /social because the app already had them, and one
   // meeting record per client is not a social-media-only idea. They are in the
@@ -262,6 +266,16 @@ export function addWorkingDays(iso: string, count: number): string {
  * runs as scheduled, so one quiet week never stalls the calendar.
  */
 export const REPLY_WORKING_DAYS = 5;
+
+/**
+ * Working days between pulling a theme off the shelf and its publish date.
+ *
+ * Named here because it was written twice as a bare `10` — once as the server
+ * default in `pullFromBacklog` and once as the form's pre-fill — so changing
+ * the lead time in one place made the form quietly disagree with the server.
+ * It is a default, not a rule: the date is editable on the way in.
+ */
+export const PULL_LEAD_WORKING_DAYS = 10;
 
 export function replyDueBy(publishOn: string | null | undefined): string | null {
   if (!isIsoDate(publishOn)) return null;
@@ -406,9 +420,13 @@ export type Verdict =
   | { ok: false; reason: BlockedReason };
 
 /**
- * Every refusal this module can produce. Kept as a list so the UI can tell a
- * known reason (translate it) from a Postgres error (show it verbatim rather
- * than swallowing a real failure behind a friendly noise word).
+ * Every refusal this module can produce.
+ *
+ * Kept as a closed list so the UI can translate a known reason instead of
+ * guessing. Database failures do NOT arrive here — they come through
+ * `DB_ERRORS` in src/lib/db-error.ts, keyed by SQLSTATE, because a raw
+ * Postgres message carries table, column and constraint names and the portal
+ * renders these refusals for clients. Both sets render under `social.blocked`.
  */
 export const BLOCKED_REASONS = [
   "notOnShelf",
@@ -443,6 +461,9 @@ export const BLOCKED_REASONS = [
   "needsTitleAndLink",
   "needsCapturedOn",
   "needsAccountAndUser",
+  "needsPlatform",
+  "needsAccountRef",
+  "needsToken",
   "noSecretKey",
   "noPassword",
   "secretUnreadable",

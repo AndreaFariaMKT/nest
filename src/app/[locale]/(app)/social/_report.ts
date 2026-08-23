@@ -88,6 +88,8 @@ async function publishedIn(
     .from("content_drafts")
     .select("pillar, published_at")
     .in("client_id", clientIds)
+    // Social pieces only — the pillar mix, which would otherwise count content-engine drafts.
+    .eq("engine", "social")
     .eq("status", "published")
     .gte("published_at", month.fromIso)
     .lt("published_at", month.toIso);

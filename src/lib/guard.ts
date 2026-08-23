@@ -19,8 +19,17 @@ export function isAppRoleValue(v: string | undefined | null): v is AppRole {
 /** Map any legacy tenant_members.role value onto an app role (Edge-safe). */
 export function mapLegacyRole(role: string | null | undefined): AppRole {
   if (isAppRoleValue(role)) return role;
+  // The legacy values this app actually wrote before app roles existed. Named
+  // explicitly so they keep mapping to what they meant.
   if (role === "owner" || role === "admin") return "founder";
-  return "manager";
+  if (role === "member" || role === "staff") return "manager";
+  // Anything else is a value nobody planned for — including the null a user
+  // with NO membership row for the active tenant produces. That used to land
+  // on "manager", which carries coordinate + publish, so such a user was
+  // handed the capability to register publishing credentials. The tenant floor
+  // denied every read and write behind it, but that floor was the only layer
+  // and it does not cover `profiles`. Fail closed instead.
+  return "client";
 }
 
 /**
