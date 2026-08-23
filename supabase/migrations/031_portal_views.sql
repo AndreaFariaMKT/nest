@@ -33,9 +33,12 @@ comment on view public.portal_client is
   'What a portal login may know about its own client. Deliberately excludes '
   'notes (studio commentary) and portal_token (a bearer credential).';
 
+-- `contracts` has no status column — an ended contract is one whose ends_on
+-- has passed. auto_renew is included because "does this keep going" is a fair
+-- thing for a client to be able to see about their own contract.
 create or replace view public.portal_contract as
   select k.id, k.client_id, k.title, k.monthly_value_cents, k.currency,
-         k.starts_on, k.ends_on, k.status
+         k.starts_on, k.ends_on, k.auto_renew
     from public.contracts k
     join public.clients c on c.id = k.client_id
    where c.portal_user_id = (select auth.uid())
@@ -44,6 +47,10 @@ create or replace view public.portal_contract as
 comment on view public.portal_contract is
   'What a portal login may know about its own contracts. Excludes notes and '
   'document_url, which are internal.';
+
+-- Re-runnable: if an earlier attempt of this file aborted partway (it did,
+-- on a contracts.status column that does not exist), the create-or-replaces
+-- above converge and the drops below are already guarded.
 
 grant select on public.portal_client to authenticated;
 grant select on public.portal_contract to authenticated;

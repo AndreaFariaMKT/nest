@@ -245,6 +245,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "brand_kits_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "portal_client"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "brand_kits_tenant_id_fkey"
             columns: ["tenant_id"]
             isOneToOne: false
@@ -296,6 +303,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "client_contacts_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "portal_client"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "client_contacts_tenant_id_fkey"
             columns: ["tenant_id"]
             isOneToOne: false
@@ -329,6 +343,13 @@ export type Database = {
             columns: ["client_id"]
             isOneToOne: false
             referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "client_members_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "portal_client"
             referencedColumns: ["id"]
           },
           {
@@ -378,6 +399,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "client_services_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "portal_client"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "client_services_service_id_fkey"
             columns: ["service_id"]
             isOneToOne: false
@@ -407,6 +435,7 @@ export type Database = {
           posts_per_cycle: number
           primary_contact_id: string | null
           slug: string
+          social_digest_at: string | null
           social_enabled: boolean
           status: Database["public"]["Enums"]["client_status"]
           tenant_id: string
@@ -426,6 +455,7 @@ export type Database = {
           posts_per_cycle?: number
           primary_contact_id?: string | null
           slug: string
+          social_digest_at?: string | null
           social_enabled?: boolean
           status?: Database["public"]["Enums"]["client_status"]
           tenant_id?: string
@@ -445,6 +475,7 @@ export type Database = {
           posts_per_cycle?: number
           primary_contact_id?: string | null
           slug?: string
+          social_digest_at?: string | null
           social_enabled?: boolean
           status?: Database["public"]["Enums"]["client_status"]
           tenant_id?: string
@@ -607,10 +638,24 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "content_drafts_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "portal_client"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "content_drafts_client_tenant_fkey"
             columns: ["client_id", "tenant_id"]
             isOneToOne: false
             referencedRelation: "clients"
+            referencedColumns: ["id", "tenant_id"]
+          },
+          {
+            foreignKeyName: "content_drafts_client_tenant_fkey"
+            columns: ["client_id", "tenant_id"]
+            isOneToOne: false
+            referencedRelation: "portal_client"
             referencedColumns: ["id", "tenant_id"]
           },
           {
@@ -688,6 +733,13 @@ export type Database = {
             columns: ["client_id"]
             isOneToOne: false
             referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contracts_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "portal_client"
             referencedColumns: ["id"]
           },
           {
@@ -803,6 +855,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "cycles_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "portal_client"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "cycles_tenant_id_fkey"
             columns: ["tenant_id"]
             isOneToOne: false
@@ -860,10 +919,24 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "media_assets_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "portal_client"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "media_assets_client_tenant_fkey"
             columns: ["client_id", "tenant_id"]
             isOneToOne: false
             referencedRelation: "clients"
+            referencedColumns: ["id", "tenant_id"]
+          },
+          {
+            foreignKeyName: "media_assets_client_tenant_fkey"
+            columns: ["client_id", "tenant_id"]
+            isOneToOne: false
+            referencedRelation: "portal_client"
             referencedColumns: ["id", "tenant_id"]
           },
           {
@@ -946,6 +1019,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "meetings_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "portal_client"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "meetings_created_by_fkey"
             columns: ["created_by"]
             isOneToOne: false
@@ -998,6 +1078,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "messages_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "portal_client"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "messages_tenant_id_fkey"
             columns: ["tenant_id"]
             isOneToOne: false
@@ -1046,6 +1133,13 @@ export type Database = {
             columns: ["client_id"]
             isOneToOne: false
             referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "monthly_reports_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "portal_client"
             referencedColumns: ["id"]
           },
           {
@@ -1111,6 +1205,13 @@ export type Database = {
             columns: ["client_id"]
             isOneToOne: false
             referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "notes_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "portal_client"
             referencedColumns: ["id"]
           },
           {
@@ -1504,10 +1605,24 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "shared_logins_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "portal_client"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "shared_logins_client_tenant_fkey"
             columns: ["client_id", "tenant_id"]
             isOneToOne: false
             referencedRelation: "clients"
+            referencedColumns: ["id", "tenant_id"]
+          },
+          {
+            foreignKeyName: "shared_logins_client_tenant_fkey"
+            columns: ["client_id", "tenant_id"]
+            isOneToOne: false
+            referencedRelation: "portal_client"
             referencedColumns: ["id", "tenant_id"]
           },
           {
@@ -1652,6 +1767,13 @@ export type Database = {
             columns: ["client_id"]
             isOneToOne: false
             referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tasks_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "portal_client"
             referencedColumns: ["id"]
           },
           {
@@ -1821,7 +1943,63 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      portal_client: {
+        Row: {
+          id: string | null
+          name: string | null
+          slug: string | null
+          tenant_id: string | null
+        }
+        Insert: {
+          id?: string | null
+          name?: string | null
+          slug?: string | null
+          tenant_id?: string | null
+        }
+        Update: {
+          id?: string | null
+          name?: string | null
+          slug?: string | null
+          tenant_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "clients_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      portal_contract: {
+        Row: {
+          auto_renew: boolean | null
+          client_id: string | null
+          currency: string | null
+          ends_on: string | null
+          id: string | null
+          monthly_value_cents: number | null
+          starts_on: string | null
+          title: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "contracts_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contracts_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "portal_client"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Functions: {
       has_client_access: { Args: { target_client: string }; Returns: boolean }
@@ -1855,6 +2033,16 @@ export type Database = {
           reach: number
           saves: number
           shares: number
+        }[]
+      }
+      stale_metrics_posts: {
+        Args: { batch: number; lookback_ts: string; platform_name: string }
+        Returns: {
+          external_id: string
+          id: string
+          last_captured_at: string
+          platform: string
+          published_at: string
         }[]
       }
     }
