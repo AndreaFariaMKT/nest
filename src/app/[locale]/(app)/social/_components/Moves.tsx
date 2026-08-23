@@ -31,6 +31,7 @@ export function Moves({
   today,
   locale,
   clientName,
+  since,
   extra,
 }: {
   piece: PieceForMoves;
@@ -39,6 +40,8 @@ export function Moves({
   locale: string;
   /** For the one label that names the recipient. */
   clientName?: string;
+  /** How long it has been sitting where it is — shown next to the wait pill. */
+  since?: string | null;
   /** Extra fields the action needs, e.g. a publish date when pulling a theme. */
   extra?: React.ReactNode;
 }) {
@@ -56,11 +59,22 @@ export function Moves({
   const set: MoveSet = movesFor(piece, caps, today);
 
   if (!set.moves.length) {
-    return set.waitingOn ? (
-      <Pill tone={set.waitingOn === "order" ? "success" : "brand"} className="text-[10px]">
-        {t(`waitingOn.${set.waitingOn}`)}
-      </Pill>
-    ) : null;
+    if (!set.waitingOn) return null;
+    return (
+      <span className="flex flex-wrap items-center gap-2">
+        <Pill
+          tone={set.waitingOn === "order" ? "success" : "brand"}
+          className="text-[10px]"
+        >
+          {t(`waitingOn.${set.waitingOn}`)}
+        </Pill>
+        {since ? (
+          <span className="text-xs text-muted-foreground">
+            {t("waitingSince", { date: since })}
+          </span>
+        ) : null}
+      </span>
+    );
   }
 
   // The comment belongs to whichever move needs one; when several do they share

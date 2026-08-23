@@ -1,7 +1,12 @@
 import { setRequestLocale, getTranslations } from "next-intl/server";
 
 import { PageHeader } from "@/components/ui/PageHeader";
-import { IN_FLIGHT_STAGES, type SocialStage } from "@/lib/social";
+import {
+  dayOf,
+  formatIsoDate,
+  IN_FLIGHT_STAGES,
+  type SocialStage,
+} from "@/lib/social";
 import { loadScope } from "../_data";
 import { ModuleShell } from "../_components/ModuleShell";
 import { PieceCard } from "../_components/PieceCard";
@@ -106,6 +111,11 @@ export default async function FortnightPage({
                 today={scope.today}
                 locale={locale}
                 clientName={scope.clientName(p.client_id).split(" ")[0]}
+                since={
+                  p.status === "text_review"
+                    ? formatIsoDate(dayOf(p.sent_up_at), locale)
+                    : null
+                }
               />
             </PieceCard>
           ))}

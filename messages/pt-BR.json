@@ -1293,6 +1293,7 @@
       "arrived": "{n} novas para sua leitura",
       "dueToday": "{n} vencem hoje",
       "overdue": "{n} passaram da data de resposta"
-    }
+    },
+    "waitingSince": "desde {date}"
   }
 }

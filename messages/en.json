@@ -1293,6 +1293,7 @@
       "arrived": "{n} new for your read",
       "dueToday": "{n} due today",
       "overdue": "{n} past the reply date"
-    }
+    },
+    "waitingSince": "since {date}"
   }
 }

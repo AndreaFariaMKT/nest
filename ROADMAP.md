@@ -154,9 +154,19 @@ missed, all of them "the screen exists, nothing links to it":
   screens use, given only the client cap, so the reasons and reply dates cannot
   drift from the ones the module computes.
 
-Still true: `/reports` and `/reports/kpi` are in no sidebar. They are the older
-AI-generated monthly recap, unrelated to the prototype's Performance screen
-(`/social/report`), so they were left where they were.
+`/reports` now has a sidebar entry for founder and manager. Its own tab bar
+already links `/reports/kpi`, so one nav item makes both reachable — the KPI
+dashboard did not get a second entry because `/social/report` already answers
+that question for the module.
+
+**Deliberately not built, because it would duplicate something that exists:**
+- A `/social/meetings` screen. The module's nav points at `/meetings`, which
+  already carries summary, agenda, transcript and decisions per client.
+- A `/social/messages` screen. Same reasoning — the rooms live at `/messages`.
+- The prototype's "Waiting on you" CARD embedded inside Production and
+  Publishing. The prototype shows it both inline and as its own screen; the
+  screen is the one that exists here, and a second copy of the same list on the
+  screen next to it is noise, not redundancy.
 
 ### Nothing left open — 2026-08
 

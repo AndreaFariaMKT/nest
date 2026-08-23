@@ -14,6 +14,8 @@ type Meeting = Pick<
   | "status"
   | "google_meet_url"
   | "client_id"
+  | "summary"
+  | "decisions"
 >;
 
 type JoinedMeeting = Meeting & {
@@ -47,7 +49,7 @@ export default async function MeetingsPage({
   const { data } = await supabase
     .from("meetings")
     .select(
-      "id, title, starts_at, ends_at, status, google_meet_url, client_id, client:clients(name)",
+      "id, title, starts_at, ends_at, status, google_meet_url, client_id, client:clients(name), summary, decisions",
     )
     .eq("tenant_id", tenantId)
     .order("starts_at", { ascending: true });
@@ -72,12 +74,12 @@ export default async function MeetingsPage({
     const client = pickOne(m.client);
     return (
       <li
-        className="flex items-center justify-between rounded-md border border-border bg-card px-4 py-3 text-sm hover:bg-muted"
+        className="rounded-md border border-border bg-card px-4 py-3 text-sm hover:bg-muted"
         data-testid="meeting-row"
       >
         <Link
           href={`/meetings/${m.id}`}
-          className="flex flex-1 items-center gap-4 text-foreground"
+          className="flex items-center gap-4 text-foreground"
         >
           <div className="flex-1">
             <div className="font-medium">{m.title}</div>
@@ -93,6 +95,21 @@ export default async function MeetingsPage({
           </div>
           <Pill tone={statusTone(m.status)}>{t(`status.${m.status}`)}</Pill>
         </Link>
+
+        {/* The decision list is the part of a meeting that has to survive it,
+            so it belongs on the list — not one click further in. */}
+        {m.decisions?.length ? (
+          <ul className="mt-2 space-y-1 border-t border-border pt-2">
+            {m.decisions.map((d: string, i: number) => (
+              <li
+                key={i}
+                className="relative pl-4 text-xs leading-relaxed text-muted-foreground before:absolute before:left-0 before:top-2 before:h-px before:w-2 before:bg-primary"
+              >
+                {d}
+              </li>
+            ))}
+          </ul>
+        ) : null}
       </li>
     );
   }
