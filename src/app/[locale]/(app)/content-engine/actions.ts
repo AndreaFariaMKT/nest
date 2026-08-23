@@ -1,7 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { Constants } from "@/types/database.gen";
+import { Constants, type Database } from "@/types/database.gen";
 import { redirect } from "next/navigation";
 import type { Route } from "next";
 import { createClient as createSupabaseClient } from "@/lib/supabase/server";
@@ -554,7 +554,8 @@ export async function aiRewriteDraftAction(formData: FormData): Promise<void> {
       })
       .eq("id", slide.id);
   }
-  const draftUpdate: Record<string, unknown> = {};
+  const draftUpdate: Database["public"]["Tables"]["content_drafts"]["Update"] =
+    {};
   if (payload.hook !== null) draftUpdate.hook = payload.hook;
   if (payload.caption !== null) draftUpdate.caption = payload.caption;
   if (Object.keys(draftUpdate).length > 0) {
@@ -1501,10 +1502,10 @@ export async function updateDraftAction(
   // Validated, not defaulted. Falling back to "draft" on an unrecognised value
   // is how a piece silently leaves the social pipeline.
   const rawStatus = (formData.get("status") ?? "").toString();
-  const status = (Constants.public.Enums.content_status as readonly string[]).includes(
-    rawStatus,
-  )
-    ? rawStatus
+  const status = (
+    Constants.public.Enums.content_status as readonly string[]
+  ).includes(rawStatus)
+    ? (rawStatus as Database["public"]["Enums"]["content_status"])
     : null;
   if (!status) return { error: "Unknown status." };
   const slides = parseSlidesPayload(

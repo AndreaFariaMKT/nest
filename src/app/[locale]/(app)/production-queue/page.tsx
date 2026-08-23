@@ -7,7 +7,7 @@ import { PageHeader } from "@/components/ui/PageHeader";
 
 export const dynamic = "force-dynamic";
 
-const IN_PRODUCTION = ["draft", "text_review", "creative_review"];
+const IN_PRODUCTION = ["draft", "text_review", "creative_review"] as const;
 
 function titleCase(s: string): string {
   return s.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());

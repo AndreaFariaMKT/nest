@@ -39,6 +39,20 @@ export const PIECE_COLUMNS =
   "sent_up_at, approved_internal_at, sent_to_client_at, client_approved_at, " +
   "published_at, updated_at";
 
+/**
+ * What the PORTAL may read. Deliberately not PIECE_COLUMNS: that list carries
+ * note_design, note_publish, design_feedback and return_reason — internal
+ * production talk ABOUT this client. A React client component serializes the
+ * props object as passed, not as typed, so handing it a full row ships every
+ * one of those columns into the client's browser. Migration 022 closed the
+ * row-level version of this hole; this is the column-level one.
+ */
+export const PORTAL_PIECE_COLUMNS =
+  "id, client_id, title, status, design_state, pillar, caption, why_now, " +
+  "client_comment, publish_on, publish_time, direction_ok, post_type, " +
+  "slide_count, channels, origin, material_url, backlog_added_on, " +
+  "sent_to_client_at, published_at, updated_at";
+
 export interface SocialPieceRow extends SocialPiece {
   note_design: string | null;
   note_publish: string | null;

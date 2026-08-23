@@ -14,6 +14,8 @@
 
 import { revalidatePath } from "next/cache";
 
+import type { Database } from "@/types/database.gen";
+
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { getSessionUser } from "@/lib/auth";
@@ -21,6 +23,9 @@ import { currentTenantId } from "@/lib/tenant-server";
 import { getCurrentRole } from "@/lib/roles-server";
 import { encryptSecret, decryptSecret, secretsAvailable } from "@/lib/secrets";
 import { APP_ROLES } from "@/lib/roles";
+type DraftUpdate = Database["public"]["Tables"]["content_drafts"]["Update"];
+type LoginRow = Database["public"]["Tables"]["shared_logins"]["Insert"];
+
 import {
   actionAllowedForRole,
   addWorkingDays,
@@ -252,7 +257,7 @@ export async function runTransitionAction(
   if (!verdict.ok) return fail(verdict.reason);
 
   const now = new Date().toISOString();
-  const patch: Record<string, unknown> = { status: verdict.next };
+  const patch: DraftUpdate = { status: verdict.next };
 
   switch (action) {
     case "pull":
@@ -390,7 +395,7 @@ export async function savePieceAction(
   const piece = await loadPiece(id);
   if (!piece) return fail("notFound");
 
-  const patch: Record<string, unknown> = {};
+  const patch: DraftUpdate = {};
 
   if (hasCap(role, "coordinate")) {
     if (formData.has("caption")) patch.caption = optional(formData, "caption");
@@ -624,7 +629,7 @@ export async function saveLoginAction(
   if (!clientId) return fail("needsClient");
   if (!platform || !username) return fail("needsAccountAndUser");
 
-  const row: Record<string, unknown> = {
+  const row: LoginRow = {
     client_id: clientId,
     platform,
     site: optional(formData, "site"),

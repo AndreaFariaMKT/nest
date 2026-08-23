@@ -1,3 +1,9 @@
+// NOTE — hand-edited: `clients.social_digest_at` was added by hand to match
+// migration 024, which is written but not yet applied. The digest cron already
+// reads and writes that column, so without this the file describes a schema
+// the code does not target. Run `npx supabase gen types typescript
+// --project-id <id> > src/types/database.gen.ts` once 023/024/025 are applied
+// and this note goes away with the regeneration.
 export type Json =
   | string
   | number
@@ -401,6 +407,7 @@ export type Database = {
           legal_name: string | null
           name: string
           notes: string | null
+          social_digest_at: string | null
           portal_token: string | null
           portal_user_id: string | null
           posts_per_cycle: number
@@ -419,6 +426,7 @@ export type Database = {
           legal_name?: string | null
           name: string
           notes?: string | null
+          social_digest_at?: string | null
           portal_token?: string | null
           portal_user_id?: string | null
           posts_per_cycle?: number
@@ -437,6 +445,7 @@ export type Database = {
           legal_name?: string | null
           name?: string
           notes?: string | null
+          social_digest_at?: string | null
           portal_token?: string | null
           portal_user_id?: string | null
           posts_per_cycle?: number

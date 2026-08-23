@@ -1,6 +1,8 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+
+import type { Database } from "@/types/database.gen";
 import { redirect } from "next/navigation";
 import type { Route } from "next";
 import { createClient as createSupabaseClient } from "@/lib/supabase/server";
@@ -172,7 +174,7 @@ export async function updateTaskAction(
     completedAt = null;
   }
 
-  const update: Record<string, unknown> = {
+  const update: Database["public"]["Tables"]["tasks"]["Update"] = {
     title: form.title,
     description: form.description,
     status: form.status,

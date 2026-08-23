@@ -1,3 +1,4 @@
+import { Analytics } from "@vercel/analytics/next";
 import { NextIntlClientProvider } from "next-intl";
 import { getMessages, setRequestLocale } from "next-intl/server";
 import { notFound } from "next/navigation";
@@ -26,6 +27,14 @@ export default async function LocaleLayout({
   return (
     <NextIntlClientProvider locale={locale} messages={messages}>
       {children}
+      {/*
+        Deliberately here and not in the root layout. Vercel Analytics sends
+        both a masked `route` AND the raw `path`, and the public token routes
+        `/p/[token]` and `/a/[token]` live outside `[locale]` — so mounting
+        this at the root beaconed every portal and approval token to a third
+        party as a page path. `log.ts` already treats portal_token as a secret.
+      */}
+      <Analytics />
     </NextIntlClientProvider>
   );
 }

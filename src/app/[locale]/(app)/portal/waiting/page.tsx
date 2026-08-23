@@ -13,7 +13,7 @@ import {
   waitingFor,
   type SocialPiece,
 } from "@/lib/social";
-import { PIECE_COLUMNS, type SocialPieceRow } from "../../social/_data";
+import { PORTAL_PIECE_COLUMNS, type SocialPieceRow } from "../../social/_data";
 import {
   EmptyState,
   ModuleNote,
@@ -47,7 +47,7 @@ export default async function PortalWaiting({
   const supabase = await createClient();
   const { data } = await supabase
     .from("content_drafts")
-    .select(PIECE_COLUMNS)
+    .select(PORTAL_PIECE_COLUMNS)
     .eq("client_id", client.id)
     .in("status", CLIENT_VISIBLE_STAGES)
     .order("publish_on", { ascending: true, nullsFirst: false });

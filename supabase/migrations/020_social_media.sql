@@ -209,12 +209,17 @@ drop policy if exists "portal reads logins" on public.shared_logins;
 create policy "portal reads logins" on public.shared_logins
   for select using (public.owns_portal_client(client_id));
 
--- A client approves, rejects, or asks for changes on its own pieces. The
--- server action is what constrains WHICH columns move; this is the floor.
-drop policy if exists "portal decides content" on public.content_drafts;
-create policy "portal decides content" on public.content_drafts
-  for update using (public.owns_portal_client(client_id))
-  with check (public.owns_portal_client(client_id));
+-- A client's write path used to live here, as a permissive UPDATE policy named
+-- "portal decides content". Migration 021 drops it, because RLS is row-level:
+-- it can say WHICH rows a client may touch but not which columns or which
+-- values, so the grant also let a client PATCH status='published' or rewrite
+-- the studio's caption straight through PostgREST with the anon key.
+--
+-- The create is deleted rather than left here, because everything else in this
+-- file is idempotent — so a `db reset`, a fresh environment, or a re-run would
+-- have restored the vulnerability with nothing reporting that it happened.
+-- Client writes now go through runTransitionAction, which owns the state
+-- machine. The drop stays in 021.
 
 -- Tenant isolation floor + updated_at, consistent with migrations 001 and 014.
 do $$

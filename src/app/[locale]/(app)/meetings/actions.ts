@@ -1,6 +1,8 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+
+import type { Database } from "@/types/database.gen";
 import { redirect } from "next/navigation";
 import type { Route } from "next";
 import { createClient as createSupabaseClient } from "@/lib/supabase/server";
@@ -242,7 +244,7 @@ export async function rescheduleMeetingAction(
   const newStarts = new Date(oldStarts);
   newStarts.setFullYear(y, m - 1, d);
 
-  const patch: Record<string, unknown> = {
+  const patch: Database["public"]["Tables"]["meetings"]["Update"] = {
     starts_at: newStarts.toISOString(),
   };
   if (existing.ends_at) {

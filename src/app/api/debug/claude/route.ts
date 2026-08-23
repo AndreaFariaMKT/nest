@@ -4,7 +4,7 @@ import { generate, type ModelKind } from "@/lib/claude";
 export const dynamic = "force-dynamic";
 
 /**
- * Dev smoke endpoint — verifies the ANTHROPIC_API_KEY + wrapper are working.
+ * Dev smoke endpoint (404 in production) — verifies the ANTHROPIC_API_KEY + wrapper are working.
  *
  * Auth: `Authorization: Bearer <CRON_SECRET>` (reuses the cron secret for
  * simplicity; no user-facing flows hit this route in production).
@@ -15,6 +15,15 @@ export const dynamic = "force-dynamic";
  *     -d '{"kind":"extract","prompt":"say ok"}'
  */
 export async function POST(request: NextRequest) {
+  // These exist to debug a deployment, not to serve one. In production the
+  // route should not merely refuse — it should not appear to exist, because a
+  // 401 confirms the endpoint is there and worth attacking. The bearer gate
+  // below is CRON_SECRET, which is shared with four public cron routes, so it
+  // is the wrong secret to stake a secret-probe on.
+  if (process.env.NODE_ENV === "production") {
+    return new NextResponse(null, { status: 404 });
+  }
+
   const expected = process.env.CRON_SECRET;
   if (!expected) {
     return NextResponse.json({ error: "no CRON_SECRET set" }, { status: 500 });
