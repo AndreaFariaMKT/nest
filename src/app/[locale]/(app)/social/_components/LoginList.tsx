@@ -4,8 +4,10 @@ import { Pill } from "@/components/ui/Pill";
 import { cn } from "@/lib/utils";
 import { daysBetween } from "@/lib/social";
 import { isAppRole } from "@/lib/roles";
-import { useDateLabel } from "./PieceCard";
-import { DeleteLoginButton, RevealSecret } from "./LoginForm";
+import { EmptyState, useDateLabel } from "./Shared";
+import { RevealSecret } from "./LoginForm";
+import { ConfirmDeleteButton } from "./ConfirmDeleteButton";
+import { deleteLoginAction } from "../actions";
 
 export interface LoginRow {
   id: string;
@@ -45,9 +47,9 @@ export function LoginList({
 
   if (!items.length) {
     return (
-      <p className="rounded-2xl border border-border bg-card px-5 py-12 text-center text-sm text-muted-foreground">
+      <EmptyState>
         {t("empty")}
-      </p>
+      </EmptyState>
     );
   }
 
@@ -128,11 +130,12 @@ export function LoginList({
               <span>{t("secondFactor", { what: a.mfa ?? t("none") })}</span>
               {canEdit ? (
                 <span className="ml-auto">
-                  <DeleteLoginButton
+                  <ConfirmDeleteButton
                     id={a.id}
                     locale={locale}
                     label={t("delete")}
                     confirmLabel={t("deleteConfirm")}
+                    action={deleteLoginAction}
                   />
                 </span>
               ) : null}

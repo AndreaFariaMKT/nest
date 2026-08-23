@@ -990,24 +990,12 @@
       "source": "Source · every figure needs a primary source and a date",
       "sourcePlaceholder": "Blank if the theme carries no figure",
       "submit": "Add to backlog",
-      "postType": {
-        "carousel": "Carousel",
-        "single_image": "Single post",
-        "reel": "Reel",
-        "story": "Story",
-        "text": "Text only"
-      },
       "originValue": {
         "research": "Research",
         "client_request": "Client request",
         "meeting": "Meeting",
         "follow_up": "Follow-up from a strong post",
         "dated_event": "Dated event"
-      },
-      "channel": {
-        "instagram": "Instagram",
-        "linkedin": "LinkedIn",
-        "tiktok": "TikTok"
       }
     },
     "fortnight": {
@@ -1015,26 +1003,41 @@
       "subtitle": "Every piece walks on its own.",
       "note": "Text written, direction approves the argument before anything is drawn, design produces, coordination signs the art off, and it goes to that client alone. Nothing waits on the slowest piece. The cut is per piece: five working days before it publishes — silence past that and it runs as scheduled.",
       "releaseAll": "Send {n} signed-off piece(s) to their clients",
-      "empty": "Nothing in this fortnight yet. Pull themes from the backlog.",
-      "stillToWrite": "Still to write.",
-      "withDirection": "Waiting on direction",
-      "inDesign": "In design",
-      "withClient": "With the client",
-      "waitingForOrder": "Waiting for the order"
+      "empty": "Nothing in this fortnight yet. Pull themes from the backlog."
     },
     "actions": {
       "pull": "Pull into the fortnight",
-      "sendTextUp": "Send text to direction",
-      "directionNoteLabel": "If it goes back, say what to change",
-      "directionNoteHint": "One line is enough. Nothing has been drawn yet.",
-      "sendBackToWriting": "Send back to writing",
-      "approveText": "Approve the text",
-      "sendToClient": "Send to {name}",
-      "backToDesign": "Send back to design",
-      "returnReasonLabel": "Why it is going back on the shelf",
-      "returnToBacklog": "Return to backlog",
+      "send_text_up": "Send text to direction",
+      "direction_approve": "Approve the text",
+      "direction_reject": "Send back to writing",
+      "send_to_client": "Send to {name}",
+      "client_approve": "Approve",
+      "client_request_changes": "Approve with changes",
+      "client_reject": "Not approved",
+      "approve_on_silence": "Run it as scheduled",
+      "reopen_to_design": "Send back to design",
+      "return_to_backlog": "Return to backlog",
       "queue": "Add to the publishing order",
-      "approveOnSilence": "Run it as scheduled"
+      "mark_live": "Mark live",
+      "unmark_live": "Undo live",
+      "comment": {
+        "direction_reject": {
+          "label": "If it goes back, say what to change",
+          "hint": "One line is enough. Nothing has been drawn yet."
+        },
+        "client_request_changes": {
+          "label": "Your comment",
+          "hint": "Say what changes and why — one line already solves it in a single round."
+        },
+        "client_reject": {
+          "label": "Your comment",
+          "hint": "Tell us whether the problem is the theme or the treatment — they take different routes back."
+        },
+        "return_to_backlog": {
+          "label": "Why it is going back on the shelf",
+          "hint": "Blank keeps the client's own words."
+        }
+      }
     },
     "production": {
       "title": "Production",
@@ -1119,7 +1122,8 @@
       "copy": "Copy",
       "revealFailed": "Could not show it here — copy it manually.",
       "note": "Every entry carries the date the password last changed. Past thirty days it turns amber — not a rule, a reminder, so nobody discovers an old credential by being locked out of a client account on a Monday morning.",
-      "notePortal": "These are the accounts we work on for you. If you change a password on your side, tell us — otherwise a scheduled post fails silently."
+      "notePortal": "These are the accounts we work on for you. If you change a password on your side, tell us — otherwise a scheduled post fails silently.",
+      "copyFailed": "Could not copy — select the text instead."
     },
     "loginForm": {
       "open": "Add a login",
@@ -1177,11 +1181,7 @@
       "publishTime": "At",
       "signOff": "Sign-off",
       "nextMove": "Next move",
-      "waitingOnDirection": "Waiting on direction.",
       "directionNote": "Nothing has been drawn yet. You are approving the argument, at the cheapest point to change it.",
-      "needsSignOff": "Sign the art off before it can go to the client.",
-      "withClient": "With the client.",
-      "nothingForYou": "Nothing here is yours to move right now.",
       "silenceNote": "The reply date has passed. Running it as scheduled is what the module promised the studio — the client can still write, and it is recorded that they did not.",
       "window": "Window · when it must run",
       "source": "Source"
@@ -1231,12 +1231,7 @@
       "howItWorks": "Pieces arrive one at a time, as they are finished — you are never handed the whole fortnight at once. Each one carries its own reply date: five working days before it publishes. If we do not hear from you by then, it runs as scheduled.",
       "pastDue": "Past your reply date — it runs as is unless you write.",
       "dueOn": "Reply by {date}.",
-      "commentLabel": "Your comment",
-      "commentHint": "If you are not approving, tell us whether the problem is the theme or the treatment — they take different routes back.",
       "commentPlaceholder": "Rework the opening, it reads too hard.",
-      "notApproved": "Not approved",
-      "approveWithChanges": "Approve with changes",
-      "approve": "Approve",
       "feedback": {
         "title": "Two questions",
         "hint": "These feed the next fortnights. They reach the studio in your chat, so nothing gets lost in a second inbox.",
@@ -1282,6 +1277,19 @@
       "lessons": "What we learned",
       "noNarrative": "No written reading for this month yet. The numbers above are live either way.",
       "narrativePerClient": "The written reading is per client — pick one above to see it."
+    },
+    "waitingOn": {
+      "direction": "Waiting on direction",
+      "design": "In design",
+      "client": "With the client",
+      "order": "Waiting for the publishing order",
+      "writing": "Still to write"
+    },
+    "digest": {
+      "title": "Your fortnight",
+      "arrived": "{n} new for your read",
+      "dueToday": "{n} due today",
+      "overdue": "{n} past the reply date"
     }
   }
 }

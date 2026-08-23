@@ -1,22 +1,17 @@
 "use client";
 
-import { useActionState, useEffect, useRef } from "react";
+
 import { useTranslations } from "next-intl";
 
-import { Button } from "@/components/ui/Button";
-import { useRouter } from "next/navigation";
 
 import { CONTENT_ORIGINS, SOCIAL_CHANNELS } from "@/lib/social";
 import { POST_TYPES } from "@/types/database";
 import { createThemeAction, type Result } from "../actions";
-import { Refusal } from "./PieceActions";
-
-const initial: Result = { ok: false };
+import { DisclosureForm } from "./DisclosureForm";
+import { FieldLabel } from "./Shared";
 
 const field =
   "w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring";
-const labelCls =
-  "mb-1.5 block text-[10px] font-medium uppercase tracking-widest text-muted-foreground";
 
 /**
  * Adding a theme to the shelf. A theme joins the backlog with no date — it only
@@ -33,35 +28,18 @@ export function ThemeForm({
   defaultClient?: string;
 }) {
   const t = useTranslations("social.themeForm");
-  const [state, action, pending] = useActionState(createThemeAction, initial);
-  const router = useRouter();
-  const ref = useRef<HTMLFormElement>(null);
-  const details = useRef<HTMLDetailsElement>(null);
-
-  useEffect(() => {
-    if (state.ok) {
-      ref.current?.reset();
-      if (details.current) details.current.open = false;
-      router.refresh();
-    }
-  }, [state, router]);
-
   return (
-    <details
-      ref={details}
-      className="mb-4 rounded-2xl border border-border bg-card [&[open]>summary]:border-b"
+    <DisclosureForm
+      action={createThemeAction}
+      openLabel={t("open")}
+      submitLabel={t("submit")}
     >
-      <summary className="cursor-pointer list-none border-border px-5 py-3.5 text-sm font-medium text-brand">
-        + {t("open")}
-      </summary>
-
-      <form ref={ref} action={action} className="space-y-4 p-5">
-        <input type="hidden" name="locale" value={locale} />
+      <input type="hidden" name="locale" value={locale} />
 
         <div>
-          <label className={labelCls} htmlFor="theme-title">
-            {t("titleLabel")}
-          </label>
+          <FieldLabel htmlFor="theme-title">
+  {t("titleLabel")}
+  </FieldLabel>
           <input
             id="theme-title"
             name="title"
@@ -72,9 +50,9 @@ export function ThemeForm({
 
         <div className="grid gap-4 sm:grid-cols-2">
           <div>
-            <label className={labelCls} htmlFor="theme-client">
-              {t("client")}
-            </label>
+            <FieldLabel htmlFor="theme-client">
+  {t("client")}
+  </FieldLabel>
             <select
               id="theme-client"
               name="client_id"
@@ -89,9 +67,9 @@ export function ThemeForm({
             </select>
           </div>
           <div>
-            <label className={labelCls} htmlFor="theme-pillar">
-              {t("axis")}
-            </label>
+            <FieldLabel htmlFor="theme-pillar">
+  {t("axis")}
+  </FieldLabel>
             <input
               id="theme-pillar"
               name="pillar"
@@ -103,9 +81,9 @@ export function ThemeForm({
 
         <div className="grid gap-4 sm:grid-cols-3">
           <div>
-            <label className={labelCls} htmlFor="theme-type">
-              {t("format")}
-            </label>
+            <FieldLabel htmlFor="theme-type">
+  {t("format")}
+  </FieldLabel>
             <select id="theme-type" name="post_type" className={field}>
               <option value="">—</option>
               {POST_TYPES.map((p) => (
@@ -116,9 +94,9 @@ export function ThemeForm({
             </select>
           </div>
           <div>
-            <label className={labelCls} htmlFor="theme-slides">
-              {t("slides")}
-            </label>
+            <FieldLabel htmlFor="theme-slides">
+  {t("slides")}
+  </FieldLabel>
             <input
               id="theme-slides"
               name="slide_count"
@@ -129,9 +107,9 @@ export function ThemeForm({
             />
           </div>
           <div>
-            <label className={labelCls} htmlFor="theme-origin">
-              {t("origin")}
-            </label>
+            <FieldLabel htmlFor="theme-origin">
+  {t("origin")}
+  </FieldLabel>
             <select id="theme-origin" name="origin" className={field}>
               <option value="">—</option>
               {CONTENT_ORIGINS.map((o) => (
@@ -144,7 +122,7 @@ export function ThemeForm({
         </div>
 
         <fieldset>
-          <legend className={labelCls}>{t("channels")}</legend>
+          <legend className="mb-1.5 block text-[10px] font-medium uppercase tracking-widest text-muted-foreground">{t("channels")}</legend>
           <div className="flex flex-wrap gap-4">
             {SOCIAL_CHANNELS.map((c) => (
               <label key={c} className="flex items-center gap-2 text-sm">
@@ -162,9 +140,9 @@ export function ThemeForm({
         </fieldset>
 
         <div>
-          <label className={labelCls} htmlFor="theme-why">
-            {t("whyNow")}
-          </label>
+          <FieldLabel htmlFor="theme-why">
+  {t("whyNow")}
+  </FieldLabel>
           <textarea
             id="theme-why"
             name="why_now"
@@ -176,9 +154,9 @@ export function ThemeForm({
 
         <div className="grid gap-4 sm:grid-cols-2">
           <div>
-            <label className={labelCls} htmlFor="theme-window">
-              {t("window")}
-            </label>
+            <FieldLabel htmlFor="theme-window">
+  {t("window")}
+  </FieldLabel>
             <input
               id="theme-window"
               name="window_note"
@@ -187,9 +165,9 @@ export function ThemeForm({
             />
           </div>
           <div>
-            <label className={labelCls} htmlFor="theme-source">
-              {t("source")}
-            </label>
+            <FieldLabel htmlFor="theme-source">
+  {t("source")}
+  </FieldLabel>
             <input
               id="theme-source"
               name="source_ref"
@@ -199,13 +177,6 @@ export function ThemeForm({
           </div>
         </div>
 
-        <div className="flex items-center gap-3">
-          <Button type="submit" variant="brand" disabled={pending}>
-            {t("submit")}
-          </Button>
-          <Refusal error={state.error} />
-        </div>
-      </form>
-    </details>
+    </DisclosureForm>
   );
 }

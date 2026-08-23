@@ -7,6 +7,7 @@ import { Pill } from "@/components/ui/Pill";
 import { dayOf, DESIGN_STATES, formatLabel, type DesignState } from "@/lib/social";
 import { loadScope } from "../_data";
 import { ModuleShell } from "../_components/ModuleShell";
+import { ModuleNote } from "../_components/Shared";
 
 export const dynamic = "force-dynamic";
 
@@ -22,9 +23,6 @@ export default async function ProductionPage({
   const t = await getTranslations("social");
   const scope = await loadScope(searchParams);
   const isDesign = scope.caps.includes("design") && !scope.caps.includes("coordinate");
-  const name = (id: string) =>
-    scope.clients.find((c) => c.id === id)?.name ?? "—";
-
   const queue = scope.pieces.filter((p) => p.status === "creative_review");
   const open = queue.filter((p) => p.design_state !== "signed_off").length;
 
@@ -67,7 +65,7 @@ export default async function ProductionPage({
                     </p>
                     <p className="mt-2 flex flex-wrap items-center gap-1.5 text-[11px] text-muted-foreground">
                       <Pill tone="muted" className="text-[10px]">
-                        {name(p.client_id)}
+                        {scope.clientName(p.client_id)}
                       </Pill>
                       <span>
                         {formatLabel(p.post_type, p.slide_count, (k) =>
@@ -112,9 +110,9 @@ export default async function ProductionPage({
         })}
       </div>
 
-      <p className="mt-4 rounded-xl border-l-2 border-brand bg-muted/40 px-4 py-3 text-sm leading-relaxed text-muted-foreground">
+      <ModuleNote>
         {t(isDesign ? "production.noteDesign" : "production.note")}
-      </p>
+      </ModuleNote>
     </>
   );
 }

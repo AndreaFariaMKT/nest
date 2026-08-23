@@ -1,16 +1,13 @@
 import { setRequestLocale, getTranslations } from "next-intl/server";
 
 import { PageHeader } from "@/components/ui/PageHeader";
-import { Pill } from "@/components/ui/Pill";
-import { IN_FLIGHT_STAGES, isReplyOverdue, type SocialStage } from "@/lib/social";
+import { IN_FLIGHT_STAGES, type SocialStage } from "@/lib/social";
 import { loadScope } from "../_data";
 import { ModuleShell } from "../_components/ModuleShell";
 import { PieceCard } from "../_components/PieceCard";
-import {
-  DecisionForm,
-  QuickAction,
-  ReleaseAllButton,
-} from "../_components/PieceActions";
+import { ReleaseAllButton } from "../_components/PieceActions";
+import { Moves } from "../_components/Moves";
+import { EmptyState } from "../_components/Shared";
 
 export const dynamic = "force-dynamic";
 
@@ -34,9 +31,6 @@ export default async function FortnightPage({
   setRequestLocale(locale);
   const t = await getTranslations("social");
   const scope = await loadScope(searchParams);
-  const name = (id: string) =>
-    scope.clients.find((c) => c.id === id)?.name ?? "—";
-
   const pieces = scope.pieces.filter((p) => IN_FLIGHT_STAGES.includes(p.status));
   const signedOff = pieces.filter(
     (p) => p.status === "creative_review" && p.design_state === "signed_off",
@@ -93,30 +87,25 @@ export default async function FortnightPage({
       </div>
 
       {pieces.length === 0 ? (
-        <p className="rounded-2xl border border-border bg-card px-5 py-12 text-center text-sm text-muted-foreground">
+        <EmptyState>
           {t("fortnight.empty")}
-        </p>
+        </EmptyState>
       ) : (
         <div className="grid gap-4 xl:grid-cols-2">
           {pieces.map((p) => (
             <PieceCard
               key={p.id}
               piece={p}
-              clientName={name(p.client_id)}
+              clientName={scope.clientName(p.client_id)}
               today={scope.today}
               href={`/social/pieces/${p.id}`}
             >
-              <Actions
-                stage={p.status}
-                overdue={isReplyOverdue(p.publish_on, scope.today)}
-                clientComment={p.client_comment ?? ""}
-                designed={p.design_state === "signed_off"}
-                hasText={!!p.caption?.trim()}
-                id={p.id}
-                locale={locale}
+              <Moves
+                piece={p}
                 caps={scope.caps}
-                clientFirstName={name(p.client_id).split(" ")[0]}
-                t={t}
+                today={scope.today}
+                locale={locale}
+                clientName={scope.clientName(p.client_id).split(" ")[0]}
               />
             </PieceCard>
           ))}
@@ -124,156 +113,4 @@ export default async function FortnightPage({
       )}
     </>
   );
-}
-
-type Translate = Awaited<ReturnType<typeof getTranslations<"social">>>;
-
-/** What this reader can actually do to this piece, right now. */
-function Actions({
-  stage,
-  overdue,
-  clientComment,
-  designed,
-  hasText,
-  id,
-  locale,
-  caps,
-  clientFirstName,
-  t,
-}: {
-  stage: SocialStage;
-  overdue: boolean;
-  clientComment: string;
-  designed: boolean;
-  hasText: boolean;
-  id: string;
-  locale: string;
-  caps: string[];
-  clientFirstName: string;
-  t: Translate;
-}) {
-  const coordinate = caps.includes("coordinate");
-  const direction = caps.includes("direction");
-
-  if (stage === "draft" && coordinate) {
-    return hasText ? (
-      <QuickAction
-        id={id}
-        locale={locale}
-        action="send_text_up"
-        label={t("actions.sendTextUp")}
-        variant="primary"
-      />
-    ) : (
-      <p className="text-xs text-muted-foreground">{t("fortnight.stillToWrite")}</p>
-    );
-  }
-
-  if (stage === "text_review") {
-    if (!direction) {
-      return (
-        <Pill tone="brand" className="text-[10px]">
-          {t("fortnight.withDirection")}
-        </Pill>
-      );
-    }
-    return (
-      <DecisionForm
-        id={id}
-        locale={locale}
-        commentLabel={t("actions.directionNoteLabel")}
-        commentHint={t("actions.directionNoteHint")}
-        choices={[
-          {
-            action: "direction_reject",
-            label: t("actions.sendBackToWriting"),
-            variant: "danger",
-          },
-          {
-            action: "direction_approve",
-            label: t("actions.approveText"),
-            variant: "primary",
-          },
-        ]}
-      />
-    );
-  }
-
-  if (stage === "creative_review" && coordinate) {
-    return designed ? (
-      <QuickAction
-        id={id}
-        locale={locale}
-        action="send_to_client"
-        label={t("actions.sendToClient", { name: clientFirstName })}
-        variant="primary"
-      />
-    ) : (
-      <Pill tone="warning" className="text-[10px]">
-        {t("fortnight.inDesign")}
-      </Pill>
-    );
-  }
-
-  if (stage === "changes_requested" && coordinate) {
-    return (
-      <QuickAction
-        id={id}
-        locale={locale}
-        action="reopen_to_design"
-        label={t("actions.backToDesign")}
-        variant="primary"
-      />
-    );
-  }
-
-  if (stage === "rejected" && (coordinate || direction)) {
-    return (
-      <DecisionForm
-        id={id}
-        locale={locale}
-        commentLabel={t("actions.returnReasonLabel")}
-        defaultComment={clientComment}
-        choices={[
-          {
-            action: "return_to_backlog",
-            label: t("actions.returnToBacklog"),
-            variant: "primary",
-          },
-        ]}
-      />
-    );
-  }
-
-  if (stage === "approved") {
-    return (
-      <Pill tone="success" className="text-[10px]">
-        {t("fortnight.waitingForOrder")}
-      </Pill>
-    );
-  }
-
-  if (stage === "client_review") {
-    // Past the reply date the studio may move it on. Before that, the client's
-    // window is theirs.
-    return overdue && coordinate ? (
-      <DecisionForm
-        id={id}
-        locale={locale}
-        choices={[
-          {
-            action: "approve_on_silence",
-            label: t("actions.approveOnSilence"),
-            variant: "primary",
-          },
-        ]}
-      />
-    ) : (
-      <Pill tone="brand" className="text-[10px]">
-        {t("fortnight.withClient")}
-      </Pill>
-    );
-  }
-
-  return null;
 }

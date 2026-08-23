@@ -9,7 +9,9 @@ import { loadScope } from "../_data";
 import { ModuleShell } from "../_components/ModuleShell";
 import { StageBadge } from "../_components/StageBadge";
 import { CopyText } from "../_components/CopyText";
-import { BuildOrderButton, QuickAction } from "../_components/PieceActions";
+import { BuildOrderButton } from "../_components/PieceActions";
+import { Moves } from "../_components/Moves";
+import { EmptyState, ModuleNote } from "../_components/Shared";
 
 export const dynamic = "force-dynamic";
 
@@ -24,9 +26,6 @@ export default async function PublishingPage({
   setRequestLocale(locale);
   const t = await getTranslations("social");
   const scope = await loadScope(searchParams);
-  const name = (id: string) =>
-    scope.clients.find((c) => c.id === id)?.name ?? "—";
-
   const approved = scope.pieces.filter((p) => p.status === "approved");
   const order = scope.pieces
     .filter((p) => p.status === "scheduled" || p.status === "published")
@@ -61,9 +60,9 @@ export default async function PublishingPage({
         </div>
       ) : null}
 
-      <p className="mb-4 rounded-xl border-l-2 border-brand bg-muted/40 px-4 py-3 text-sm leading-relaxed text-muted-foreground">
+      <ModuleNote>
         {t("publishing.note")}
-      </p>
+      </ModuleNote>
 
       <div className="space-y-3">
         {order.map((p) => (
@@ -78,7 +77,7 @@ export default async function PublishingPage({
                 {p.publish_on ?? "—"} · {p.publish_time.slice(0, 5)}
               </span>
               <Pill tone="muted" className="text-[10px]">
-                {name(p.client_id)}
+                {scope.clientName(p.client_id)}
               </Pill>
               <span className="text-xs text-muted-foreground">
                 {formatLabel(p.post_type, p.slide_count, (k) => t(`format.${k}`))}{" "}
@@ -123,22 +122,12 @@ export default async function PublishingPage({
               </span>
               {scope.caps.includes("publish") ? (
                 <span className="ml-auto">
-                  {p.status === "published" ? (
-                    <QuickAction
-                      id={p.id}
-                      locale={locale}
-                      action="unmark_live"
-                      label={t("publishing.undo")}
-                    />
-                  ) : (
-                    <QuickAction
-                      id={p.id}
-                      locale={locale}
-                      action="mark_live"
-                      label={t("publishing.markLive")}
-                      variant="primary"
-                    />
-                  )}
+                  <Moves
+                    piece={p}
+                    caps={scope.caps}
+                    today={scope.today}
+                    locale={locale}
+                  />
                 </span>
               ) : null}
             </div>
@@ -146,9 +135,9 @@ export default async function PublishingPage({
         ))}
 
         {order.length === 0 ? (
-          <p className="rounded-2xl border border-border bg-card px-5 py-12 text-center text-sm text-muted-foreground">
+          <EmptyState>
             {t("publishing.empty")}
-          </p>
+          </EmptyState>
         ) : null}
       </div>
     </>

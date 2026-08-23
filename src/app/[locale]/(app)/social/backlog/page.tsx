@@ -6,10 +6,11 @@ import { PageHeader } from "@/components/ui/PageHeader";
 import { Pill } from "@/components/ui/Pill";
 import { cn } from "@/lib/utils";
 import { backlogStock, IN_FLIGHT_STAGES } from "@/lib/social";
-import { loadScope, type PieceRecord } from "../_data";
+import { loadScope, type SocialPieceRow } from "../_data";
 import { ModuleShell } from "../_components/ModuleShell";
 import { StageBadge } from "../_components/StageBadge";
 import { ThemeForm } from "../_components/ThemeForm";
+import { ModuleNote, SectionTitle } from "../_components/Shared";
 
 export const dynamic = "force-dynamic";
 
@@ -24,9 +25,6 @@ export default async function BacklogPage({
   setRequestLocale(locale);
   const t = await getTranslations("social");
   const scope = await loadScope(searchParams);
-  const name = (id: string) =>
-    scope.clients.find((c) => c.id === id)?.name ?? "—";
-
   const perCycle = scope.client
     ? scope.client.posts_per_cycle
     : scope.clients.reduce((s, c) => s + c.posts_per_cycle, 0) || 1;
@@ -58,7 +56,7 @@ export default async function BacklogPage({
         />
       ) : null}
 
-      <section className="mb-4 rounded-2xl bg-muted/50 p-5">
+      <section className="mb-4 rounded-2xl bg-muted/50 p-5" data-testid="social-stock">
         <div className="relative h-1.5 rounded-full bg-background">
           <div
             className={cn(
@@ -101,7 +99,7 @@ export default async function BacklogPage({
             title={t("backlog.cameBack")}
             hint={t("backlog.cameBackHint")}
           />
-          <List pieces={returned} name={name} />
+          <List pieces={returned} name={scope.clientName} />
         </section>
       ) : null}
 
@@ -111,7 +109,7 @@ export default async function BacklogPage({
             title={t("backlog.available")}
             hint={t("backlog.count", { n: shelf.length })}
           />
-          <List pieces={shelf} name={name} empty={t("backlog.emptyShelf")} />
+          <List pieces={shelf} name={scope.clientName} empty={t("backlog.emptyShelf")} />
         </section>
 
         <div className="space-y-4">
@@ -120,7 +118,7 @@ export default async function BacklogPage({
               title={t("backlog.pulled")}
               hint={t("backlog.inFlow", { n: pulled.length })}
             />
-            <List pieces={pulled} name={name} empty={t("backlog.emptyPulled")} />
+            <List pieces={pulled} name={scope.clientName} empty={t("backlog.emptyPulled")} />
           </section>
 
           <section className="rounded-2xl border border-border bg-muted/40">
@@ -150,21 +148,10 @@ export default async function BacklogPage({
         </div>
       </div>
 
-      <p className="mt-4 rounded-xl border-l-2 border-brand bg-muted/40 px-4 py-3 text-sm leading-relaxed text-muted-foreground">
+      <ModuleNote>
         {t("backlog.note")}
-      </p>
+      </ModuleNote>
     </>
-  );
-}
-
-function SectionTitle({ title, hint }: { title: string; hint?: string }) {
-  return (
-    <div className="flex items-center justify-between gap-3 px-5 pb-2 pt-4">
-      <h2 className="text-[10px] font-medium uppercase tracking-widest text-muted-foreground">
-        {title}
-      </h2>
-      {hint ? <span className="text-xs text-brand">{hint}</span> : null}
-    </div>
   );
 }
 
@@ -173,7 +160,7 @@ function List({
   name,
   empty,
 }: {
-  pieces: PieceRecord[];
+  pieces: SocialPieceRow[];
   name: (id: string) => string;
   empty?: string;
 }) {

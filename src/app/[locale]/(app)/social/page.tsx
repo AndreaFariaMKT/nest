@@ -8,6 +8,7 @@ import { cn } from "@/lib/utils";
 import {
   addDays,
   clientHealth,
+  type HealthLevel,
   fortnightOf,
   FORTNIGHT_ANCHOR,
   socialScreensFor,
@@ -18,12 +19,12 @@ import { ModuleShell } from "./_components/ModuleShell";
 
 export const dynamic = "force-dynamic";
 
-const DOT: Record<string, string> = {
+const DOT: Record<HealthLevel, string> = {
   ok: "bg-emerald-500",
   warn: "bg-amber-500",
   bad: "bg-destructive",
 };
-const EDGE: Record<string, string> = {
+const EDGE: Record<HealthLevel, string> = {
   ok: "border-l-emerald-500",
   warn: "border-l-amber-500",
   bad: "border-l-destructive",

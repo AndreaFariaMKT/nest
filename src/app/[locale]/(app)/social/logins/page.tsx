@@ -8,6 +8,7 @@ import { loadScope } from "../_data";
 import { ModuleShell } from "../_components/ModuleShell";
 import { LoginForm } from "../_components/LoginForm";
 import { LoginList, type LoginRow } from "../_components/LoginList";
+import { ModuleNote } from "../_components/Shared";
 
 export const dynamic = "force-dynamic";
 
@@ -90,15 +91,15 @@ export default async function LoginsPage({
 
       <LoginList
         items={items}
-        clientName={(id) => scope.clients.find((c) => c.id === id)?.name ?? "—"}
+        clientName={scope.clientName}
         locale={locale}
         today={scope.today}
         canEdit={canEdit}
       />
 
-      <p className="mt-4 rounded-xl border-l-2 border-brand bg-muted/40 px-4 py-3 text-sm leading-relaxed text-muted-foreground">
+      <ModuleNote>
         {t("logins.note")}
-      </p>
+      </ModuleNote>
     </>
   );
 }

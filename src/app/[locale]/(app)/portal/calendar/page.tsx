@@ -17,7 +17,7 @@ import { NotLinked } from "../_NotLinked";
 export const dynamic = "force-dynamic";
 
 /** Same chips the studio's calendar uses, so both sides read alike. */
-const CHIP: Record<string, string> = {
+const CHIP: Record<(typeof STAGE_TONE)[SocialStage], string> = {
   muted: "bg-muted text-muted-foreground",
   brand: "bg-brand-soft text-brand-soft-foreground",
   warning: "bg-amber-500/15 text-amber-700 dark:text-amber-300",

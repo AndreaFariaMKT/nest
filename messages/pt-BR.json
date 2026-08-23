@@ -990,24 +990,12 @@
       "source": "Fonte · todo número precisa de fonte primária e data",
       "sourcePlaceholder": "Em branco se o tema não traz número",
       "submit": "Adicionar ao backlog",
-      "postType": {
-        "carousel": "Carrossel",
-        "single_image": "Post único",
-        "reel": "Reels",
-        "story": "Story",
-        "text": "Só texto"
-      },
       "originValue": {
         "research": "Pesquisa",
         "client_request": "Pedido do cliente",
         "meeting": "Reunião",
         "follow_up": "Desdobramento de um post forte",
         "dated_event": "Data marcada"
-      },
-      "channel": {
-        "instagram": "Instagram",
-        "linkedin": "LinkedIn",
-        "tiktok": "TikTok"
       }
     },
     "fortnight": {
@@ -1015,26 +1003,41 @@
       "subtitle": "Cada peça anda sozinha.",
       "note": "Texto escrito, a direção aprova o argumento antes de qualquer desenho, o design produz, a coordenação finaliza a arte e a peça vai só para aquele cliente. Nada espera pela peça mais lenta. O corte é por peça: cinco dias úteis antes de publicar — sem retorno até lá, vai ao ar como está.",
       "releaseAll": "Enviar {n} peça(s) finalizada(s) aos clientes",
-      "empty": "Nada nesta quinzena ainda. Puxe temas do backlog.",
-      "stillToWrite": "Ainda a escrever.",
-      "withDirection": "Com a direção",
-      "inDesign": "Em design",
-      "withClient": "Com o cliente",
-      "waitingForOrder": "Aguardando a ordem"
+      "empty": "Nada nesta quinzena ainda. Puxe temas do backlog."
     },
     "actions": {
       "pull": "Puxar para a quinzena",
-      "sendTextUp": "Enviar texto à direção",
-      "directionNoteLabel": "Se voltar, diga o que mudar",
-      "directionNoteHint": "Uma linha basta. Nada foi desenhado ainda.",
-      "sendBackToWriting": "Devolver para a escrita",
-      "approveText": "Aprovar o texto",
-      "sendToClient": "Enviar para {name}",
-      "backToDesign": "Devolver ao design",
-      "returnReasonLabel": "Por que volta para a prateleira",
-      "returnToBacklog": "Devolver ao backlog",
+      "send_text_up": "Enviar texto à direção",
+      "direction_approve": "Aprovar o texto",
+      "direction_reject": "Devolver para a escrita",
+      "send_to_client": "Enviar para {name}",
+      "client_approve": "Aprovar",
+      "client_request_changes": "Aprovar com ajustes",
+      "client_reject": "Não aprovar",
+      "approve_on_silence": "Publicar como agendado",
+      "reopen_to_design": "Devolver ao design",
+      "return_to_backlog": "Devolver ao backlog",
       "queue": "Entrar na ordem de publicação",
-      "approveOnSilence": "Publicar como agendado"
+      "mark_live": "Marcar como no ar",
+      "unmark_live": "Desfazer",
+      "comment": {
+        "direction_reject": {
+          "label": "Se voltar, diga o que mudar",
+          "hint": "Uma linha basta. Nada foi desenhado ainda."
+        },
+        "client_request_changes": {
+          "label": "Seu comentário",
+          "hint": "Diga o que muda e por quê — uma linha já resolve em uma rodada."
+        },
+        "client_reject": {
+          "label": "Seu comentário",
+          "hint": "Diga se o problema é o tema ou o tratamento — o caminho de volta é diferente."
+        },
+        "return_to_backlog": {
+          "label": "Por que volta para a prateleira",
+          "hint": "Em branco mantém as palavras do próprio cliente."
+        }
+      }
     },
     "production": {
       "title": "Produção",
@@ -1119,7 +1122,8 @@
       "copy": "Copiar",
       "revealFailed": "Não deu para mostrar aqui — copie manualmente.",
       "note": "Cada registro traz a data da última troca de senha. Passando de trinta dias fica âmbar — não é regra, é lembrete, para ninguém descobrir uma credencial velha travado fora da conta do cliente numa segunda de manhã.",
-      "notePortal": "Estas são as contas em que trabalhamos por você. Se você trocar uma senha do seu lado, nos avise — senão uma publicação agendada falha em silêncio."
+      "notePortal": "Estas são as contas em que trabalhamos por você. Se você trocar uma senha do seu lado, nos avise — senão uma publicação agendada falha em silêncio.",
+      "copyFailed": "Não deu para copiar — selecione o texto."
     },
     "loginForm": {
       "open": "Adicionar um acesso",
@@ -1177,11 +1181,7 @@
       "publishTime": "Às",
       "signOff": "Finalização",
       "nextMove": "Próximo passo",
-      "waitingOnDirection": "Aguardando a direção.",
       "directionNote": "Nada foi desenhado ainda. Você está aprovando o argumento, no ponto mais barato para mudá-lo.",
-      "needsSignOff": "Finalize a arte antes de mandar ao cliente.",
-      "withClient": "Com o cliente.",
-      "nothingForYou": "Nada aqui é seu para mover agora.",
       "silenceNote": "A data de resposta passou. Publicar como agendado é o que o módulo prometeu ao estúdio — o cliente ainda pode escrever, e fica registrado que ele não escreveu.",
       "window": "Janela · quando precisa sair",
       "source": "Fonte"
@@ -1231,12 +1231,7 @@
       "howItWorks": "As peças chegam uma de cada vez, conforme ficam prontas — você nunca recebe a quinzena inteira de uma vez. Cada uma traz sua própria data de resposta: cinco dias úteis antes de publicar. Sem retorno até lá, ela vai ao ar como está.",
       "pastDue": "Passou da sua data de resposta — vai ao ar como está se você não escrever.",
       "dueOn": "Responder até {date}.",
-      "commentLabel": "Seu comentário",
-      "commentHint": "Se não estiver aprovando, diga se o problema é o tema ou o tratamento — o caminho de volta é diferente.",
       "commentPlaceholder": "Refaça a abertura, está dura demais.",
-      "notApproved": "Não aprovar",
-      "approveWithChanges": "Aprovar com ajustes",
-      "approve": "Aprovar",
       "feedback": {
         "title": "Duas perguntas",
         "hint": "Isto alimenta as próximas quinzenas. Chega ao estúdio no seu chat, então nada se perde numa segunda caixa de entrada.",
@@ -1282,6 +1277,19 @@
       "lessons": "O que aprendemos",
       "noNarrative": "Ainda sem leitura escrita para este mês. Os números acima valem de qualquer forma.",
       "narrativePerClient": "A leitura escrita é por cliente — escolha um acima para vê-la."
+    },
+    "waitingOn": {
+      "direction": "Aguardando a direção",
+      "design": "Em design",
+      "client": "Com o cliente",
+      "order": "Aguardando a ordem de publicação",
+      "writing": "Ainda a escrever"
+    },
+    "digest": {
+      "title": "Sua quinzena",
+      "arrived": "{n} novas para sua leitura",
+      "dueToday": "{n} vencem hoje",
+      "overdue": "{n} passaram da data de resposta"
     }
   }
 }

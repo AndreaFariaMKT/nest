@@ -4,7 +4,7 @@ import { useActionState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 
 import { savePieceAction, type Result } from "../actions";
-import { Refusal } from "./PieceActions";
+import { Refusal } from "./ActionPrimitives";
 
 const initial: Result = { ok: false };
 

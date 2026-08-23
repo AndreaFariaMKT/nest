@@ -1,27 +1,21 @@
 "use client";
 
-import { useActionState, useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useTranslations } from "next-intl";
 
-import { Button } from "@/components/ui/Button";
-import { useRouter } from "next/navigation";
 
 import { APP_ROLES } from "@/lib/roles";
 import { isBlockedReason } from "@/lib/social";
 import {
-  deleteLoginAction,
   revealSecretAction,
   saveLoginAction,
   type Result,
 } from "../actions";
-import { Refusal } from "./PieceActions";
-
-const initial: Result = { ok: false };
+import { DisclosureForm } from "./DisclosureForm";
+import { FieldLabel } from "./Shared";
 
 const field =
   "w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring";
-const labelCls =
-  "mb-1.5 block text-[10px] font-medium uppercase tracking-widest text-muted-foreground";
 
 /** Roles that can plausibly be on a social login. */
 const CANDIDATE_ROLES = APP_ROLES.filter(
@@ -43,36 +37,19 @@ export function LoginForm({
 }) {
   const t = useTranslations("social.loginForm");
   const roleLabel = useTranslations("social.roleShort");
-  const [state, action, pending] = useActionState(saveLoginAction, initial);
-  const router = useRouter();
-  const form = useRef<HTMLFormElement>(null);
-  const details = useRef<HTMLDetailsElement>(null);
-
-  useEffect(() => {
-    if (state.ok) {
-      form.current?.reset();
-      if (details.current) details.current.open = false;
-      router.refresh();
-    }
-  }, [state, router]);
-
   return (
-    <details
-      ref={details}
-      className="mb-4 rounded-2xl border border-border bg-card [&[open]>summary]:border-b"
+    <DisclosureForm
+      action={saveLoginAction}
+      openLabel={t("open")}
+      submitLabel={t("submit")}
     >
-      <summary className="cursor-pointer list-none border-border px-5 py-3.5 text-sm font-medium text-brand">
-        + {t("open")}
-      </summary>
-
-      <form ref={form} action={action} className="space-y-4 p-5">
-        <input type="hidden" name="locale" value={locale} />
+      <input type="hidden" name="locale" value={locale} />
 
         <div className="grid gap-4 sm:grid-cols-2">
           <div>
-            <label className={labelCls} htmlFor="login-client">
-              {t("client")}
-            </label>
+            <FieldLabel htmlFor="login-client">
+  {t("client")}
+  </FieldLabel>
             <select
               id="login-client"
               name="client_id"
@@ -87,9 +64,9 @@ export function LoginForm({
             </select>
           </div>
           <div>
-            <label className={labelCls} htmlFor="login-platform">
-              {t("account")}
-            </label>
+            <FieldLabel htmlFor="login-platform">
+  {t("account")}
+  </FieldLabel>
             <input
               id="login-platform"
               name="platform"
@@ -101,9 +78,9 @@ export function LoginForm({
 
         <div className="grid gap-4 sm:grid-cols-2">
           <div>
-            <label className={labelCls} htmlFor="login-site">
-              {t("site")}
-            </label>
+            <FieldLabel htmlFor="login-site">
+  {t("site")}
+  </FieldLabel>
             <input
               id="login-site"
               name="site"
@@ -112,9 +89,9 @@ export function LoginForm({
             />
           </div>
           <div>
-            <label className={labelCls} htmlFor="login-user">
-              {t("username")}
-            </label>
+            <FieldLabel htmlFor="login-user">
+  {t("username")}
+  </FieldLabel>
             <input
               id="login-user"
               name="username"
@@ -125,9 +102,9 @@ export function LoginForm({
         </div>
 
         <div>
-          <label className={labelCls} htmlFor="login-secret">
-            {t("password")}
-          </label>
+          <FieldLabel htmlFor="login-secret">
+  {t("password")}
+  </FieldLabel>
           <input
             id="login-secret"
             name="secret"
@@ -143,9 +120,9 @@ export function LoginForm({
 
         <div className="grid gap-4 sm:grid-cols-3">
           <div>
-            <label className={labelCls} htmlFor="login-holder">
-              {t("holder")}
-            </label>
+            <FieldLabel htmlFor="login-holder">
+  {t("holder")}
+  </FieldLabel>
             <input
               id="login-holder"
               name="holder"
@@ -154,9 +131,9 @@ export function LoginForm({
             />
           </div>
           <div>
-            <label className={labelCls} htmlFor="login-mfa">
-              {t("mfa")}
-            </label>
+            <FieldLabel htmlFor="login-mfa">
+  {t("mfa")}
+  </FieldLabel>
             <input
               id="login-mfa"
               name="mfa"
@@ -165,9 +142,9 @@ export function LoginForm({
             />
           </div>
           <div>
-            <label className={labelCls} htmlFor="login-rotated">
-              {t("rotatedOn")}
-            </label>
+            <FieldLabel htmlFor="login-rotated">
+  {t("rotatedOn")}
+  </FieldLabel>
             <input
               id="login-rotated"
               name="rotated_on"
@@ -179,7 +156,7 @@ export function LoginForm({
         </div>
 
         <fieldset>
-          <legend className={labelCls}>{t("whoIsOnIt")}</legend>
+          <legend className="mb-1.5 block text-[10px] font-medium uppercase tracking-widest text-muted-foreground">{t("whoIsOnIt")}</legend>
           <div className="flex flex-wrap gap-x-4 gap-y-2">
             {CANDIDATE_ROLES.map((r) => (
               <label key={r} className="flex items-center gap-2 text-sm">
@@ -196,9 +173,9 @@ export function LoginForm({
         </fieldset>
 
         <div>
-          <label className={labelCls} htmlFor="login-note">
-            {t("note")}
-          </label>
+          <FieldLabel htmlFor="login-note">
+  {t("note")}
+  </FieldLabel>
           <textarea
             id="login-note"
             name="note"
@@ -207,14 +184,7 @@ export function LoginForm({
           />
         </div>
 
-        <div className="flex items-center gap-3">
-          <Button type="submit" variant="brand" disabled={pending}>
-            {t("submit")}
-          </Button>
-          <Refusal error={state.error} />
-        </div>
-      </form>
-    </details>
+    </DisclosureForm>
   );
 }
 
@@ -265,7 +235,7 @@ export function RevealSecret({ id }: { id: string }) {
       await navigator.clipboard.writeText(res.secret);
       setError(null);
     } catch {
-      setError("clipboardBlocked");
+      setError("copyFailed");
     }
   }
 
@@ -293,43 +263,11 @@ export function RevealSecret({ id }: { id: string }) {
       </button>
       {error ? (
         <span className="text-xs text-destructive">
-          {isBlockedReason(error) ? blocked(error) : t("revealFailed")}
+          {isBlockedReason(error)
+            ? blocked(error)
+            : t(error === "copyFailed" ? "copyFailed" : "revealFailed")}
         </span>
       ) : null}
     </div>
-  );
-}
-
-export function DeleteLoginButton({
-  id,
-  locale,
-  label,
-  confirmLabel,
-}: {
-  id: string;
-  locale: string;
-  label: string;
-  confirmLabel: string;
-}) {
-  const router = useRouter();
-  return (
-    <form
-      action={async (fd: FormData) => {
-        await deleteLoginAction(fd);
-        router.refresh();
-      }}
-      onSubmit={(e) => {
-        if (!window.confirm(confirmLabel)) e.preventDefault();
-      }}
-    >
-      <input type="hidden" name="id" value={id} />
-      <input type="hidden" name="locale" value={locale} />
-      <button
-        type="submit"
-        className="rounded-sm text-xs text-muted-foreground underline-offset-2 hover:text-destructive hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-      >
-        {label}
-      </button>
-    </form>
   );
 }

@@ -10,11 +10,12 @@ import {
   replyDueBy,
   todayIso,
 } from "@/lib/social";
-import { PIECE_COLUMNS, type PieceRecord } from "../../social/_data";
+import { PIECE_COLUMNS, type SocialPieceRow } from "../../social/_data";
 import { PieceCard } from "../../social/_components/PieceCard";
-import { DecisionForm } from "../../social/_components/PieceActions";
+import { Moves } from "../../social/_components/Moves";
 import { CycleFeedback } from "./CycleFeedback";
 import { NotLinked } from "../_NotLinked";
+import { EmptyState, ModuleNote } from "../../social/_components/Shared";
 
 export const dynamic = "force-dynamic";
 
@@ -41,7 +42,7 @@ export default async function PortalContent({
     .in("status", CLIENT_VISIBLE_STAGES)
     .order("publish_on", { ascending: true, nullsFirst: false });
 
-  const pieces = (data ?? []) as unknown as PieceRecord[];
+  const pieces = (data ?? []) as unknown as SocialPieceRow[];
   const waiting = pieces.filter(
     (p) => p.status === "client_review" || p.status === "changes_requested",
   );
@@ -61,14 +62,14 @@ export default async function PortalContent({
         </Pill>
       </div>
 
-      <p className="mb-5 rounded-xl border-l-2 border-brand bg-muted/40 px-4 py-3 text-sm leading-relaxed text-muted-foreground">
+      <ModuleNote>
         {ts("portal.howItWorks")}
-      </p>
+      </ModuleNote>
 
       {pieces.length === 0 ? (
-        <p className="rounded-2xl border border-border bg-card px-5 py-12 text-center text-sm text-muted-foreground">
+        <EmptyState>
           {t("content.empty")}
-        </p>
+        </EmptyState>
       ) : (
         <div className="grid gap-4 xl:grid-cols-2">
           {pieces.map((p) => {
@@ -90,28 +91,11 @@ export default async function PortalContent({
                         ? ts("portal.pastDue")
                         : ts("portal.dueOn", { date: due ?? "" })}
                     </p>
-                    <DecisionForm
-                      id={p.id}
+                    <Moves
+                      piece={p}
+                      caps={["client"]}
+                      today={today}
                       locale={locale}
-                      commentLabel={ts("portal.commentLabel")}
-                      commentHint={ts("portal.commentHint")}
-                      commentPlaceholder={ts("portal.commentPlaceholder")}
-                      choices={[
-                        {
-                          action: "client_reject",
-                          label: ts("portal.notApproved"),
-                          variant: "danger",
-                        },
-                        {
-                          action: "client_request_changes",
-                          label: ts("portal.approveWithChanges"),
-                        },
-                        {
-                          action: "client_approve",
-                          label: ts("portal.approve"),
-                          variant: "primary",
-                        },
-                      ]}
                     />
                   </>
                 ) : null}

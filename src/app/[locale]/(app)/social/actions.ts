@@ -19,7 +19,6 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { getSessionUser } from "@/lib/auth";
 import { currentTenantId } from "@/lib/tenant-server";
 import { getCurrentRole } from "@/lib/roles-server";
-import { notifyUser } from "@/lib/notifications";
 import { encryptSecret, decryptSecret, secretsAvailable } from "@/lib/secrets";
 import { APP_ROLES } from "@/lib/roles";
 import {
@@ -34,7 +33,9 @@ import {
   DESIGN_STATES,
   SOCIAL_ACTIONS,
   SOCIAL_CAPS,
+  type BlockedReason,
   SOCIAL_CHANNELS,
+  SOCIAL_SCREENS,
   type DesignState,
   type SocialAction,
   type SocialStage,
@@ -42,10 +43,17 @@ import {
 import { POST_TYPES } from "@/types/database";
 import { listSocialClients } from "./_data";
 
-export type Result = { ok: boolean; error?: string };
+/**
+ * `error` is a BlockedReason the UI can translate, or a raw Postgres message
+ * when something failed for a reason the domain does not model.
+ */
+export type Result = { ok: boolean; error?: BlockedReason | (string & {}) };
 
 const OK: Result = { ok: true };
-const fail = (error: string): Result => ({ ok: false, error });
+const fail = (error: BlockedReason | (string & {})): Result => ({
+  ok: false,
+  error,
+});
 
 /**
  * PostgREST answers an UPDATE that matched no row with `{ error: null }`, so a
@@ -86,15 +94,8 @@ function optional(fd: FormData, key: string): string | null {
  */
 function revalidateModule(locale: string): void {
   for (const path of [
-    "/social",
-    "/social/waiting",
-    "/social/backlog",
-    "/social/fortnight",
-    "/social/production",
-    "/social/publishing",
-    "/social/calendar",
-    "/social/media",
-    "/social/logins",
+    // Derived, so adding a screen does not silently leave it stale.
+    ...SOCIAL_SCREENS.map((s) => s.href),
     "/portal/content",
     "/portal/media",
     "/portal/logins",
@@ -186,6 +187,9 @@ export async function createThemeAction(
       ? (rawType as (typeof POST_TYPES)[number])
       : null,
     slide_count: Number.isFinite(slideCount) ? slideCount : null,
+    // The generated types model `channels` as the enum array, but the values
+    // arrive as strings from the form; they are filtered against
+    // SOCIAL_CHANNELS above, so the cast asserts what the filter guarantees.
     channels: (channels.length ? channels : ["instagram"]) as never,
     backlog_added_on: todayIso(),
     created_by: user?.id ?? null,
@@ -319,20 +323,9 @@ export async function runTransitionAction(
   );
   if (!written.ok) return written;
 
-  // Hand-offs that leave the studio get a notification; the rest do not, so the
-  // bell stays worth looking at.
-  if (action === "send_to_client") {
-    const owner = await portalUserFor(piece.client_id);
-    if (owner) {
-      await notifyUser({
-        userId: owner,
-        type: "social_review",
-        title: piece.title,
-        body: null,
-        link: "/portal/content",
-      });
-    }
-  }
+  // No notification here on purpose. The client hears once a day, from
+  // /api/cron/social-digest — four hand-offs on a Tuesday used to mean four
+  // pings, and the one that mattered got lost among them.
 
   revalidateModule(locale);
   revalidatePath(`/${locale}/social/pieces/${id}`);
@@ -485,22 +478,7 @@ export async function releaseSignedOffAction(
     );
   if (error) return fail(error.message);
 
-  const owners = new Map<string, string>();
-  for (const p of ready) {
-    if (!owners.has(p.client_id)) {
-      const owner = await portalUserFor(p.client_id);
-      if (owner) owners.set(p.client_id, owner);
-    }
-    const owner = owners.get(p.client_id);
-    if (owner) {
-      await notifyUser({
-        userId: owner,
-        type: "social_review",
-        title: p.title,
-        link: "/portal/content",
-      });
-    }
-  }
+  // Likewise silent: the daily digest tells each client what arrived.
 
   revalidateModule(locale);
   return OK;
@@ -695,6 +673,8 @@ export async function saveLoginAction(
             client_id,
             tenant_id: tenantId,
             created_by: user?.id ?? null,
+            // access_roles is spread in conditionally above, which widens the
+            // object past what the generated Insert type accepts.
           } as never)
           .select("id"),
       );

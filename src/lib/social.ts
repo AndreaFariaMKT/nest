@@ -266,6 +266,27 @@ export function isReplyOverdue(
   return due !== null && due < today;
 }
 
+/**
+ * A stored YYYY-MM-DD as a person reads it. Every screen goes through this, so
+ * a date does not change shape depending on which one you are looking at.
+ * Timezone is pinned because the value is already a calendar day, not an
+ * instant — letting the runtime localise it would shift it by a day.
+ */
+export function formatIsoDate(
+  iso: string | null | undefined,
+  locale: string,
+): string | null {
+  if (!isIsoDate(iso)) return null;
+  const [y, m, d] = iso.split("-").map((n) => Number.parseInt(n, 10));
+  return new Intl.DateTimeFormat(locale, {
+    weekday: "short",
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+    timeZone: "UTC",
+  }).format(new Date(Date.UTC(y, m - 1, d)));
+}
+
 // ───────────────────────────────────────────────────────────────────────────
 // The fortnight
 // ───────────────────────────────────────────────────────────────────────────
@@ -372,7 +393,7 @@ export type SocialAction = (typeof SOCIAL_ACTIONS)[number];
 
 export type Verdict =
   | { ok: true; next: SocialStage }
-  | { ok: false; reason: string };
+  | { ok: false; reason: BlockedReason };
 
 /**
  * Every refusal this module can produce. Kept as a list so the UI can tell a
@@ -580,6 +601,136 @@ export function canSetDesignState(
 }
 
 // ───────────────────────────────────────────────────────────────────────────
+// Available moves
+// ───────────────────────────────────────────────────────────────────────────
+
+export type MoveTone = "primary" | "secondary" | "danger";
+
+export interface Move {
+  action: SocialAction;
+  tone: MoveTone;
+  /** canRun refuses this action without a comment, so the form must ask. */
+  needsComment: boolean;
+}
+
+export interface MoveSet {
+  moves: Move[];
+  /**
+   * i18n key under social.waitingOn.*, set when the reader has nothing to do
+   * but knows who does. Null when they simply have no business here.
+   */
+  waitingOn: "direction" | "design" | "client" | "order" | "writing" | null;
+}
+
+/**
+ * The one answer to "what happens next, for this person, on this piece".
+ *
+ * Two screens render this — the fortnight board and the piece record — and
+ * while it was written twice they disagreed in four places: one offered a queue
+ * button the other did not, one offered "send text up" on a piece with no text
+ * and earned a refusal, one pre-filled the client's words and the other threw
+ * them away. Deriving both from here makes that class of drift impossible
+ * rather than merely unlikely.
+ */
+export function movesFor(
+  piece: Pick<
+    SocialPiece,
+    "status" | "design_state" | "caption" | "material_url" | "publish_on"
+  >,
+  caps: SocialCap[],
+  today: string = todayIso(),
+): MoveSet {
+  const has = (c: SocialCap) => caps.includes(c);
+  const none: MoveSet = { moves: [], waitingOn: null };
+  const one = (
+    action: SocialAction,
+    tone: MoveTone = "primary",
+    needsComment = false,
+  ): MoveSet => ({ moves: [{ action, tone, needsComment }], waitingOn: null });
+
+  switch (piece.status) {
+    case "backlog":
+      return has("coordinate") ? one("pull") : none;
+
+    case "draft":
+      if (!has("coordinate")) return { moves: [], waitingOn: "writing" };
+      // Offering this with no text only earns a `needsText` refusal.
+      return piece.caption?.trim()
+        ? one("send_text_up")
+        : { moves: [], waitingOn: "writing" };
+
+    case "text_review":
+      if (!has("direction")) return { moves: [], waitingOn: "direction" };
+      return {
+        moves: [
+          { action: "direction_reject", tone: "danger", needsComment: true },
+          { action: "direction_approve", tone: "primary", needsComment: false },
+        ],
+        waitingOn: null,
+      };
+
+    case "creative_review":
+      if (has("coordinate") && piece.design_state === "signed_off") {
+        return one("send_to_client");
+      }
+      return { moves: [], waitingOn: "design" };
+
+    case "client_review":
+      if (has("client")) {
+        return {
+          moves: [
+            { action: "client_reject", tone: "danger", needsComment: true },
+            {
+              action: "client_request_changes",
+              tone: "secondary",
+              needsComment: true,
+            },
+            { action: "client_approve", tone: "primary", needsComment: false },
+          ],
+          waitingOn: null,
+        };
+      }
+      // Past the reply date the studio may move it on; before that the
+      // client's window is theirs.
+      if (has("coordinate") && isReplyOverdue(piece.publish_on, today)) {
+        return one("approve_on_silence");
+      }
+      return { moves: [], waitingOn: "client" };
+
+    case "changes_requested":
+      if (has("client")) {
+        return {
+          moves: [
+            { action: "client_approve", tone: "primary", needsComment: false },
+          ],
+          waitingOn: null,
+        };
+      }
+      return has("coordinate")
+        ? one("reopen_to_design")
+        : { moves: [], waitingOn: "design" };
+
+    case "rejected":
+      return has("coordinate") || has("direction")
+        ? one("return_to_backlog", "primary", false)
+        : none;
+
+    case "approved":
+      return has("publish") || has("coordinate")
+        ? one("queue")
+        : { moves: [], waitingOn: "order" };
+
+    case "scheduled":
+      return has("publish") || has("coordinate") ? one("mark_live") : none;
+
+    case "published":
+      return has("publish") || has("coordinate")
+        ? one("unmark_live", "secondary")
+        : none;
+  }
+}
+
+// ───────────────────────────────────────────────────────────────────────────
 // Backlog stock · the only number anyone has to watch
 // ───────────────────────────────────────────────────────────────────────────
 
@@ -592,6 +743,13 @@ export interface Stock {
   critical: boolean;
 }
 
+/**
+ * NOTE ON THE NAME: `perCycle` is read from `clients.posts_per_cycle`, and this
+ * module reads it as publications per FORTNIGHT. `src/lib/cycles.ts` uses
+ * "cycle" to mean a calendar month for billing and task rhythm — the two ideas
+ * do not interact, but the shared word on one column is a trap. Anything else
+ * wiring to that column should assume fortnights, not months.
+ */
 export function backlogStock(count: number, perCycle: number): Stock {
   const per = Math.max(1, perCycle);
   const fortnights = count / per;
@@ -610,10 +768,18 @@ export function backlogStock(count: number, perCycle: number): Stock {
 
 export type HealthLevel = "ok" | "warn" | "bad";
 
+export type HealthReason =
+  | "onRhythm"
+  | "stockLow"
+  | "stockCritical"
+  | "unwritten"
+  | "returned"
+  | "replyOverdue";
+
 export interface ClientHealth {
   level: HealthLevel;
   /** i18n key under social.health.* */
-  reason: string;
+  reason: HealthReason;
   count: number;
   stock: Stock;
   withClient: number;
@@ -645,7 +811,7 @@ export function clientHealth(
 
   // Worst-first: a passed reply date outranks a thin shelf.
   let level: HealthLevel = "ok";
-  let reason = "onRhythm";
+  let reason: HealthReason = "onRhythm";
   let count = 0;
   if (stock.low) {
     level = "warn";
@@ -679,13 +845,29 @@ export function clientHealth(
 // Waiting on you
 // ───────────────────────────────────────────────────────────────────────────
 
+export type WaitingReason =
+  | "approveText"
+  | "decideRejected"
+  | "sendTextUp"
+  | "stillToWrite"
+  | "signOffArt"
+  | "sendToClient"
+  | "backToDesign"
+  | "restock"
+  | "toDraw"
+  | "drawnAwaitingSignOff"
+  | "notInOrder"
+  | "toSchedule"
+  | "replyBy"
+  | "replyPassed";
+
 export interface WaitingEntry {
   /** Null for entries that point at a client rather than one piece. */
   id: string | null;
   clientId: string;
   title: string;
   /** i18n key under social.waiting.reasons.* */
-  reason: string;
+  reason: WaitingReason;
   /** Interpolation for the reason line. */
   values?: Record<string, string | number>;
 }
@@ -709,7 +891,7 @@ export function waitingFor(
   const out: WaitingEntry[] = [];
   const push = (
     p: SocialPiece,
-    reason: string,
+    reason: WaitingReason,
     values?: Record<string, string | number>,
   ) => out.push({ id: p.id, clientId: p.client_id, title: p.title, reason, values });
 

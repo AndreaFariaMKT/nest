@@ -7,6 +7,7 @@ import { loadScope } from "../_data";
 import { ModuleShell } from "../_components/ModuleShell";
 import { MediaForm } from "../_components/MediaForm";
 import { MediaList, type MediaRow } from "../_components/MediaList";
+import { ModuleNote } from "../_components/Shared";
 
 export const dynamic = "force-dynamic";
 
@@ -52,16 +53,14 @@ export default async function MediaPage({
 
       <MediaList
         items={items}
-        clientName={(id) =>
-          scope.clients.find((c) => c.id === id)?.name ?? "—"
-        }
+        clientName={scope.clientName}
         locale={locale}
         canEdit={scope.caps.includes("coordinate")}
       />
 
-      <p className="mt-4 rounded-xl border-l-2 border-brand bg-muted/40 px-4 py-3 text-sm leading-relaxed text-muted-foreground">
+      <ModuleNote>
         {t("media.note")}
-      </p>
+      </ModuleNote>
     </>
   );
 }

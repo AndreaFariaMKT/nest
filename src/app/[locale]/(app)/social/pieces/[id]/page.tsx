@@ -17,11 +17,8 @@ import { getPiece, listSocialClients } from "../../_data";
 import { getCurrentRole } from "@/lib/roles-server";
 import { socialCaps, todayIso } from "@/lib/social";
 import { StageBadge, DesignBadge } from "../../_components/StageBadge";
-import {
-  DecisionForm,
-  DesignStateForm,
-  QuickAction,
-} from "../../_components/PieceActions";
+import { DesignStateForm } from "../../_components/PieceActions";
+import { Moves } from "../../_components/Moves";
 import { SaveFields } from "../../_components/SaveFields";
 import { CopyText } from "../../_components/CopyText";
 
@@ -406,13 +403,40 @@ export default async function PiecePage({
       {/* ── What can move from here ────────────────────────────── */}
       <section className="rounded-2xl border border-brand bg-card p-5">
         <h2 className={labelCls}>{t("piece.nextMove")}</h2>
-        <NextMove
+        {piece.status === "text_review" && direction ? (
+          <p className="mb-3 text-sm leading-relaxed text-muted-foreground">
+            {t("piece.directionNote")}
+          </p>
+        ) : null}
+        {piece.status === "client_review" &&
+        coordinate &&
+        isReplyOverdue(piece.publish_on, today) ? (
+          <p className="mb-3 text-sm leading-relaxed text-muted-foreground">
+            {t("piece.silenceNote")}
+          </p>
+        ) : null}
+        <Moves
           piece={piece}
-          locale={locale}
           caps={caps}
-          clientFirstName={(client?.name ?? "").split(" ")[0]}
-          suggestedDate={addWorkingDays(today, 10)}
-          t={t}
+          today={today}
+          locale={locale}
+          clientName={(client?.name ?? "").split(" ")[0]}
+          extra={
+            piece.status === "backlog" ? (
+              <div className="mb-3">
+                <label className={labelCls} htmlFor="pull-date">
+                  {t("piece.publishOn")}
+                </label>
+                <input
+                  id="pull-date"
+                  name="publish_on"
+                  type="date"
+                  defaultValue={addWorkingDays(today, 10)}
+                  className={field}
+                />
+              </div>
+            ) : null
+          }
         />
       </section>
     </div>
@@ -457,219 +481,5 @@ function Note({
       </p>
       <p className="text-sm leading-relaxed text-foreground">{children}</p>
     </div>
-  );
-}
-
-type Translate = Awaited<ReturnType<typeof getTranslations<"social">>>;
-
-/** The move this reader can make on this piece, and nothing else. */
-function NextMove({
-  piece,
-  locale,
-  caps,
-  clientFirstName,
-  suggestedDate,
-  t,
-}: {
-  piece: NonNullable<Awaited<ReturnType<typeof getPiece>>>;
-  locale: string;
-  caps: string[];
-  clientFirstName: string;
-  suggestedDate: string;
-  t: Translate;
-}) {
-  const coordinate = caps.includes("coordinate");
-  const direction = caps.includes("direction");
-  const publish = caps.includes("publish");
-  const id = piece.id;
-
-  switch (piece.status) {
-    case "backlog":
-      if (!coordinate) break;
-      return (
-        <DecisionForm
-          id={id}
-          locale={locale}
-          choices={[
-            { action: "pull", label: t("actions.pull"), variant: "primary" },
-          ]}
-          extra={
-            <div className="mb-3">
-              <label className={labelCls} htmlFor="pull-date">
-                {t("piece.publishOn")}
-              </label>
-              <input
-                id="pull-date"
-                name="publish_on"
-                type="date"
-                defaultValue={suggestedDate}
-                className={field}
-              />
-            </div>
-          }
-        />
-      );
-
-    case "draft":
-      if (!coordinate) break;
-      // Offering this without text only earns a `needsText` refusal.
-      if (!piece.caption?.trim()) {
-        return (
-          <p className="text-sm text-muted-foreground">
-            {t("fortnight.stillToWrite")}
-          </p>
-        );
-      }
-      return (
-        <QuickAction
-          id={id}
-          locale={locale}
-          action="send_text_up"
-          label={t("actions.sendTextUp")}
-          variant="primary"
-        />
-      );
-
-    case "text_review":
-      if (!direction) {
-        return (
-          <p className="text-sm text-muted-foreground">
-            {t("piece.waitingOnDirection")}
-          </p>
-        );
-      }
-      return (
-        <>
-          <p className="mb-3 text-sm leading-relaxed text-muted-foreground">
-            {t("piece.directionNote")}
-          </p>
-          <DecisionForm
-            id={id}
-            locale={locale}
-            commentLabel={t("actions.directionNoteLabel")}
-            commentHint={t("actions.directionNoteHint")}
-            choices={[
-              {
-                action: "direction_reject",
-                label: t("actions.sendBackToWriting"),
-                variant: "danger",
-              },
-              {
-                action: "direction_approve",
-                label: t("actions.approveText"),
-                variant: "primary",
-              },
-            ]}
-          />
-        </>
-      );
-
-    case "creative_review":
-      if (!coordinate) break;
-      return piece.design_state === "signed_off" ? (
-        <QuickAction
-          id={id}
-          locale={locale}
-          action="send_to_client"
-          label={t("actions.sendToClient", { name: clientFirstName })}
-          variant="primary"
-        />
-      ) : (
-        <p className="text-sm text-muted-foreground">{t("piece.needsSignOff")}</p>
-      );
-
-    case "client_review":
-      if (coordinate && isReplyOverdue(piece.publish_on, todayIso())) {
-        return (
-          <>
-            <p className="mb-3 text-sm leading-relaxed text-muted-foreground">
-              {t("piece.silenceNote")}
-            </p>
-            <DecisionForm
-              id={id}
-              locale={locale}
-              choices={[
-                {
-                  action: "approve_on_silence",
-                  label: t("actions.approveOnSilence"),
-                  variant: "primary",
-                },
-              ]}
-            />
-          </>
-        );
-      }
-      return (
-        <p className="text-sm text-muted-foreground">{t("piece.withClient")}</p>
-      );
-
-    case "changes_requested":
-      if (!coordinate) break;
-      return (
-        <QuickAction
-          id={id}
-          locale={locale}
-          action="reopen_to_design"
-          label={t("actions.backToDesign")}
-          variant="primary"
-        />
-      );
-
-    case "rejected":
-      if (!coordinate && !direction) break;
-      return (
-        <DecisionForm
-          id={id}
-          locale={locale}
-          commentLabel={t("actions.returnReasonLabel")}
-          defaultComment={piece.client_comment ?? ""}
-          choices={[
-            {
-              action: "return_to_backlog",
-              label: t("actions.returnToBacklog"),
-              variant: "primary",
-            },
-          ]}
-        />
-      );
-
-    case "approved":
-      if (!publish) break;
-      return (
-        <QuickAction
-          id={id}
-          locale={locale}
-          action="queue"
-          label={t("actions.queue")}
-          variant="primary"
-        />
-      );
-
-    case "scheduled":
-      if (!publish) break;
-      return (
-        <QuickAction
-          id={id}
-          locale={locale}
-          action="mark_live"
-          label={t("publishing.markLive")}
-          variant="primary"
-        />
-      );
-
-    case "published":
-      if (!publish) break;
-      return (
-        <QuickAction
-          id={id}
-          locale={locale}
-          action="unmark_live"
-          label={t("publishing.undo")}
-        />
-      );
-  }
-
-  return (
-    <p className="text-sm text-muted-foreground">{t("piece.nothingForYou")}</p>
   );
 }

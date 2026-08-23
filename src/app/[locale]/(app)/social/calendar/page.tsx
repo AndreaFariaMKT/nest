@@ -11,7 +11,7 @@ import { ModuleShell } from "../_components/ModuleShell";
 export const dynamic = "force-dynamic";
 
 /** Event chip colour, keyed off the same tone table the pills use. */
-const CHIP: Record<string, string> = {
+const CHIP: Record<(typeof STAGE_TONE)[SocialStage], string> = {
   muted: "bg-muted text-muted-foreground",
   brand: "bg-brand-soft text-brand-soft-foreground",
   warning: "bg-amber-500/15 text-amber-700 dark:text-amber-300",
@@ -56,9 +56,6 @@ export default async function SocialCalendarPage({
   const lead = (first.getUTCDay() + 6) % 7;
 
   const inMonth = scope.pieces.filter((p) => p.publish_on?.startsWith(month));
-  const clientName = (id: string) =>
-    scope.clients.find((c) => c.id === id)?.name ?? "—";
-
   const shift = (delta: number) => {
     const d = new Date(Date.UTC(year, mon - 1 + delta, 1));
     return `${d.getUTCFullYear()}-${String(d.getUTCMonth() + 1).padStart(2, "0")}`;
@@ -162,7 +159,7 @@ export default async function SocialCalendarPage({
                   <Link
                     key={p.id}
                     href={`/social/pieces/${p.id}` as Route}
-                    title={`${clientName(p.client_id)} · ${p.title}`}
+                    title={`${scope.clientName(p.client_id)} · ${p.title}`}
                     className={cn(
                       "block truncate rounded px-1.5 py-1 text-[10px] leading-tight",
                       CHIP[STAGE_TONE[p.status]],

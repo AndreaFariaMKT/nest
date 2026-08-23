@@ -1,4 +1,4 @@
-import { useTranslations, useFormatter } from "next-intl";
+import { useTranslations } from "next-intl";
 import { Link } from "@/i18n/routing";
 import type { Route } from "next";
 
@@ -10,24 +10,9 @@ import {
   replyDueBy,
   type SocialStage,
 } from "@/lib/social";
-import type { PieceRecord } from "../_data";
+import type { SocialPieceRow } from "../_data";
 import { StageBadge } from "./StageBadge";
-
-/** "Sat 12 Sep 2026" — one date format for the whole module. */
-export function useDateLabel() {
-  const format = useFormatter();
-  return (iso: string | null | undefined) => {
-    if (!iso) return null;
-    const [y, m, d] = iso.split("-").map((n) => Number.parseInt(n, 10));
-    return format.dateTime(new Date(Date.UTC(y, m - 1, d)), {
-      weekday: "short",
-      day: "numeric",
-      month: "short",
-      year: "numeric",
-      timeZone: "UTC",
-    });
-  };
-}
+import { useDateLabel } from "./Shared";
 
 const RETURNED: SocialStage[] = ["changes_requested", "rejected"];
 
@@ -43,7 +28,7 @@ export function PieceCard({
   showWhy = true,
   children,
 }: {
-  piece: PieceRecord;
+  piece: SocialPieceRow;
   clientName: string;
   today: string;
   href: string;
@@ -100,7 +85,7 @@ export function PieceCard({
           formatLabel(piece.post_type, piece.slide_count, (k) =>
             t(`format.${k}`),
           ),
-          piece.channels.map((c) => t(`channel.${c}`)).join(" + "),
+          piece.channels.map((c: string) => t(`channel.${c}`)).join(" + "),
           piece.pillar,
         ]
           .filter(Boolean)

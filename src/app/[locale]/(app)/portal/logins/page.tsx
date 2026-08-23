@@ -6,6 +6,7 @@ import { PageHeader } from "@/components/ui/PageHeader";
 import { todayIso } from "@/lib/social";
 import { LoginList, type LoginRow } from "../../social/_components/LoginList";
 import { NotLinked } from "../_NotLinked";
+import { ModuleNote } from "../../social/_components/Shared";
 
 export const dynamic = "force-dynamic";
 
@@ -52,9 +53,9 @@ export default async function PortalLogins({
         canEdit={false}
         showClient={false}
       />
-      <p className="mt-4 rounded-xl border-l-2 border-brand bg-muted/40 px-4 py-3 text-sm leading-relaxed text-muted-foreground">
+      <ModuleNote>
         {ts("logins.notePortal")}
-      </p>
+      </ModuleNote>
     </>
   );
 }

@@ -1,8 +1,9 @@
 import { useTranslations } from "next-intl";
 
 import { Pill } from "@/components/ui/Pill";
-import { useDateLabel } from "./PieceCard";
-import { DeleteMediaButton } from "./MediaForm";
+import { EmptyState, useDateLabel } from "./Shared";
+import { ConfirmDeleteButton } from "./ConfirmDeleteButton";
+import { deleteMediaAction } from "../actions";
 
 export interface MediaRow {
   id: string;
@@ -36,9 +37,9 @@ export function MediaList({
 
   if (!items.length) {
     return (
-      <p className="rounded-2xl border border-border bg-card px-5 py-12 text-center text-sm text-muted-foreground">
+      <EmptyState>
         {t("empty")}
-      </p>
+      </EmptyState>
     );
   }
 
@@ -91,11 +92,12 @@ export function MediaList({
 
           {canEdit ? (
             <div className="mt-3 flex justify-end">
-              <DeleteMediaButton
+              <ConfirmDeleteButton
                 id={m.id}
                 locale={locale}
                 label={t("delete")}
                 confirmLabel={t("deleteConfirm")}
+                action={deleteMediaAction}
               />
             </div>
           ) : null}

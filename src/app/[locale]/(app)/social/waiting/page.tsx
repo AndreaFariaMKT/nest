@@ -1,11 +1,12 @@
-import { setRequestLocale, getTranslations, getFormatter } from "next-intl/server";
+import { setRequestLocale, getTranslations } from "next-intl/server";
 import { Link } from "@/i18n/routing";
 import type { Route } from "next";
 
 import { PageHeader } from "@/components/ui/PageHeader";
-import { waitingFor, type SocialPiece } from "@/lib/social";
+import { formatIsoDate, waitingFor, type SocialCap, type SocialPiece } from "@/lib/social";
 import { loadScope } from "../_data";
 import { ModuleShell } from "../_components/ModuleShell";
+import { ModuleNote } from "../_components/Shared";
 
 export const dynamic = "force-dynamic";
 
@@ -18,21 +19,12 @@ export default async function WaitingPage({
 }) {
   const { locale } = await params;
   setRequestLocale(locale);
-  const [t, format, scope] = await Promise.all([
+  const [t, scope] = await Promise.all([
     getTranslations("social"),
-    getFormatter(),
     loadScope(searchParams),
   ]);
 
-  const date = (iso: string) => {
-    if (!/^\d{4}-\d{2}-\d{2}$/.test(iso)) return iso;
-    const [y, m, d] = iso.split("-").map((n) => Number.parseInt(n, 10));
-    return format.dateTime(new Date(Date.UTC(y, m - 1, d)), {
-      day: "numeric",
-      month: "short",
-      timeZone: "UTC",
-    });
-  };
+  const date = (iso: string) => formatIsoDate(iso, locale) ?? iso;
 
   const entries = waitingFor(scope.caps, {
     pieces: scope.pieces as SocialPiece[],
@@ -103,16 +95,23 @@ export default async function WaitingPage({
         )}
       </div>
 
-      <p className="mt-4 rounded-xl border-l-2 border-brand bg-muted/40 px-4 py-3 text-sm leading-relaxed text-muted-foreground">
+      <ModuleNote>
         {t(`waiting.footnote.${primaryCap(scope.caps)}`)}
-      </p>
+      </ModuleNote>
     </>
   );
 }
 
 /** The hat the reader mostly wears — decides the framing, not the contents. */
-function primaryCap(caps: string[]): string {
-  for (const c of ["client", "design", "direction", "coordinate", "publish"]) {
+function primaryCap(caps: SocialCap[]): SocialCap {
+  const order: SocialCap[] = [
+    "client",
+    "design",
+    "direction",
+    "coordinate",
+    "publish",
+  ];
+  for (const c of order) {
     if (caps.includes(c)) return c;
   }
   return "coordinate";

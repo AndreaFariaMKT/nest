@@ -26,6 +26,7 @@ export interface SocialClient {
   slug: string;
   name: string;
   industry: string | null;
+  /** Publications per FORTNIGHT — see the note on backlogStock(). */
   posts_per_cycle: number;
 }
 
@@ -38,7 +39,7 @@ export const PIECE_COLUMNS =
   "sent_up_at, approved_internal_at, sent_to_client_at, client_approved_at, " +
   "published_at, updated_at";
 
-export interface PieceRecord extends SocialPiece {
+export interface SocialPieceRow extends SocialPiece {
   note_design: string | null;
   note_publish: string | null;
   design_feedback: string | null;
@@ -67,8 +68,12 @@ export const listSocialClients = cache(async (): Promise<SocialClient[]> => {
   return (data ?? []) as SocialClient[];
 });
 
-/** Every piece in the tenant. Screens filter in memory — the sets are small. */
-export const listPieces = cache(async (): Promise<PieceRecord[]> => {
+/**
+ * Every piece in the tenant. Screens filter in memory rather than per-screen in
+ * SQL, which is fine to a few thousand pieces per tenant — past that this
+ * becomes the thing to paginate.
+ */
+export const listPieces = cache(async (): Promise<SocialPieceRow[]> => {
   const supabase = await createClient();
   const tenantId = await currentTenantId();
   const { data } = await supabase
@@ -80,12 +85,12 @@ export const listPieces = cache(async (): Promise<PieceRecord[]> => {
   // `content_status` still carries `archived` from before this module existed.
   // Such rows are not part of the pipeline and have no stage colour, so they
   // are dropped here rather than rendering as an unstyled chip on the calendar.
-  return ((data ?? []) as unknown as PieceRecord[]).filter((p) =>
+  return ((data ?? []) as unknown as SocialPieceRow[]).filter((p) =>
     isSocialStage(p.status),
   );
 });
 
-export async function getPiece(id: string): Promise<PieceRecord | null> {
+export async function getPiece(id: string): Promise<SocialPieceRow | null> {
   const supabase = await createClient();
   const tenantId = await currentTenantId();
   const { data } = await supabase
@@ -94,7 +99,7 @@ export async function getPiece(id: string): Promise<PieceRecord | null> {
     .eq("tenant_id", tenantId)
     .eq("id", id)
     .maybeSingle();
-  return (data as unknown as PieceRecord | null) ?? null;
+  return (data as unknown as SocialPieceRow | null) ?? null;
 }
 
 /**
@@ -107,12 +112,14 @@ export interface SocialScope {
   clients: SocialClient[];
   /** Null when the filter is "all clients". */
   client: SocialClient | null;
-  pieces: PieceRecord[];
+  pieces: SocialPieceRow[];
   /** All pieces in the tenant, ignoring the client filter. */
-  allPieces: PieceRecord[];
+  allPieces: SocialPieceRow[];
   today: string;
   /** clientId → { name, perCycle }, for the domain helpers. */
   clientIndex: Map<string, { name: string; perCycle: number }>;
+  /** Every screen needs this; it was a linear scan in seven of them. */
+  clientName: (id: string) => string;
 }
 
 /**
@@ -139,6 +146,10 @@ export async function loadScope(
     ? allPieces.filter((p) => p.client_id === client.id)
     : allPieces.filter((p) => clients.some((c) => c.id === p.client_id));
 
+  const clientIndex = new Map(
+    clients.map((c) => [c.id, { name: c.name, perCycle: c.posts_per_cycle }]),
+  );
+
   return {
     role,
     caps: socialCaps(role),
@@ -147,8 +158,7 @@ export async function loadScope(
     pieces: scoped,
     allPieces,
     today: todayIso(),
-    clientIndex: new Map(
-      clients.map((c) => [c.id, { name: c.name, perCycle: c.posts_per_cycle }]),
-    ),
+    clientIndex,
+    clientName: (id) => clientIndex.get(id)?.name ?? "—",
   };
 }

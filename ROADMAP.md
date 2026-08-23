@@ -141,13 +141,37 @@ Everything the audit left open, except the two items named below. Needs
   variants. Also: the client's comment box and the caption editor gained bound
   labels, and the month arrows an accessible name.
 
-**Still open, deliberately:** a daily digest for the client (each hand-off
-notifies individually today — batching needs a cron and a queue, and a decision
-about what a digest should hold), and Playwright coverage for the module, which
-needs a seeded database. The optional half of the readability review — the
-`movesFor()` consolidation, the disclosure-form and delete-button helpers, the
-`social.portal.*` key move — is also untouched; it is listed in the review and
-none of it changes behaviour.
+### Nothing left open — 2026-08
+
+The last three items, plus the optional half of the readability review. Needs
+**migration 024** (`clients.social_digest_at`) and the new Vercel cron.
+
+- **The client hears once a day.** `/api/cron/social-digest` (weekdays, 11:00
+  UTC) gathers what arrived, what is due today, and what has run past its reply
+  date into one notification per client. The per-hand-off notification is gone:
+  four pieces on a Tuesday meant four pings, and the one that mattered got lost
+  among them. `clients.social_digest_at` is stamped only on success, so a missed
+  run is picked up by the next one instead of swallowing a day's arrivals.
+  Rules in `src/lib/social-digest.ts`, under test.
+- **Playwright** — `tests/e2e/social-module.spec.ts` walks every module screen,
+  asserts the shelf meter, proves a theme without a reason is refused *with a
+  sentence*, and drives a theme from the shelf into the fortnight. It skips
+  cleanly on an empty seed, like the rest of the suite. Route guarding stays a
+  unit test, where the rule actually lives.
+- **`movesFor()`** — "what can this reader do to this piece" was written twice
+  and had already drifted in four places. Both screens (and the portal) now
+  render from one answer in `src/lib/social.ts`, and a test asserts the domain
+  never offers a move the state machine would refuse.
+- **A test that catches missing strings.** Most labels render from a dynamic key
+  (`t(\`stage.${p.status}\`)`), which TypeScript cannot see and next-intl throws
+  on. `tests/unit/social-i18n.test.ts` checks every enum against both
+  dictionaries, so adding a stage without its strings fails the build.
+- Also: `DisclosureForm`, `ConfirmDeleteButton` (the repo's two-click pattern,
+  not `window.confirm`), `useRefreshingAction`, `ModuleNote`/`EmptyState`,
+  `scope.clientName`, one `formatIsoDate`, typed refusal/health/waiting reasons,
+  `revalidateModule` derived from `SOCIAL_SCREENS`, and a note on
+  `posts_per_cycle` — which this module reads as a **fortnight** rate while
+  `src/lib/cycles.ts` uses "cycle" to mean a calendar month.
 
 ### Backlog — what's next (roughly prioritized)
 1. **Operational / quick**

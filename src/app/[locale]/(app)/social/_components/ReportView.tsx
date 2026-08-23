@@ -5,6 +5,7 @@ import type { Route } from "next";
 import { cn } from "@/lib/utils";
 import { shiftMonth, type Delta } from "@/lib/social-report";
 import type { MonthReport } from "../_report";
+import { ModuleNote } from "./Shared";
 
 /**
  * The closed month, as the studio reads it and as the client receives it.
@@ -96,9 +97,9 @@ export function ReportView({
             </ul>
           )}
 
-          <p className="mt-4 rounded-xl border-l-2 border-brand bg-muted/40 px-4 py-3 text-sm leading-relaxed text-muted-foreground">
+          <ModuleNote>
             {t("axisNote")}
-          </p>
+          </ModuleNote>
         </section>
 
         <section className="rounded-2xl border border-border bg-muted/40 p-5">
