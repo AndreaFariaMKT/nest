@@ -119,7 +119,11 @@ export default async function SocialCalendarPage({
         </div>
       </div>
 
-      <div className="grid grid-cols-7 gap-1.5">
+      {/* A seven-column month at 375px gives each day about fifty pixels,
+          which fits neither a date nor a title. It scrolls instead of being
+          crushed — the whole page used to scroll sideways with it. */}
+      <div className="-mx-4 overflow-x-auto px-4 md:mx-0 md:px-0">
+        <div className="grid min-w-[680px] grid-cols-7 gap-1.5">
         {weekdays.map((w) => (
           <div
             key={w}
@@ -172,6 +176,7 @@ export default async function SocialCalendarPage({
             </div>
           );
         })}
+        </div>
       </div>
     </>
   );

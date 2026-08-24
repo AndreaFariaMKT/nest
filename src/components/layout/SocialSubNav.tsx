@@ -27,7 +27,13 @@ export interface SubScreen {
  * of its own: reading it in the Sidebar itself would opt every route that
  * renders the layout out of static rendering.
  */
-export function SocialSubNav({ screens }: { screens: SubScreen[] }) {
+export function SocialSubNav({
+  screens,
+  onNavigate,
+}: {
+  screens: SubScreen[];
+  onNavigate?: () => void;
+}) {
   const t = useTranslations("social");
   const pathname = usePathname();
   const params = useSearchParams();
@@ -48,6 +54,7 @@ export function SocialSubNav({ screens }: { screens: SubScreen[] }) {
           <Link
             key={s.key}
             href={`${s.href}${suffix}` as Route}
+            onClick={onNavigate}
             aria-current={active ? "page" : undefined}
             className={`rounded-lg px-3 py-1.5 text-[13px] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${
               active
