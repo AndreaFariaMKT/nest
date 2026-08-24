@@ -190,7 +190,10 @@ export async function generateMonthlyReportAction(
     });
   } catch (err) {
     log.error("reports.monthly", "claude_failed", { err });
-    return;
+    // "Generate monthly report" is one click behind an Opus call. Failing it
+    // silently sent the owner back to a page that looked exactly the same,
+    // with no way to tell whether it had worked.
+    redirect(localePath(locale, `/clients/${slug}?report=failed`));
   }
 
   let payload;
@@ -204,7 +207,10 @@ export async function generateMonthlyReportAction(
       stopReason: result.stopReason,
       textLength: result.text.length,
     });
-    return;
+    // "Generate monthly report" is one click behind an Opus call. Failing it
+    // silently sent the owner back to a page that looked exactly the same,
+    // with no way to tell whether it had worked.
+    redirect(localePath(locale, `/clients/${slug}?report=failed`));
   }
 
   const content = {

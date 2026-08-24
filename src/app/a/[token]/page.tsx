@@ -47,7 +47,13 @@ export default async function ApprovalPage({
 }) {
   const { token } = await params;
   const sp = await searchParams;
-  const thanks = sp.thanks === "1";
+  // The action reports what actually happened. `thanks=1` is still honoured
+  // because links to it may be sitting in a browser history, but it no longer
+  // decides on its own: an expired or already-answered token falls through to
+  // the branches below, which read the row rather than the query string.
+  const done = (Array.isArray(sp.done) ? sp.done[0] : sp.done) ?? "";
+  const thanks = done === "recorded" || sp.thanks === "1";
+  const failed = done === "failed";
   const rawLocale = (Array.isArray(sp.locale) ? sp.locale[0] : sp.locale) ?? "pt-BR";
   const locale = rawLocale.startsWith("en") ? "en" : "pt-BR";
 
@@ -153,7 +159,14 @@ export default async function ApprovalPage({
         </section>
       ) : null}
 
-      {thanks ? (
+      {failed ? (
+        <div
+          className="rounded-md border border-destructive/40 bg-destructive/10 p-4 text-sm text-destructive"
+          data-testid="approval-failed"
+        >
+          {t.failed}
+        </div>
+      ) : thanks ? (
         <div className="rounded-md border border-emerald-500/40 bg-emerald-50 p-4 text-sm text-emerald-900 dark:bg-emerald-950/40 dark:text-emerald-200">
           {t.thanks}
         </div>
@@ -239,6 +252,8 @@ const I18N = {
     alreadyRejected:
       "Você já pediu mudanças nesse carrossel. O studio está trabalhando nelas.",
     expired: "Esse link expirou. Peça um novo ao studio.",
+    failed:
+      "Não deu para registrar sua resposta agora. Tente de novo em instantes — se continuar, avise o studio.",
   },
   en: {
     kicker: "Content approval",
@@ -256,5 +271,7 @@ const I18N = {
     alreadyRejected:
       "You've already requested changes on this carousel. The studio is on it.",
     expired: "This link expired. Ask the studio for a new one.",
+    failed:
+      "We could not record your response just now. Try again in a moment — if it keeps happening, tell the studio.",
   },
 } as const;

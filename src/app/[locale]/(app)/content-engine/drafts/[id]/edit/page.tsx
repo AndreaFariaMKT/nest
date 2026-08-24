@@ -59,12 +59,20 @@ function suggestedScheduledFor(): string {
 
 export default async function DraftEditPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ locale: string; id: string }>;
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
 }) {
   const { locale, id } = await params;
   setRequestLocale(locale);
   const t = await getTranslations("contentEngine");
+
+  // Which AI step just failed, if any. Every one of them used to return
+  // silently, so the whole panel of buttons was indistinguishable from a
+  // working panel with nothing to say.
+  const sp = await searchParams;
+  const failedStep = (Array.isArray(sp.ai) ? sp.ai[0] : sp.ai) ?? "";
 
   const supabase = await createClient();
 
@@ -175,6 +183,17 @@ export default async function DraftEditPage({
 
   return (
     <div className="mx-auto max-w-3xl">
+      {failedStep ? (
+        <p
+          role="alert"
+          className="mb-6 rounded-xl border border-destructive/40 bg-destructive/10 px-4 py-3 text-sm text-destructive"
+          data-testid="ai-failed"
+        >
+          {t.has(`aiFailed.${failedStep}`)
+            ? t(`aiFailed.${failedStep}`)
+            : t("aiFailed.generic")}
+        </p>
+      ) : null}
       <div className="mb-8 flex items-start justify-between gap-4">
         <div>
           <Link

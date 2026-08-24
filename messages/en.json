@@ -369,7 +369,8 @@
       "enabled": "Run the social media module for this client",
       "postsPerCycle": "Publications per fortnight",
       "postsPerCycleHint": "The divisor behind the backlog meter — the shelf is measured in fortnights, not items."
-    }
+    },
+    "reportFailed": "The report did not generate. Nothing was saved. Try again — if it keeps failing, the AI key may be missing or expired."
   },
   "projects": {
     "title": "Projects",
@@ -624,6 +625,14 @@
       "required": "This field is required.",
       "tooShort": "Transcript is too short — paste at least a couple of sentences.",
       "tooLarge": "File is over the 2 MB limit."
+    },
+    "aiFailed": {
+      "generic": "That did not run. Nothing was changed. Try again — if it keeps failing, the AI key may be missing or expired.",
+      "rewrite": "The rewrite did not run. Your slides are untouched. Try again — if it keeps failing, the AI key may be missing or expired.",
+      "compliance": "The compliance check did not run. Try again — if it keeps failing, the AI key may be missing or expired.",
+      "adapt": "The adaptation did not run. Nothing was created. Try again — if it keeps failing, the AI key may be missing or expired.",
+      "stories": "The stories were not generated. Try again — if it keeps failing, the AI key may be missing or expired.",
+      "reelScript": "The reel script did not run. Try again — if it keeps failing, the AI key may be missing or expired."
     }
   },
   "brandKits": {

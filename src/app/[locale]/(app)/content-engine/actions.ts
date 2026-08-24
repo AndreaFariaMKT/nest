@@ -580,7 +580,13 @@ export async function aiRewriteDraftAction(formData: FormData): Promise<void> {
     });
   } catch (err) {
     log.error("content-engine.ai-rewrite", "claude_failed", { err });
-    return;
+    // The button used to do nothing at all here: no key, an
+    // expired key, a rate limit or an unparseable answer all ended
+    // in a log line the person who clicked cannot read. Send them
+    // back with something to see.
+    redirect(
+      localePath(locale, `/content-engine/drafts/${draftId}/edit?ai=rewrite`),
+    );
   }
 
   let payload;
@@ -593,7 +599,13 @@ export async function aiRewriteDraftAction(formData: FormData): Promise<void> {
       stopReason: result.stopReason,
       textLength: result.text.length,
     });
-    return;
+    // The button used to do nothing at all here: no key, an
+    // expired key, a rate limit or an unparseable answer all ended
+    // in a log line the person who clicked cannot read. Send them
+    // back with something to see.
+    redirect(
+      localePath(locale, `/content-engine/drafts/${draftId}/edit?ai=rewrite`),
+    );
   }
 
   for (let i = 0; i < orderedSlides.length; i++) {
@@ -712,7 +724,13 @@ export async function checkComplianceAction(formData: FormData): Promise<void> {
     });
   } catch (err) {
     log.error("content-engine.compliance", "claude_failed", { err });
-    return;
+    // The button used to do nothing at all here: no key, an
+    // expired key, a rate limit or an unparseable answer all ended
+    // in a log line the person who clicked cannot read. Send them
+    // back with something to see.
+    redirect(
+      localePath(locale, `/content-engine/drafts/${draftId}/edit?ai=compliance`),
+    );
   }
 
   let parsed;
@@ -726,7 +744,13 @@ export async function checkComplianceAction(formData: FormData): Promise<void> {
       stopReason: result.stopReason,
       textLength: result.text.length,
     });
-    return;
+    // The button used to do nothing at all here: no key, an
+    // expired key, a rate limit or an unparseable answer all ended
+    // in a log line the person who clicked cannot read. Send them
+    // back with something to see.
+    redirect(
+      localePath(locale, `/content-engine/drafts/${draftId}/edit?ai=compliance`),
+    );
   }
 
   const report = {
@@ -859,7 +883,13 @@ export async function adaptDraftAction(formData: FormData): Promise<void> {
     });
   } catch (err) {
     log.error("content-engine.adapt-draft", "claude_failed", { err });
-    return;
+    // The button used to do nothing at all here: no key, an
+    // expired key, a rate limit or an unparseable answer all ended
+    // in a log line the person who clicked cannot read. Send them
+    // back with something to see.
+    redirect(
+      localePath(locale, `/content-engine/drafts/${draftId}/edit?ai=adapt`),
+    );
   }
 
   let payload;
@@ -872,7 +902,13 @@ export async function adaptDraftAction(formData: FormData): Promise<void> {
       stopReason: result.stopReason,
       textLength: result.text.length,
     });
-    return;
+    // The button used to do nothing at all here: no key, an
+    // expired key, a rate limit or an unparseable answer all ended
+    // in a log line the person who clicked cannot read. Send them
+    // back with something to see.
+    redirect(
+      localePath(locale, `/content-engine/drafts/${draftId}/edit?ai=adapt`),
+    );
   }
 
   // Insert the adapted draft as a sibling row, with a pillar suffix to make
@@ -1051,7 +1087,13 @@ export async function generateStoriesAction(
     });
   } catch (err) {
     log.error("content-engine.story-gen", "claude_failed", { err });
-    return;
+    // The button used to do nothing at all here: no key, an
+    // expired key, a rate limit or an unparseable answer all ended
+    // in a log line the person who clicked cannot read. Send them
+    // back with something to see.
+    redirect(
+      localePath(locale, `/content-engine/drafts/${draftId}/edit?ai=stories`),
+    );
   }
 
   let payload;
@@ -1064,7 +1106,13 @@ export async function generateStoriesAction(
       stopReason: result.stopReason,
       textLength: result.text.length,
     });
-    return;
+    // The button used to do nothing at all here: no key, an
+    // expired key, a rate limit or an unparseable answer all ended
+    // in a log line the person who clicked cannot read. Send them
+    // back with something to see.
+    redirect(
+      localePath(locale, `/content-engine/drafts/${draftId}/edit?ai=stories`),
+    );
   }
 
   // Stories are persisted as a new content_drafts row with pillar suffix
@@ -1309,7 +1357,13 @@ export async function generateReelScriptAction(
     });
   } catch (err) {
     log.error("content-engine.reel-script", "claude_failed", { err });
-    return;
+    // The button used to do nothing at all here: no key, an
+    // expired key, a rate limit or an unparseable answer all ended
+    // in a log line the person who clicked cannot read. Send them
+    // back with something to see.
+    redirect(
+      localePath(locale, `/content-engine/drafts/${draftId}/edit?ai=reelScript`),
+    );
   }
 
   let payload;
@@ -1322,7 +1376,13 @@ export async function generateReelScriptAction(
       stopReason: result.stopReason,
       textLength: result.text.length,
     });
-    return;
+    // The button used to do nothing at all here: no key, an
+    // expired key, a rate limit or an unparseable answer all ended
+    // in a log line the person who clicked cannot read. Send them
+    // back with something to see.
+    redirect(
+      localePath(locale, `/content-engine/drafts/${draftId}/edit?ai=reelScript`),
+    );
   }
 
   // Reels are a NEW content_drafts row (no slides) carrying video_script +

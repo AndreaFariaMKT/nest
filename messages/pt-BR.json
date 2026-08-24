@@ -369,7 +369,8 @@
       "enabled": "Rodar o módulo de social media para este cliente",
       "postsPerCycle": "Publicações por quinzena",
       "postsPerCycleHint": "É o divisor do medidor de backlog — a prateleira é medida em quinzenas, não em itens."
-    }
+    },
+    "reportFailed": "O relatório não foi gerado. Nada foi salvo. Tente de novo — se continuar falhando, a chave da IA pode estar faltando ou vencida."
   },
   "projects": {
     "title": "Projetos",
@@ -624,6 +625,14 @@
       "required": "Campo obrigatório.",
       "tooShort": "Transcrição muito curta — cole pelo menos algumas frases.",
       "tooLarge": "Arquivo acima do limite de 2 MB."
+    },
+    "aiFailed": {
+      "generic": "Isso não rodou. Nada foi alterado. Tente de novo — se continuar falhando, a chave da IA pode estar faltando ou vencida.",
+      "rewrite": "A reescrita não rodou. Seus slides estão intactos. Tente de novo — se continuar falhando, a chave da IA pode estar faltando ou vencida.",
+      "compliance": "A checagem não rodou. Tente de novo — se continuar falhando, a chave da IA pode estar faltando ou vencida.",
+      "adapt": "A adaptação não rodou. Nada foi criado. Tente de novo — se continuar falhando, a chave da IA pode estar faltando ou vencida.",
+      "stories": "Os stories não foram gerados. Tente de novo — se continuar falhando, a chave da IA pode estar faltando ou vencida.",
+      "reelScript": "O roteiro do reels não rodou. Tente de novo — se continuar falhando, a chave da IA pode estar faltando ou vencida."
     }
   },
   "brandKits": {

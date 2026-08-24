@@ -50,10 +50,17 @@ const statusTone = {
 
 export default async function ClientDetailPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ locale: string; slug: string }>;
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
 }) {
   const { locale, slug } = await params;
+  const sp = await searchParams;
+  // The monthly report is an Opus call behind one button. It used to fail back
+  // to this page unchanged, so a failure and a success looked identical.
+  const reportFailed =
+    (Array.isArray(sp.report) ? sp.report[0] : sp.report) === "failed";
   setRequestLocale(locale);
   const t = await getTranslations("clients");
 
@@ -246,6 +253,16 @@ export default async function ClientDetailPage({
   const daysLeft = daysRemainingInCycle({ endsOn: currentCycle.endsOn });
 
   return (
+    <>
+      {reportFailed ? (
+        <p
+          role="alert"
+          className="mb-6 rounded-xl border border-destructive/40 bg-destructive/10 px-4 py-3 text-sm text-destructive"
+        >
+          {t("reportFailed")}
+        </p>
+      ) : null}
+
     <div className="">
       <div className="mb-8">
         <Link
@@ -632,6 +649,7 @@ export default async function ClientDetailPage({
         </Card>
       </div>
     </div>
+    </>
   );
 }
 
