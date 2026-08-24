@@ -218,7 +218,9 @@
       "send": "Send",
       "you": "You",
       "studio": "Studio"
-    }
+    },
+    "previewing": "Previewing as {name}. This is what that client sees — you are not them.",
+    "previewingNoClient": "Previewing the client portal. There is no client to show yet, so this is what a new one would see."
   },
   "identityProjects": {
     "title": "Identity projects",

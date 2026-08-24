@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { NestMark } from "@/components/icons/NestMark";
 import { RolePreview } from "@/components/layout/RolePreview";
 import { SignOutButton } from "@/components/layout/SignOutButton";
@@ -55,6 +56,14 @@ export function Sidebar({
   socialScreens: SubScreen[];
 }) {
   const [collapsed, setCollapsed] = useState(initialCollapsed);
+  const router = useRouter();
+
+  // Same cookie RolePreview writes. Collapsed, this button is the only way
+  // out of a preview without expanding the sidebar first.
+  function endPreview() {
+    document.cookie = "nest-view-role=; path=/; max-age=0; samesite=lax";
+    router.refresh();
+  }
 
   function toggle() {
     const next = !collapsed;
@@ -107,6 +116,21 @@ export function Sidebar({
       >
         {collapsed ? (
           <>
+            {/* RolePreview used to be dropped entirely when collapsed. A
+                founder who collapsed the sidebar while previewing as `client`
+                was left inside the portal with no visible way back to her own
+                app, and the cookie lasts 24 hours. */}
+            {viewRole ? (
+              <button
+                type="button"
+                onClick={endPreview}
+                title={`Previewing as ${viewRole} — click to stop`}
+                aria-label={`Previewing as ${viewRole} — click to stop`}
+                className="grid h-7 w-7 place-items-center rounded-lg bg-amber-500/20 text-[10px] font-semibold uppercase text-amber-600 hover:bg-amber-500/30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring dark:text-amber-300"
+              >
+                {viewRole.slice(0, 2)}
+              </button>
+            ) : null}
             <NotificationsBell
               locale={locale}
               notifications={notifications}
