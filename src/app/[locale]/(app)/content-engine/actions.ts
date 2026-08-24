@@ -1710,19 +1710,57 @@ export async function updateDraftAction(
     .eq("id", draftId);
   if (updateError) return { error: updateError.message };
 
-  // Replace slides atomically: delete + insert.
-  // (Creatives reference slide_id ON DELETE CASCADE — safe; creatives aren't
-  // live yet. We'll refine this to sync-by-id once the creative editor lands.)
-  await supabase.from("slides").delete().eq("draft_id", draftId);
-  if (slides.length > 0) {
-    const inserts = slides.map((s, index) => ({
-      draft_id: draftId,
-      position: index + 1,
-      headline: s.headline,
-      body: s.body,
-    }));
-    const { error: insertError } = await supabase.from("slides").insert(inserts);
-    if (insertError) return { error: insertError.message };
+  // Synced by position, not replaced.
+  //
+  // This used to delete every slide and re-insert, described in its own
+  // comment as atomic. It was neither: the delete's error was discarded, and
+  // if the insert then failed the user's slides were gone for good, with a raw
+  // Postgres message where their work had been.
+  //
+  // The comment also said creatives were not live yet. They are — the social
+  // module attaches artwork as creatives hanging off slide_id, ON DELETE
+  // CASCADE — so saving a caption destroyed the artwork underneath it.
+  //
+  // Updating in place keeps slide ids, and therefore keeps the creatives.
+  const { data: existingRows, error: readError } = await supabase
+    .from("slides")
+    .select("id, position")
+    .eq("draft_id", draftId)
+    .order("position", { ascending: true });
+  if (readError) return { error: readError.message };
+
+  const existing = existingRows ?? [];
+
+  for (let index = 0; index < slides.length; index++) {
+    const slide = slides[index];
+    const current = existing[index];
+    if (current) {
+      const { error } = await supabase
+        .from("slides")
+        .update({
+          position: index + 1,
+          headline: slide.headline,
+          body: slide.body,
+        })
+        .eq("id", current.id);
+      if (error) return { error: error.message };
+    } else {
+      const { error } = await supabase.from("slides").insert({
+        draft_id: draftId,
+        position: index + 1,
+        headline: slide.headline,
+        body: slide.body,
+      });
+      if (error) return { error: error.message };
+    }
+  }
+
+  // Only the tail that the edit actually removed. Their creatives go with
+  // them, which is correct — those slides no longer exist.
+  const removed = existing.slice(slides.length).map((r) => r.id);
+  if (removed.length > 0) {
+    const { error } = await supabase.from("slides").delete().in("id", removed);
+    if (error) return { error: error.message };
   }
 
   revalidatePath(`/${locale}/content-engine`);

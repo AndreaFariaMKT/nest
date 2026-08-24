@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 import { setRequestLocale, getTranslations } from "next-intl/server";
 import { createClient } from "@/lib/supabase/server";
 import { isOwner } from "@/lib/roles-server";
+import { currentTenantId } from "@/lib/tenant-server";
 import { estimateCostUsd, formatUsd } from "@/lib/claude-pricing";
 
 type AiEditRow = {
@@ -66,11 +67,17 @@ export default async function AdminUsagePage({
   cutoff.setDate(cutoff.getDate() - days);
 
   const supabase = await createClient();
+  // Tenant-scoped through the join. ai_edits has no tenant_id of its own — it
+  // hangs off draft_id — so this screen asked for every row RLS would allow,
+  // and a founder of two tenants got both workspaces' spend added together in
+  // one total.
+  const tenantId = await currentTenantId();
   const { data } = await supabase
     .from("ai_edits")
     .select(
-      "id, model, tokens_in, tokens_out, created_at, draft:content_drafts(client_id, client:clients(name))",
+      "id, model, tokens_in, tokens_out, created_at, draft:content_drafts!inner(tenant_id, client_id, client:clients(name))",
     )
+    .eq("draft.tenant_id", tenantId)
     .gte("created_at", cutoff.toISOString())
     .order("created_at", { ascending: false });
 

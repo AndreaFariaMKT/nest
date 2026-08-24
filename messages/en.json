@@ -372,7 +372,11 @@
       "postsPerCycle": "Publications per fortnight",
       "postsPerCycleHint": "The divisor behind the backlog meter — the shelf is measured in fortnights, not items."
     },
-    "reportFailed": "The report did not generate. Nothing was saved. Try again — if it keeps failing, the AI key may be missing or expired."
+    "reportFailed": "The report did not generate. Nothing was saved. Try again — if it keeps failing, the AI key may be missing or expired.",
+    "portalToken": {
+      "revokeFailed": "The link was NOT revoked — it is still live. Try again, and do not send anyone the new one until this clears.",
+      "issueFailed": "The link could not be issued. Nothing changed."
+    }
   },
   "projects": {
     "title": "Projects",

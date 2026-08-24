@@ -32,7 +32,9 @@ export default async function SettingsPage({
   const t = await getTranslations("settings");
 
   const profile = await getCurrentProfile();
-  if (!profile) redirect("/sign-in");
+  // /sign-in does not exist; the login route is /[locale]/login. This yielded
+  // a 404 instead of a login screen on the one path that reaches it.
+  if (!profile) redirect("/login");
 
   // google_email, not the refresh token: the token is service-role only now
   // (029), and disconnecting nulls both, so this says the same thing.

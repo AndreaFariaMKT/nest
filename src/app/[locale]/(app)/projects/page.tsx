@@ -2,6 +2,8 @@ import { setRequestLocale, getTranslations } from "next-intl/server";
 import { createClient } from "@/lib/supabase/server";
 import { currentTenantId } from "@/lib/tenant-server";
 import type { Database } from "@/types/database";
+import { Link } from "@/i18n/routing";
+import type { Route } from "next";
 import {
   KanbanBoard,
   type FilterOption,
@@ -112,12 +114,17 @@ export default async function ProjectsPage({
             {showingTemplates ? t("templatesSubtitle") : t("subtitle")}
           </p>
         </div>
-        <a
-          href={showingTemplates ? "/en/projects" : "/en/projects?templates=1"}
+        {/* Locale-aware Link, not a hardcoded /en path. A pt-BR user clicking
+            "gerenciar modelos" was thrown into the English app and stayed
+            there. */}
+        <Link
+          href={
+            (showingTemplates ? "/projects" : "/projects?templates=1") as Route
+          }
           className="inline-flex h-10 items-center rounded-md border border-input bg-background px-3 text-sm text-muted-foreground hover:bg-muted"
         >
           {showingTemplates ? t("backToKanban") : t("manageTemplates")}
-        </a>
+        </Link>
       </div>
       <KanbanBoard
         locale={locale}

@@ -54,8 +54,12 @@ export function PieceCard({
 
   return (
     <div
+      // The portal links every card to `/portal/content#<piece id>` and this
+      // component had no id anywhere, so a client clicking a piece title got
+      // nothing at all — the one gesture the whole screen invites.
+      id={piece.id}
       className={cn(
-        "rounded-2xl border bg-card p-5",
+        "scroll-mt-6 rounded-2xl border bg-card p-5",
         RETURNED.includes(piece.status)
           ? "border-l-4 border-l-destructive border-border"
           : "border-border",

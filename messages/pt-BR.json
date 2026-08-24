@@ -372,7 +372,11 @@
       "postsPerCycle": "Publicações por quinzena",
       "postsPerCycleHint": "É o divisor do medidor de backlog — a prateleira é medida em quinzenas, não em itens."
     },
-    "reportFailed": "O relatório não foi gerado. Nada foi salvo. Tente de novo — se continuar falhando, a chave da IA pode estar faltando ou vencida."
+    "reportFailed": "O relatório não foi gerado. Nada foi salvo. Tente de novo — se continuar falhando, a chave da IA pode estar faltando ou vencida.",
+    "portalToken": {
+      "revokeFailed": "O link NÃO foi revogado — ele continua ativo. Tente de novo, e não envie o novo a ninguém até isso resolver.",
+      "issueFailed": "Não deu para gerar o link. Nada foi alterado."
+    }
   },
   "projects": {
     "title": "Projetos",

@@ -99,7 +99,14 @@ export default async function OverviewPage({
                 <span className="w-20 text-right text-muted-foreground">
                   {task.due_at ? dateFmt.format(new Date(task.due_at)) : "—"}
                 </span>
+                {/* Colour and text described different fields: the tone came
+                    from priority while the label read the status, so an urgent
+                    task in review showed red and said "Review". Two pills, each
+                    saying what its own colour means. */}
                 <Pill tone={priorityTone[task.priority]} className="text-[10px]">
+                  {tt(`priority.${task.priority}`)}
+                </Pill>
+                <Pill tone="muted" className="text-[10px]">
                   {tt(`status.${task.status}`)}
                 </Pill>
               </Link>

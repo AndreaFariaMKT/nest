@@ -88,7 +88,11 @@ export default async function PortalWaiting({
             {entries.map((e, i) => (
               <li key={`${e.id}-${i}`}>
                 <Link
-                  href={"/portal/content" as Route}
+                  // The piece, not the list. Its studio-side twin
+                  // (social/waiting) links to the exact record; here the
+                  // client landed at the top of a list and had to find the
+                  // thing they had just clicked.
+                  href={`/portal/content#${e.id}` as Route}
                   className="flex items-center gap-3 px-5 py-3.5 transition-colors hover:bg-muted/50"
                 >
                   <span className="h-2 w-2 shrink-0 rounded-full bg-brand" />

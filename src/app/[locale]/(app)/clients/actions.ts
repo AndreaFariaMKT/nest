@@ -1,6 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { log } from "@/lib/log";
 import { redirect } from "next/navigation";
 import type { Route } from "next";
 import { createClient as createSupabaseClient } from "@/lib/supabase/server";
@@ -187,13 +188,20 @@ export async function generatePortalTokenAction(
   // Rotating issues a fresh window; revoking still cuts it immediately.
   const expiresAt = new Date(Date.now() + PORTAL_TOKEN_DAYS * 86_400_000);
   const supabase = await createSupabaseClient();
-  await supabase
+  const { error } = await supabase
     .from("clients")
     .update({
       portal_token: token,
       portal_token_expires_at: expiresAt.toISOString(),
     })
     .eq("id", clientId);
+
+  if (error) {
+    log.error("clients.portal-token", "issue_failed", {
+      code: error.code ?? "unknown",
+    });
+    redirect(localePath(locale, `/clients/${slug}?portal=issueFailed`));
+  }
 
   revalidatePath(`/${locale}/clients/${slug}`);
   redirect(localePath(locale, `/clients/${slug}`));
@@ -208,10 +216,20 @@ export async function revokePortalTokenAction(
   if (!clientId || !slug) return;
 
   const supabase = await createSupabaseClient();
-  await supabase
+  const { error } = await supabase
     .from("clients")
     .update({ portal_token: null, portal_token_expires_at: null })
     .eq("id", clientId);
+
+  // The sharpest discarded error in the app. A revoke RLS refused looked
+  // exactly like one that worked — same redirect, same page — and what stayed
+  // behind was a live bearer link to a client's portal, believed dead.
+  if (error) {
+    log.error("clients.portal-token", "revoke_failed", {
+      code: error.code ?? "unknown",
+    });
+    redirect(localePath(locale, `/clients/${slug}?portal=revokeFailed`));
+  }
 
   revalidatePath(`/${locale}/clients/${slug}`);
   redirect(localePath(locale, `/clients/${slug}`));

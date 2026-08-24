@@ -61,6 +61,9 @@ export default async function ClientDetailPage({
   // to this page unchanged, so a failure and a success looked identical.
   const reportFailed =
     (Array.isArray(sp.report) ? sp.report[0] : sp.report) === "failed";
+  // Issuing or revoking a portal link is a bearer-token operation; a refusal
+  // that looks like a success is the worst possible outcome of either.
+  const portalProblem = (Array.isArray(sp.portal) ? sp.portal[0] : sp.portal) ?? "";
   setRequestLocale(locale);
   const t = await getTranslations("clients");
 
@@ -254,6 +257,14 @@ export default async function ClientDetailPage({
 
   return (
     <>
+      {portalProblem === "revokeFailed" || portalProblem === "issueFailed" ? (
+        <p
+          role="alert"
+          className="mb-6 rounded-xl border border-destructive/40 bg-destructive/10 px-4 py-3 text-sm text-destructive"
+        >
+          {t(`portalToken.${portalProblem}`)}
+        </p>
+      ) : null}
       {reportFailed ? (
         <p
           role="alert"
