@@ -5,7 +5,7 @@ import type { Route } from "next";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/Card";
 import { Pill } from "@/components/ui/Pill";
 import { createClient } from "@/lib/supabase/server";
-import { backlogStock, clientHealth, todayIso, type SocialPiece } from "@/lib/social";
+import { clientHealth, todayIso, type SocialPiece } from "@/lib/social";
 
 /**
  * A client's Social Media module, seen from the client's own page: is the shelf
@@ -32,7 +32,16 @@ export async function SocialModuleCard({
           <CardTitle className="text-base">{t("moduleCard.title")}</CardTitle>
         </CardHeader>
         <CardContent className="text-sm text-muted-foreground">
-          {t("moduleCard.disabled")}
+          <p>{t("moduleCard.disabled")}</p>
+          {/* The switch is a checkbox on this client's own edit form. Saying
+              so here is the difference between a dead sentence and a next
+              step. */}
+          <Link
+            href={`/clients/${slug}/edit` as Route}
+            className="mt-3 inline-flex items-center rounded-md border border-brand px-3 py-1.5 text-sm text-brand transition-colors hover:bg-brand hover:text-brand-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+          >
+            {t("overview.moduleOffAction")}
+          </Link>
         </CardContent>
       </Card>
     );
@@ -48,7 +57,9 @@ export async function SocialModuleCard({
 
   const pieces = (data ?? []) as unknown as SocialPiece[];
   const health = clientHealth(pieces, perCycle, todayIso());
-  const stock = backlogStock(health.stock.count, perCycle);
+  // clientHealth already returns this. Calling backlogStock again with its own
+  // output produced the same value a second time.
+  const stock = health.stock;
 
   return (
     <Card>

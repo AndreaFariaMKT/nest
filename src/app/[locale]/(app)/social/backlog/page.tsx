@@ -10,7 +10,7 @@ import { loadScope, type SocialPieceRow } from "../_data";
 import { ModuleShell } from "../_components/ModuleShell";
 import { StageBadge } from "../_components/StageBadge";
 import { ThemeForm } from "../_components/ThemeForm";
-import { ModuleNote, SectionTitle } from "../_components/Shared";
+import { EmptyAction, EmptyState, ModuleNote, SectionTitle } from "../_components/Shared";
 
 export const dynamic = "force-dynamic";
 
@@ -49,11 +49,25 @@ export default async function BacklogPage({
       <ModuleShell scope={scope} />
 
       {scope.caps.includes("coordinate") ? (
-        <ThemeForm
-          locale={locale}
-          clients={scope.clients.map((c) => ({ id: c.id, name: c.name }))}
-          defaultClient={scope.client?.id}
-        />
+        scope.clients.length === 0 ? (
+          // The form rendered regardless, building its client dropdown from an
+          // empty array: nine fields, a submit, and a refusal from a select
+          // that had no way to not be empty. The switch is on the client
+          // record, so send her there instead.
+          <EmptyState action={
+            <EmptyAction href="/clients">
+              {t("overview.moduleOffAction")}
+            </EmptyAction>
+          }>
+            {t("overview.noClients")}
+          </EmptyState>
+        ) : (
+          <ThemeForm
+            locale={locale}
+            clients={scope.clients.map((c) => ({ id: c.id, name: c.name }))}
+            defaultClient={scope.client?.id}
+          />
+        )
       ) : null}
 
       <section className="mb-4 rounded-2xl bg-muted/50 p-5" data-testid="social-stock">

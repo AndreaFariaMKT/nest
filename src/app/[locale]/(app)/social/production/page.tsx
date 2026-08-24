@@ -102,8 +102,10 @@ export default async function ProductionPage({
                   </Link>
                 ))}
                 {items.length === 0 ? (
-                  <p className="py-6 text-center text-xs text-muted-foreground/60">
-                    —
+                  // An em dash at 60% opacity is not an empty state; it reads
+                  // as a rendering fault.
+                  <p className="py-6 text-center text-xs text-muted-foreground/70">
+                    {t("production.emptyColumn")}
                   </p>
                 ) : null}
               </div>

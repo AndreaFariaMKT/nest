@@ -937,7 +937,9 @@
       "statWithClient": "{n} com o cliente",
       "statLive": "{n} no ar",
       "noClients": "Nenhum cliente tem o módulo de social ligado ainda.",
-      "fortnight": "A quinzena"
+      "fortnight": "A quinzena",
+      "noClientsAction": "Cadastrar um cliente",
+      "moduleOffAction": "Ligar o módulo"
     },
     "health": {
       "onRhythm": "No ritmo",
@@ -945,7 +947,8 @@
       "stockCritical": "Backlog abaixo de uma quinzena",
       "unwritten": "{count, plural, one {# peça ainda sem texto} other {# peças ainda sem texto}}",
       "returned": "{count, plural, one {# peça voltou do cliente} other {# peças voltaram do cliente}}",
-      "replyOverdue": "{count, plural, one {# peça passou da data de resposta} other {# peças passaram da data de resposta}}"
+      "replyOverdue": "{count, plural, one {# peça passou da data de resposta} other {# peças passaram da data de resposta}}",
+      "neverStocked": "Nenhum tema ainda — comece pela prateleira"
     },
     "rhythm": {
       "sendingWeek": "Semana de envio",
@@ -1016,13 +1019,13 @@
       "cameBackHint": "decida o destino de cada uma",
       "available": "Disponíveis",
       "count": "{n} temas",
-      "emptyShelf": "Prateleira vazia para este filtro.",
+      "emptyShelf": "Nada na prateleira. Um tema é uma ideia com um motivo atrás — ele só ganha data quando entra numa quinzena.",
       "pulled": "Puxados",
       "inFlow": "{n} no fluxo",
-      "emptyPulled": "Nada puxado.",
+      "emptyPulled": "Nenhum tema puxado para uma quinzena ainda.",
       "offShelf": "Fora da prateleira",
       "publishedCount": "{n} publicados",
-      "emptyPublished": "Nada publicado ainda.",
+      "emptyPublished": "Nada foi ao ar ainda. Um tema sai da prateleira quando publica, não quando é puxado.",
       "note": "Um tema sai da prateleira quando vai ao ar, não quando é puxado. É por isso que este contador é o único número que alguém precisa acompanhar."
     },
     "themeForm": {
@@ -1103,7 +1106,8 @@
       "noFolder": "sem link da pasta",
       "textApproved": "texto aprovado em {date}",
       "note": "A direção aprovou o texto antes de qualquer desenho. O design marca Feito, a coordenação marca Finalizado, e a peça vai sozinha para o cliente dela.",
-      "noteDesign": "Tudo aqui já foi aprovado pela direção, então o texto não muda embaixo de você. Se algo estiver errado ou não couber na tela, diga antes de desenhar — corrigir na origem custa uma mensagem, corrigir depois custa a peça inteira."
+      "noteDesign": "Tudo aqui já foi aprovado pela direção, então o texto não muda embaixo de você. Se algo estiver errado ou não couber na tela, diga antes de desenhar — corrigir na origem custa uma mensagem, corrigir depois custa a peça inteira.",
+      "emptyColumn": "Nada aqui"
     },
     "publishing": {
       "title": "Ordem de publicação",
@@ -1118,7 +1122,7 @@
       "noFolder": "sem link da pasta",
       "markLive": "Marcar como no ar",
       "undo": "Desfazer",
-      "empty": "Nada na ordem para este filtro.",
+      "empty": "Nada na ordem. Peças aprovadas entram nela quando você monta a ordem de publicação.",
       "ofWhichAutomatic": "{n} com arte anexada saem sozinhas; {manual} vão precisar ser publicadas à mão.",
       "allManual": "Nenhuma tem arte anexada, então todas serão publicadas à mão.",
       "willSend": "Sai sozinha",
@@ -1133,7 +1137,7 @@
       "title": "Biblioteca de mídia",
       "subtitle": "Material bruto — vídeos, fotos, gravações. Peças finalizadas ficam no registro, não aqui.",
       "subtitlePortal": "O material bruto que gravamos e que você envia.",
-      "empty": "Nada registrado para este filtro.",
+      "empty": "Nenhum material registrado ainda. Fotos, vídeos e gravações ficam aqui para quem vai desenhar a peça encontrar.",
       "shot": "Feito em {date}",
       "accessNeeded": "precisa de acesso",
       "openLink": "link aberto",
@@ -1164,7 +1168,7 @@
       "guardPartner": "Quando a conta oferece acesso de parceiro em vez de login compartilhado, use. Ele sobrevive à troca de senha, nunca precisa ser rotacionado e some no dia em que o contrato acaba.",
       "guardEncrypted": "As senhas são cifradas antes de chegar ao banco, e só são decifradas quando alguém que está no acesso pede.",
       "guardNoKey": "SOCIAL_SECRET_KEY não está configurada, então nenhuma senha pode ser guardada ou revelada. Os registros seguem valendo como ponteiro de onde a credencial vive.",
-      "empty": "Nada registrado para este filtro.",
+      "empty": "Nenhuma conta compartilhada registrada. Registre as que várias pessoas realmente usam — nunca nada financeiro, nunca um login pessoal.",
       "username": "Usuário",
       "password": "Senha",
       "lastChanged": "Última troca",

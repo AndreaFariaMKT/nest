@@ -17,15 +17,21 @@ import {
 } from "@/lib/social";
 import { loadScope } from "./_data";
 import { ModuleShell } from "./_components/ModuleShell";
+import { EmptyAction } from "./_components/Shared";
 
 export const dynamic = "force-dynamic";
 
+// "new" is deliberately colourless. A client onboarded this morning has an
+// empty shelf because nobody has stocked it yet, which is the expected state
+// and not news — painting it red spends the alarm before it means anything.
 const DOT: Record<HealthLevel, string> = {
+  new: "bg-muted-foreground/40",
   ok: "bg-emerald-500",
   warn: "bg-amber-500",
   bad: "bg-destructive",
 };
 const EDGE: Record<HealthLevel, string> = {
+  new: "border-l-border",
   ok: "border-l-emerald-500",
   warn: "border-l-amber-500",
   bad: "border-l-destructive",
@@ -111,9 +117,17 @@ export default async function SocialOverview({
               );
             })}
             {shown.length === 0 ? (
-              <p className="py-8 text-center text-sm text-muted-foreground sm:col-span-2">
-                {t("overview.noClients")}
-              </p>
+              // Terminal before: a grey sentence naming a state, on a screen
+              // that cannot change it. The switch is a checkbox on the client
+              // record, and nothing said so.
+              <div className="py-8 text-center text-sm text-muted-foreground sm:col-span-2">
+                <p>{t("overview.noClients")}</p>
+                <div className="mt-3">
+                  <EmptyAction href="/clients">
+                    {t("overview.moduleOffAction")}
+                  </EmptyAction>
+                </div>
+              </div>
             ) : null}
           </div>
         </section>

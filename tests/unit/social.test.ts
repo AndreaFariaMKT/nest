@@ -501,6 +501,23 @@ describe("client health", () => {
     expect(h.reason).toBe("onRhythm");
   });
 
+  it("treats a client with nothing at all as new, not as failing", () => {
+    // Onboarding used to paint every new client red: zero backlog against a
+    // per-cycle default of two is "below one fortnight", which is true and
+    // useless on day one.
+    const h = clientHealth([], 2, today);
+    expect(h.level).toBe("new");
+    expect(h.reason).toBe("neverStocked");
+  });
+
+  it("still calls out a shelf that had stock and lost it", () => {
+    // One piece anywhere is enough to prove the client has been worked on, so
+    // a thin shelf is a real signal rather than the initial state.
+    const h = clientHealth([piece({ status: "published" })], 2, today);
+    expect(h.level).toBe("bad");
+    expect(h.reason).toBe("stockCritical");
+  });
+
   it("warns on a thin shelf", () => {
     const h = clientHealth([piece({ status: "backlog" })], 2, today);
     expect(h.level).toBe("bad"); // under one fortnight

@@ -857,9 +857,10 @@ export function backlogStock(count: number, perCycle: number): Stock {
 // Client health
 // ───────────────────────────────────────────────────────────────────────────
 
-export type HealthLevel = "ok" | "warn" | "bad";
+export type HealthLevel = "new" | "ok" | "warn" | "bad";
 
 export type HealthReason =
+  | "neverStocked"
   | "onRhythm"
   | "stockLow"
   | "stockCritical"
@@ -899,6 +900,24 @@ export function clientHealth(
       (p.status === "client_review" || p.status === "changes_requested") &&
       isReplyOverdue(p.publish_on, today),
   ).length;
+
+  // A client with nothing at all is not in trouble, it is new. This used to
+  // fall straight through to `stockCritical`, so onboarding three clients
+  // painted three red cards saying the backlog was below one fortnight —
+  // before anyone had had a chance to do anything wrong. An alarm colour
+  // spent on the expected state stops meaning anything by the second week.
+  if (pieces.length === 0) {
+    return {
+      level: "new",
+      reason: "neverStocked",
+      count: 0,
+      stock,
+      withClient,
+      live,
+      returned,
+      overdue,
+    };
+  }
 
   // Worst-first: a passed reply date outranks a thin shelf.
   let level: HealthLevel = "ok";

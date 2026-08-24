@@ -937,7 +937,9 @@
       "statWithClient": "{n} with client",
       "statLive": "{n} live",
       "noClients": "No client has the social module switched on yet.",
-      "fortnight": "The fortnight"
+      "fortnight": "The fortnight",
+      "noClientsAction": "Add a client",
+      "moduleOffAction": "Switch the module on"
     },
     "health": {
       "onRhythm": "On rhythm",
@@ -945,7 +947,8 @@
       "stockCritical": "Backlog under one fortnight",
       "unwritten": "{count, plural, one {# piece still without text} other {# pieces still without text}}",
       "returned": "{count, plural, one {# piece came back from the client} other {# pieces came back from the client}}",
-      "replyOverdue": "{count, plural, one {# piece is past the reply date} other {# pieces are past the reply date}}"
+      "replyOverdue": "{count, plural, one {# piece is past the reply date} other {# pieces are past the reply date}}",
+      "neverStocked": "No themes yet — start with the shelf"
     },
     "rhythm": {
       "sendingWeek": "Sending week",
@@ -1016,13 +1019,13 @@
       "cameBackHint": "decide where each one goes",
       "available": "Available",
       "count": "{n} themes",
-      "emptyShelf": "Shelf empty for this filter.",
+      "emptyShelf": "Nothing on the shelf. A theme is an idea with a reason behind it — it gets a date only when you pull it into a fortnight.",
       "pulled": "Pulled",
       "inFlow": "{n} in the flow",
-      "emptyPulled": "Nothing pulled.",
+      "emptyPulled": "Nothing pulled into a fortnight yet.",
       "offShelf": "Off the shelf",
       "publishedCount": "{n} published",
-      "emptyPublished": "Nothing published yet.",
+      "emptyPublished": "Nothing has gone live yet. A theme leaves the shelf when it publishes, not when it is pulled.",
       "note": "A theme leaves the shelf when it goes live, not when it is pulled. That is why this counter is the only number anyone has to watch."
     },
     "themeForm": {
@@ -1103,7 +1106,8 @@
       "noFolder": "no folder link",
       "textApproved": "text approved {date}",
       "note": "Direction approved the text before any of this was drawn. Design marks Done, coordination marks Signed off, and the piece goes to its client on its own.",
-      "noteDesign": "Everything here has already been approved by direction, so the text will not change under you. If something reads wrong or will not fit the screen, say so before drawing — fixing it at the source costs a message, fixing it after costs the whole piece."
+      "noteDesign": "Everything here has already been approved by direction, so the text will not change under you. If something reads wrong or will not fit the screen, say so before drawing — fixing it at the source costs a message, fixing it after costs the whole piece.",
+      "emptyColumn": "Nothing here"
     },
     "publishing": {
       "title": "Publishing order",
@@ -1118,7 +1122,7 @@
       "noFolder": "no folder link",
       "markLive": "Mark live",
       "undo": "Undo live",
-      "empty": "Nothing in the order for this filter.",
+      "empty": "Nothing in the order. Approved pieces join it when you build the publishing order.",
       "ofWhichAutomatic": "{n} with artwork attached send on their own; {manual} will need posting by hand.",
       "allManual": "None have artwork attached, so all of them get posted by hand.",
       "willSend": "Sends itself",
@@ -1133,7 +1137,7 @@
       "title": "Media library",
       "subtitle": "Raw material — footage, stills, recordings. Finished pieces live on the record, not here.",
       "subtitlePortal": "The raw material we shoot and you send.",
-      "empty": "Nothing recorded for this filter.",
+      "empty": "No material recorded yet. Footage, stills and recordings live here so the person drawing a piece can find them.",
       "shot": "Shot {date}",
       "accessNeeded": "access needed",
       "openLink": "open link",
@@ -1164,7 +1168,7 @@
       "guardPartner": "Where an account offers partner access instead of a shared login, use it. It survives a password change, never needs rotating, and disappears the day the contract ends.",
       "guardEncrypted": "Passwords are encrypted before they reach the database, and only decrypted when someone on the login asks for one.",
       "guardNoKey": "SOCIAL_SECRET_KEY is not set, so no password can be stored or revealed. Records still work as a pointer to where a credential lives.",
-      "empty": "Nothing recorded for this filter.",
+      "empty": "No shared account recorded yet. Register the ones several people genuinely use — never anything financial, never a personal login.",
       "username": "Username",
       "password": "Password",
       "lastChanged": "Last changed",
