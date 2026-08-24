@@ -30,6 +30,7 @@ import {
   type MemberChoice,
 } from "./_components/ClientMembersCard";
 import { SocialModuleCard } from "./_components/SocialModuleCard";
+import { recentMonths } from "@/lib/social";
 
 type Client = Database["public"]["Tables"]["clients"]["Row"];
 type BrandKitPreview = {
@@ -59,11 +60,18 @@ export default async function ClientDetailPage({
   const sp = await searchParams;
   // The monthly report is an Opus call behind one button. It used to fail back
   // to this page unchanged, so a failure and a success looked identical.
-  const reportFailed =
-    (Array.isArray(sp.report) ? sp.report[0] : sp.report) === "failed";
+  const reportProblem = (Array.isArray(sp.report) ? sp.report[0] : sp.report) ?? "";
+  const reportFailed = reportProblem === "failed";
   // Issuing or revoking a portal link is a bearer-token operation; a refusal
   // that looks like a success is the worst possible outcome of either.
   const portalProblem = (Array.isArray(sp.portal) ? sp.portal[0] : sp.portal) ?? "";
+
+  // Closed months, newest first — the running one is not finished.
+  const reportMonths = recentMonths(12);
+  const monthLabel = (year: number, month: number) =>
+    new Intl.DateTimeFormat(locale, { month: "long", year: "numeric" }).format(
+      new Date(Date.UTC(year, month - 1, 1)),
+    );
   setRequestLocale(locale);
   const t = await getTranslations("clients");
 
@@ -265,12 +273,12 @@ export default async function ClientDetailPage({
           {t(`portalToken.${portalProblem}`)}
         </p>
       ) : null}
-      {reportFailed ? (
+      {reportFailed || reportProblem === "badPeriod" || reportProblem === "notClosed" ? (
         <p
           role="alert"
           className="mb-6 rounded-xl border border-destructive/40 bg-destructive/10 px-4 py-3 text-sm text-destructive"
         >
-          {t("reportFailed")}
+          {reportFailed ? t("reportFailed") : t(`report.${reportProblem}`)}
         </p>
       ) : null}
 
@@ -489,16 +497,30 @@ export default async function ClientDetailPage({
                 <input type="hidden" name="clientId" value={client.id} />
                 <input type="hidden" name="slug" value={client.slug} />
                 <input type="hidden" name="locale" value={locale} />
-                <input
-                  type="hidden"
-                  name="year"
-                  value={new Date().getFullYear()}
-                />
-                <input
-                  type="hidden"
-                  name="month"
-                  value={new Date().getMonth() + 1}
-                />
+                {/* Was two hidden inputs pinned to today, so the button could
+                    only ever report on the running month — a partial number
+                    that changes, and on the 3rd, the day the studio actually
+                    writes the report, it could not reach the month that had
+                    just ended. The list is closed months only. */}
+                <label className="mb-3 block">
+                  <span className="mb-1.5 block text-xs text-muted-foreground">
+                    {t("sections.reportMonth")}
+                  </span>
+                  <select
+                    name="period"
+                    defaultValue={`${reportMonths[0].year}-${reportMonths[0].month}`}
+                    className="h-9 w-full rounded-md border border-input bg-background px-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+                  >
+                    {reportMonths.map((p) => (
+                      <option
+                        key={`${p.year}-${p.month}`}
+                        value={`${p.year}-${p.month}`}
+                      >
+                        {monthLabel(p.year, p.month)}
+                      </option>
+                    ))}
+                  </select>
+                </label>
                 <button
                   type="submit"
                   className="inline-flex h-9 items-center rounded-md bg-primary px-3 text-xs font-medium text-primary-foreground hover:bg-primary/90"

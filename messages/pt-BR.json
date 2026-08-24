@@ -337,7 +337,8 @@
       "portal": "Portal do cliente",
       "portalEmpty": "Nenhum link gerado. Crie um pra deixar o cliente acompanhar posts + aprovações sem precisar de login.",
       "reports": "Relatório mensal",
-      "reportsHint": "Gera um recap mensal escrito pelo Claude — destaques, aprendizados e pilares pro próximo ciclo."
+      "reportsHint": "Gera um recap mensal escrito pelo Claude — destaques, aprendizados e pilares pro próximo ciclo.",
+      "reportMonth": "Mês"
     },
     "fields": {
       "name": "Nome",
@@ -376,6 +377,10 @@
     "portalToken": {
       "revokeFailed": "O link NÃO foi revogado — ele continua ativo. Tente de novo, e não envie o novo a ninguém até isso resolver.",
       "issueFailed": "Não deu para gerar o link. Nada foi alterado."
+    },
+    "report": {
+      "badPeriod": "Não deu para ler esse mês. Nada foi gerado.",
+      "notClosed": "Esse mês ainda não terminou. O relatório é sobre um mês fechado — os números ainda mudariam."
     }
   },
   "projects": {

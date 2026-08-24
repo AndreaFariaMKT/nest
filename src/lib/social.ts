@@ -261,6 +261,41 @@ export function todayIso(now: Date = new Date()): string {
 }
 
 /**
+ * The last N complete months, newest first, as {year, month} in the studio's
+ * calendar — never the running one.
+ *
+ * The monthly report is a closed-month artifact: the studio's own rhythm is to
+ * send it between the 3rd and the 7th, about the month that just ended. The
+ * button that generates it had year and month hardcoded to today, so on any
+ * day but the last it produced a partial month, and on the 3rd — the day the
+ * report is actually written — it could not reach August at all.
+ *
+ * Derived from the studio's calendar day rather than the server's: reading
+ * `new Date().getMonth()` on a UTC host flips the month three hours early, so
+ * a report generated late on the 31st would be filed under the next month.
+ */
+export function recentMonths(
+  count = 12,
+  today: string = todayIso(),
+): { year: number; month: number }[] {
+  const [y, m] = today.split("-").map((n) => Number.parseInt(n, 10));
+  const out: { year: number; month: number }[] = [];
+  // Start at the previous month: the running one is not finished, and a
+  // report about a month still in progress is a number that will change.
+  let year = m === 1 ? y - 1 : y;
+  let month = m === 1 ? 12 : m - 1;
+  for (let i = 0; i < count; i++) {
+    out.push({ year, month });
+    month -= 1;
+    if (month === 0) {
+      month = 12;
+      year -= 1;
+    }
+  }
+  return out;
+}
+
+/**
  * The calendar day a timestamp fell on, in the studio's timezone. Use this for
  * every timestamptz the UI shows as a date — `.slice(0, 10)` reports work done
  * at 21:30 as having happened tomorrow.

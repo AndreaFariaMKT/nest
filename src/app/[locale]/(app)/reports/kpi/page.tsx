@@ -3,6 +3,8 @@ import { createClient } from "@/lib/supabase/server";
 import { currentTenantId } from "@/lib/tenant-server";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/Card";
 import { PageHeader } from "@/components/ui/PageHeader";
+import { Link } from "@/i18n/routing";
+import type { Route } from "next";
 import {
   aggregateKpis,
   dailyReachSeries,
@@ -46,7 +48,10 @@ export default async function KpiPage({
   const { locale } = await params;
   const { from, to, clientId } = await searchParams;
   setRequestLocale(locale);
-  const t = await getTranslations("reports.kpi");
+  const [t, tReports] = await Promise.all([
+    getTranslations("reports.kpi"),
+    getTranslations("reports"),
+  ]);
 
   const period = parsePeriod(from, to);
   const supabase = await createClient();
@@ -123,6 +128,20 @@ export default async function KpiPage({
   return (
     <div className="space-y-6">
       <PageHeader title={t("title")} subtitle={t("subtitle")} />
+
+      {/* The mirror of the tab row on /reports. This screen rendered no link
+          of any kind, so browser Back was the only way out of it. */}
+      <div className="flex gap-2 border-b border-border">
+        <Link
+          href={"/reports" as Route}
+          className="-mb-px border-b-2 border-transparent px-3 py-2 text-sm text-muted-foreground hover:border-border hover:text-foreground"
+        >
+          {tReports("monthlyTab")}
+        </Link>
+        <span className="-mb-px border-b-2 border-foreground px-3 py-2 text-sm font-medium">
+          {tReports("kpiTab")}
+        </span>
+      </div>
 
       {truncated ? (
         <p

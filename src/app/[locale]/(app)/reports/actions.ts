@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 
 import { log } from "@/lib/log";
+import { todayIso } from "@/lib/social";
 import { redirect } from "next/navigation";
 import type { Route } from "next";
 import { createClient as createSupabaseClient } from "@/lib/supabase/server";
@@ -30,15 +31,35 @@ export async function generateMonthlyReportAction(
   const clientId = (formData.get("clientId") ?? "").toString();
   const slug = (formData.get("slug") ?? "").toString();
   const locale = (formData.get("locale") ?? "pt-BR").toString();
-  const yearRaw = (formData.get("year") ?? "").toString();
-  const monthRaw = (formData.get("month") ?? "").toString();
+  // "2026-8", from the month picker. The two hidden year/month inputs it
+  // replaced were pinned to today, so this could only ever report on the
+  // running month.
+  const periodRaw = (formData.get("period") ?? "").toString();
 
   if (!clientId) return;
 
-  const now = new Date();
-  const year = Number.parseInt(yearRaw, 10) || now.getFullYear();
-  const month = Number.parseInt(monthRaw, 10) || now.getMonth() + 1;
-  if (month < 1 || month > 12) return;
+  const [yearRaw, monthRaw] = periodRaw.split("-");
+  const year = Number.parseInt(yearRaw ?? "", 10);
+  const month = Number.parseInt(monthRaw ?? "", 10);
+
+  // Refused, not defaulted. Falling back to "now" on an unreadable period is
+  // how someone asks for August, waits for an Opus call, and is handed
+  // September — with no indication that they got a different month.
+  if (!Number.isFinite(year) || year < 2000 || year > 2100) {
+    redirect(localePath(locale, `/clients/${slug}?report=badPeriod`));
+  }
+  if (!Number.isFinite(month) || month < 1 || month > 12) {
+    redirect(localePath(locale, `/clients/${slug}?report=badPeriod`));
+  }
+
+  // A month that has not ended yet is a number that will change. The studio
+  // writes this report between the 3rd and the 7th, about the month before.
+  const [nowYear, nowMonth] = todayIso()
+    .split("-")
+    .map((n) => Number.parseInt(n, 10));
+  if (year > nowYear || (year === nowYear && month >= nowMonth)) {
+    redirect(localePath(locale, `/clients/${slug}?report=notClosed`));
+  }
 
   const supabase = await createSupabaseClient();
   const {

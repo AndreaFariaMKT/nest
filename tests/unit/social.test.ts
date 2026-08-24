@@ -23,6 +23,7 @@ import {
   fortnightOf,
   isBlockedReason,
   isReplyOverdue,
+  recentMonths,
   replyDueBy,
   socialCaps,
   socialScreensFor,
@@ -723,5 +724,34 @@ describe("per-screen access inside the module", () => {
       const target = firstSocialScreen(role);
       expect(canReachSocialPath(role, target), `${role} → ${target}`).toBe(true);
     }
+  });
+});
+
+describe("recentMonths", () => {
+  // The month picker on the client page is built from this, and the action
+  // refuses anything it would not have offered.
+  it("starts at the month before, never the running one", () => {
+    // A report about a month still in progress is a number that will change,
+    // and the studio writes this one between the 3rd and the 7th about the
+    // month that just ended — the day the old hardcoded "now" was most wrong.
+    expect(recentMonths(3, "2026-09-03")).toEqual([
+      { year: 2026, month: 8 },
+      { year: 2026, month: 7 },
+      { year: 2026, month: 6 },
+    ]);
+  });
+
+  it("walks back across a year boundary", () => {
+    expect(recentMonths(3, "2026-01-05")).toEqual([
+      { year: 2025, month: 12 },
+      { year: 2025, month: 11 },
+      { year: 2025, month: 10 },
+    ]);
+  });
+
+  it("does not offer the running month even on its last day", () => {
+    const offered = recentMonths(12, "2026-08-31");
+    expect(offered).not.toContainEqual({ year: 2026, month: 8 });
+    expect(offered[0]).toEqual({ year: 2026, month: 7 });
   });
 });

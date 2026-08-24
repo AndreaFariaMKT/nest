@@ -337,7 +337,8 @@
       "portal": "Client portal",
       "portalEmpty": "No portal link yet. Generate one to let the client see upcoming posts and pending approvals without a login.",
       "reports": "Monthly report",
-      "reportsHint": "Generate a Claude-written monthly recap — highlights, lessons, and next-month pillars."
+      "reportsHint": "Generate a Claude-written monthly recap — highlights, lessons, and next-month pillars.",
+      "reportMonth": "Month"
     },
     "fields": {
       "name": "Name",
@@ -376,6 +377,10 @@
     "portalToken": {
       "revokeFailed": "The link was NOT revoked — it is still live. Try again, and do not send anyone the new one until this clears.",
       "issueFailed": "The link could not be issued. Nothing changed."
+    },
+    "report": {
+      "badPeriod": "That month could not be read. Nothing was generated.",
+      "notClosed": "That month has not ended yet. The report is written about a closed month — its numbers would still change."
     }
   },
   "projects": {
