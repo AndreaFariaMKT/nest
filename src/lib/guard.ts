@@ -34,6 +34,14 @@ const RESTRICTED: { prefix: string; roles: AppRole[] }[] = [
   // Derived, not restated: a hand-copied list drifts the first time a role's
   // responsibilities change. src/lib/social.ts is pure and Edge-safe.
   { prefix: "/social", roles: ROLES.filter(canUseSocial) },
+  // Connects the studio's own Google account and holds its tokens. It had no
+  // nav entry, so nothing pointed at it and nothing guarded it either — every
+  // internal role could reach it by typing the path.
+  { prefix: "/settings", roles: ["founder"] },
+  // The team list and role assignment. Same story: page-level isOwner() was
+  // the only check, so a bug there was the only thing between a designer and
+  // the invite form.
+  { prefix: "/team", roles: ["founder"] },
 ];
 
 function inPortal(base: string): boolean {

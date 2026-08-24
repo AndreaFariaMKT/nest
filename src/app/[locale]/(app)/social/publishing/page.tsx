@@ -61,7 +61,36 @@ export default async function PublishingPage({
       if ((row.slides as unknown[] | null)?.length) automatic.add(row.id);
     }
   }
-  const approvedAuto = approved.filter((p) => automatic.has(p.id)).length;
+  // Artwork is necessary and was treated as sufficient. It is not: the cron
+  // also needs an enabled account with a stored secret for every channel the
+  // piece targets, and without one it records `no_account` and flips the row
+  // to `failed`. So a piece with ten images and no connected Instagram read
+  // "will publish on its own" on the one screen built to make that difference
+  // visible. Presence only — nothing is decrypted here.
+  const { data: accountRows } = scope.clients.length
+    ? await supabase
+        .from("client_social_accounts")
+        .select("client_id, platform, enabled, secret_enc, account_ref")
+        // Scoped by the client list rather than by tenant: the scope holds the
+        // clients this reader may see, and the table's RLS is
+        // has_client_access, so asking per-client matches the permission model.
+        .in(
+          "client_id",
+          scope.clients.map((c) => c.id),
+        )
+    : { data: [] };
+  const connected = new Set(
+    (accountRows ?? [])
+      .filter((a) => a.enabled && a.secret_enc && a.account_ref)
+      .map((a) => `${a.client_id}:${a.platform}`),
+  );
+  const canSend = (piece: (typeof order)[number]) =>
+    piece.channels.length > 0 &&
+    piece.channels.every((c) => connected.has(`${piece.client_id}:${c}`));
+
+  const approvedAuto = approved.filter(
+    (p) => automatic.has(p.id) && canSend(p),
+  ).length;
   const live = order.filter((p) => p.status === "published").length;
 
   return (
@@ -122,14 +151,22 @@ export default async function PublishingPage({
               </span>
               <StageBadge stage={p.status} />
               {p.status === "scheduled" ? (
-                <Pill
-                  tone={automatic.has(p.id) ? "brand" : "muted"}
-                  className="text-[10px]"
-                >
-                  {automatic.has(p.id)
-                    ? t("publishing.willSend")
-                    : t("publishing.byHand")}
-                </Pill>
+                automatic.has(p.id) && !canSend(p) ? (
+                  // Has the artwork, has no account: the one case that used to
+                  // read as "will publish on its own" and would not have.
+                  <Pill tone="warning" className="text-[10px]">
+                    {t("publishing.noAccount")}
+                  </Pill>
+                ) : (
+                  <Pill
+                    tone={automatic.has(p.id) ? "brand" : "muted"}
+                    className="text-[10px]"
+                  >
+                    {automatic.has(p.id)
+                      ? t("publishing.willSend")
+                      : t("publishing.byHand")}
+                  </Pill>
+                )
               ) : null}
             </header>
 

@@ -47,7 +47,7 @@
     "projectOverview": "Project overview",
     "content": "Content",
     "chat": "Chat",
-    "invoices": "Invoices",
+    "invoices": "Contracts",
     "soon": "Coming soon",
     "socialMedia": "Social media",
     "mediaLibrary": "Media library",
@@ -206,9 +206,9 @@
       "subtitle": "Everything on the schedule."
     },
     "invoices": {
-      "title": "Invoices",
-      "subtitle": "Your contracts and billing.",
-      "empty": "No invoices yet."
+      "title": "Contracts",
+      "subtitle": "What we agreed, and what it costs a month.",
+      "empty": "No contract on file yet."
     },
     "chat": {
       "title": "Chat",
@@ -1135,7 +1135,8 @@
       "ofWhichAutomatic": "{n} with artwork attached send on their own; {manual} will need posting by hand.",
       "allManual": "None have artwork attached, so all of them get posted by hand.",
       "willSend": "Sends itself",
-      "byHand": "By hand"
+      "byHand": "By hand",
+      "noAccount": "Has artwork, no account"
     },
     "calendar": {
       "title": "Calendar",

@@ -23,6 +23,7 @@ import {
   ChartIcon,
   FilmIcon,
   KeyIcon,
+  SettingsIcon,
 } from "@/components/icons/NavIcons";
 
 /**
@@ -71,6 +72,14 @@ export const NAV: Record<string, NavItem> = {
   // Founder only, and the nav is the cosmetic half — /admin is in guard.ts's
   // RESTRICTED and the page redirects on its own.
   errors: { key: "errors", href: "/admin/errors", label: "errors", icon: FolderIcon },
+  // Both existed as routes with no way in. /meetings was reachable only
+  // through the social module's screen list, so a designer could open a
+  // meeting from the calendar but never see the list; /settings holds the
+  // only "connect Google Calendar" button in the app and was reachable only
+  // as the OAuth callback's landing page — you could not get there without
+  // having already connected.
+  meetings: { key: "meetings", href: "/meetings", label: "meetings", icon: MeetingsIcon },
+  settings: { key: "settings", href: "/settings", label: "settings", icon: SettingsIcon },
   finance: { key: "finance", href: "/finance", label: "finance", icon: CoinIcon },
   commercial: { key: "commercial", href: "/commercial", label: "commercial", icon: FunnelIcon },
   marketing: { key: "marketing", href: "/marketing", label: "marketing", icon: MegaphoneIcon },
@@ -107,16 +116,16 @@ export interface NavGroup {
 /** Role → grouped menu, mirroring the prototype's per-persona navigation. */
 export const NAV_BY_ROLE: Record<AppRole, NavGroup[]> = {
   founder: [
-    { group: "daily", keys: ["home", "tasks", "calendar", "messages"] },
+    { group: "daily", keys: ["home", "tasks", "calendar", "meetings", "messages"] },
     { group: "leadership", keys: ["bplan", "admin", "finance", "commercial", "marketing"] },
     { group: "content", keys: ["social", "content", "schedule"] },
     { group: "insights", keys: ["reports"] },
     { group: "operation", keys: ["overview", "clients"] },
     { group: "directory", keys: ["people", "playbook"] },
-    { group: "system", keys: ["errors"] },
+    { group: "system", keys: ["errors", "settings"] },
   ],
   manager: [
-    { group: "daily", keys: ["home", "tasks", "calendar", "messages"] },
+    { group: "daily", keys: ["home", "tasks", "calendar", "meetings", "messages"] },
     { group: "marketing", keys: ["marketing", "social", "content", "schedule"] },
     { group: "insights", keys: ["reports"] },
     { group: "operation", keys: ["overview", "clients"] },

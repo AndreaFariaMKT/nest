@@ -1107,12 +1107,15 @@ export function waitingFor(
  * social cap already carries Messages in its own sidebar group (NAV_BY_ROLE),
  * so repeating it as a sub-item would be the same link twice in one column.
  *
- * `meetings` stays, and should not — it is the only path to /meetings in the
- * whole app, because NAV has no entry for it. Until it gets one, removing it
- * from here would make the meeting list unreachable.
+ * `meetings` left too, once NAV gained an entry for it — it stayed here only
+ * because this list was the only path to /meetings in the whole app.
  */
 export function socialSidebarScreens(
   role: AppRole,
 ): { key: string; href: string }[] {
-  return socialScreensFor(role).filter((s) => s.key !== "messages");
+  // Both now have their own sidebar entries, in the group where people
+  // actually look for them. Repeating them under the module would be the same
+  // link twice in one column.
+  const elsewhere = new Set(["messages", "meetings"]);
+  return socialScreensFor(role).filter((s) => !elsewhere.has(s.key));
 }

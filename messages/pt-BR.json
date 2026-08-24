@@ -47,7 +47,7 @@
     "projectOverview": "Visão do projeto",
     "content": "Conteúdo",
     "chat": "Chat",
-    "invoices": "Faturas",
+    "invoices": "Contratos",
     "soon": "Em breve",
     "socialMedia": "Social media",
     "mediaLibrary": "Biblioteca de mídia",
@@ -206,9 +206,9 @@
       "subtitle": "Tudo na agenda."
     },
     "invoices": {
-      "title": "Faturas",
-      "subtitle": "Seus contratos e cobranças.",
-      "empty": "Nenhuma fatura ainda."
+      "title": "Contratos",
+      "subtitle": "O que foi combinado, e quanto custa por mês.",
+      "empty": "Nenhum contrato registrado ainda."
     },
     "chat": {
       "title": "Chat",
@@ -1135,7 +1135,8 @@
       "ofWhichAutomatic": "{n} com arte anexada saem sozinhas; {manual} vão precisar ser publicadas à mão.",
       "allManual": "Nenhuma tem arte anexada, então todas serão publicadas à mão.",
       "willSend": "Sai sozinha",
-      "byHand": "À mão"
+      "byHand": "À mão",
+      "noAccount": "Tem arte, falta conta"
     },
     "calendar": {
       "title": "Calendário",
