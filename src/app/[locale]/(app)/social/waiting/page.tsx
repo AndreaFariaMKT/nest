@@ -26,6 +26,10 @@ export default async function WaitingPage({
 
   const date = (iso: string) => formatIsoDate(iso, locale) ?? iso;
 
+  // Carried into every piece link so pressing back returns to THIS screen,
+  // with the client filter still applied.
+  const backSuffix = scope.client ? `&client=${scope.client.slug}` : "";
+
   const entries = waitingFor(scope.caps, {
     pieces: scope.pieces as SocialPiece[],
     clients: scope.clientIndex,
@@ -57,7 +61,7 @@ export default async function WaitingPage({
                 ]),
               );
               const href = e.id
-                ? (`/social/pieces/${e.id}` as Route)
+                ? (`/social/pieces/${e.id}?back=waiting${backSuffix}` as Route)
                 : (`/social/backlog?client=${
                     scope.clients.find((c) => c.id === e.clientId)?.slug ?? ""
                   }` as Route);

@@ -43,6 +43,9 @@ export default async function SocialCalendarPage({
     loadScope(searchParams),
     searchParams,
   ]);
+  // Carried into every piece link so pressing back returns to THIS screen,
+  // with the client filter still applied.
+  const backSuffix = scope.client ? `&client=${scope.client.slug}` : "";
 
   const rawMonth = Array.isArray(sp.m) ? sp.m[0] : sp.m;
   const month = /^\d{4}-\d{2}$/.test(rawMonth ?? "")
@@ -162,7 +165,7 @@ export default async function SocialCalendarPage({
                 {events.map((p) => (
                   <Link
                     key={p.id}
-                    href={`/social/pieces/${p.id}` as Route}
+                    href={`/social/pieces/${p.id}?back=calendar${backSuffix}` as Route}
                     title={`${scope.clientName(p.client_id)} · ${p.title}`}
                     className={cn(
                       "block truncate rounded px-1.5 py-1 text-[10px] leading-tight",

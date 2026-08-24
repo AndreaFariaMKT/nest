@@ -25,6 +25,9 @@ export default async function BacklogPage({
   setRequestLocale(locale);
   const t = await getTranslations("social");
   const scope = await loadScope(searchParams);
+  // Carried into every piece link so pressing back returns to THIS screen,
+  // with the client filter still applied.
+  const backSuffix = scope.client ? `&client=${scope.client.slug}` : "";
   const perCycle = scope.client
     ? scope.client.posts_per_cycle
     : scope.clients.reduce((s, c) => s + c.posts_per_cycle, 0) || 1;
@@ -113,7 +116,12 @@ export default async function BacklogPage({
             title={t("backlog.cameBack")}
             hint={t("backlog.cameBackHint")}
           />
-          <List pieces={returned} name={scope.clientName} locale={locale} />
+          <List
+            pieces={returned}
+            name={scope.clientName}
+            locale={locale}
+            backSuffix={backSuffix}
+          />
         </section>
       ) : null}
 
@@ -124,6 +132,7 @@ export default async function BacklogPage({
             hint={t("backlog.count", { n: shelf.length })}
           />
           <List
+            backSuffix={backSuffix}
             pieces={shelf}
             name={scope.clientName}
             locale={locale}
@@ -138,6 +147,7 @@ export default async function BacklogPage({
               hint={t("backlog.inFlow", { n: pulled.length })}
             />
             <List
+              backSuffix={backSuffix}
               pieces={pulled}
               name={scope.clientName}
               locale={locale}
@@ -184,11 +194,14 @@ function List({
   name,
   locale,
   empty,
+  backSuffix,
 }: {
   pieces: SocialPieceRow[];
   name: (id: string) => string;
   locale: string;
   empty?: string;
+  /** Threaded through so a piece opened from here comes back to here. */
+  backSuffix: string;
 }) {
   if (!pieces.length) {
     return (
@@ -202,7 +215,7 @@ function List({
       {pieces.map((p) => (
         <li key={p.id}>
           <Link
-            href={`/social/pieces/${p.id}` as Route}
+            href={`/social/pieces/${p.id}?back=backlog${backSuffix}` as Route}
             className="flex items-center gap-3 py-3 transition-colors hover:opacity-80"
           >
             <Pill tone="brand" className="shrink-0 text-[10px]">

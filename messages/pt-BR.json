@@ -796,7 +796,8 @@
         "postsCovered": "Posts cobertos"
       },
       "sparkline": "Reach diário no período",
-      "noData": "Sem métricas no período selecionado. Aguarde o próximo run do cron de coleta."
+      "noData": "Sem métricas no período selecionado. Aguarde o próximo run do cron de coleta.",
+      "truncated": "Este período tem mais registros do que uma tela consegue somar. Os números abaixo são parciais — reduza o intervalo de datas."
     }
   },
   "team": {
@@ -1260,7 +1261,16 @@
       "directionNote": "Nada foi desenhado ainda. Você está aprovando o argumento, no ponto mais barato para mudá-lo.",
       "silenceNote": "A data de resposta passou. Publicar como agendado é o que o módulo prometeu ao estúdio — o cliente ainda pode escrever, e fica registrado que ele não escreveu.",
       "window": "Janela · quando precisa sair",
-      "source": "Fonte"
+      "source": "Fonte",
+      "backTo": {
+        "overview": "Visão geral",
+        "waiting": "Esperando você",
+        "backlog": "Backlog",
+        "fortnight": "Quinzena",
+        "production": "Produção",
+        "publishing": "Publicação",
+        "calendar": "Calendário"
+      }
     },
     "blocked": {
       "notOnShelf": "Esta peça já saiu da prateleira. Atualize a página para ver onde ela está.",

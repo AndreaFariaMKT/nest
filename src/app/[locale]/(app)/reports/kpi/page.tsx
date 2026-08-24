@@ -55,26 +55,44 @@ export default async function KpiPage({
   // Pull every metric snapshot in the period for posts whose draft (and thus
   // client) we can read. RLS handles client scoping; the optional clientId
   // filter narrows further on the join.
-  let query = supabase
-    .from("post_metrics")
-    .select(
-      "published_post_id, captured_at, reach, impressions, likes, comments, saves, shares, published_posts!inner(id, draft_id, published_at, content_drafts!inner(client_id, clients!inner(name, slug)))",
-    )
-    .eq("tenant_id", tenantId)
-    .gte("captured_at", period.fromIso)
-    .lt("captured_at", period.toIso)
-    .order("captured_at", { ascending: false })
-    .limit(2000);
+  // Paged, not `.limit(2000)`.
+  //
+  // PostgREST silently serves a limit above its configured maximum as 1000,
+  // and post_metrics holds one row per post PER CAPTURE — a month of ~34
+  // tracked posts already writes more snapshots than that. Everything past the
+  // cap simply vanished: totals under-counted, and the reach series lost its
+  // earliest days, with nothing on the screen saying so. The social monthly
+  // report was fixed for exactly this in migration 027; this copy was not.
+  const PAGE = 1000;
+  const MAX_PAGES = 20;
+  const rows: RawMetric[] = [];
+  let truncated = false;
 
-  if (clientId) {
-    query = query.eq(
-      "published_posts.content_drafts.client_id",
-      clientId,
-    );
+  for (let pageIndex = 0; pageIndex < MAX_PAGES; pageIndex++) {
+    let query = supabase
+      .from("post_metrics")
+      .select(
+        "published_post_id, captured_at, reach, impressions, likes, comments, saves, shares, published_posts!inner(id, draft_id, published_at, content_drafts!inner(client_id, clients!inner(name, slug)))",
+      )
+      .eq("tenant_id", tenantId)
+      .gte("captured_at", period.fromIso)
+      .lt("captured_at", period.toIso)
+      .order("captured_at", { ascending: false })
+      .range(pageIndex * PAGE, pageIndex * PAGE + PAGE - 1);
+
+    if (clientId) {
+      query = query.eq("published_posts.content_drafts.client_id", clientId);
+    }
+
+    const { data: pageRows } = await query;
+    const batch = (pageRows ?? []) as unknown as RawMetric[];
+    rows.push(...batch);
+    if (batch.length < PAGE) break;
+    // Twenty thousand snapshots in one window is not a reporting period, it is
+    // a bug upstream. Stop, and say the number is partial rather than
+    // presenting it as the whole.
+    if (pageIndex === MAX_PAGES - 1) truncated = true;
   }
-
-  const { data: rawRows } = await query;
-  const rows = (rawRows ?? []) as unknown as RawMetric[];
 
   const snapshots: MetricSnapshot[] = rows.map((r) => ({
     publishedPostId: r.published_post_id,
@@ -105,6 +123,15 @@ export default async function KpiPage({
   return (
     <div className="space-y-6">
       <PageHeader title={t("title")} subtitle={t("subtitle")} />
+
+      {truncated ? (
+        <p
+          role="status"
+          className="rounded-xl border border-amber-500/40 bg-amber-500/10 px-4 py-3 text-sm text-amber-700 dark:text-amber-300"
+        >
+          {t("truncated")}
+        </p>
+      ) : null}
 
       <form
         method="get"

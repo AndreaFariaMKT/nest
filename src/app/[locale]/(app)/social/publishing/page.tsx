@@ -27,6 +27,9 @@ export default async function PublishingPage({
   setRequestLocale(locale);
   const t = await getTranslations("social");
   const scope = await loadScope(searchParams);
+  // Carried into every piece link so pressing back returns to THIS screen,
+  // with the client filter still applied.
+  const backSuffix = scope.client ? `&client=${scope.client.slug}` : "";
   const approved = scope.pieces.filter((p) => p.status === "approved");
   const order = scope.pieces
     .filter((p) => p.status === "scheduled" || p.status === "published")
@@ -174,7 +177,7 @@ export default async function PublishingPage({
             </header>
 
             <Link
-              href={`/social/pieces/${p.id}` as Route}
+              href={`/social/pieces/${p.id}?back=publishing${backSuffix}` as Route}
               className="text-sm font-medium text-foreground hover:underline"
             >
               {p.title}

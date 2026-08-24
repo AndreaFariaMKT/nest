@@ -36,6 +36,9 @@ export default async function FortnightPage({
   setRequestLocale(locale);
   const t = await getTranslations("social");
   const scope = await loadScope(searchParams);
+  // Carried into every piece link so pressing back returns to THIS screen,
+  // with the client filter still applied.
+  const backSuffix = scope.client ? `&client=${scope.client.slug}` : "";
   const pieces = scope.pieces.filter((p) => IN_FLIGHT_STAGES.includes(p.status));
   const signedOff = pieces.filter(
     (p) => p.status === "creative_review" && p.design_state === "signed_off",
@@ -106,7 +109,7 @@ export default async function FortnightPage({
               piece={p}
               clientName={scope.clientName(p.client_id)}
               today={scope.today}
-              href={`/social/pieces/${p.id}`}
+              href={`/social/pieces/${p.id}?back=fortnight${backSuffix}`}
             >
               <Moves
                 piece={p}

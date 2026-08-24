@@ -796,7 +796,8 @@
         "postsCovered": "Posts covered"
       },
       "sparkline": "Daily reach over period",
-      "noData": "No metrics in the selected period. Wait for the next cron run."
+      "noData": "No metrics in the selected period. Wait for the next cron run.",
+      "truncated": "This period holds more snapshots than one screen can total. The numbers below are partial — narrow the date range."
     }
   },
   "team": {
@@ -1260,7 +1261,16 @@
       "directionNote": "Nothing has been drawn yet. You are approving the argument, at the cheapest point to change it.",
       "silenceNote": "The reply date has passed. Running it as scheduled is what the module promised the studio — the client can still write, and it is recorded that they did not.",
       "window": "Window · when it must run",
-      "source": "Source"
+      "source": "Source",
+      "backTo": {
+        "overview": "Overview",
+        "waiting": "Waiting on you",
+        "backlog": "Backlog",
+        "fortnight": "Fortnight",
+        "production": "Production",
+        "publishing": "Publishing",
+        "calendar": "Calendar"
+      }
     },
     "blocked": {
       "notOnShelf": "This piece has already left the shelf. Refresh to see where it is now.",

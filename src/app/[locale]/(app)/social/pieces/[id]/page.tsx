@@ -5,15 +5,16 @@ import type { Route } from "next";
 
 import { Pill } from "@/components/ui/Pill";
 import {
-  formatIsoDate,
   DESIGN_STATES,
+  PULL_LEAD_WORKING_DAYS,
+  SOCIAL_SCREENS,
   addWorkingDays,
   dayOf,
+  formatIsoDate,
   formatLabel,
   isReplyOverdue,
   replyDueBy,
   type DesignState,
-  PULL_LEAD_WORKING_DAYS,
 } from "@/lib/social";
 import { createClient } from "@/lib/supabase/server";
 import { getPiece, listSocialClients } from "../../_data";
@@ -35,10 +36,13 @@ const labelCls =
 
 export default async function PiecePage({
   params,
+  searchParams,
 }: {
   params: Promise<{ locale: string; id: string }>;
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
 }) {
   const { locale, id } = await params;
+  const sp = await searchParams;
   setRequestLocale(locale);
   const t = await getTranslations("social");
 
@@ -98,13 +102,33 @@ export default async function PiecePage({
   const overdue = isReplyOverdue(piece.publish_on, today);
   const designState = (piece.design_state ?? "todo") as DesignState;
 
+  // `back` names a screen, never a URL: a caller-supplied path would be a
+  // redirect target this page has no business trusting.
+  const backRaw = (Array.isArray(sp.back) ? sp.back[0] : sp.back) ?? "";
+  const backKey = SOCIAL_SCREENS.some(
+    (screen) => screen.key === backRaw && screen.href.startsWith("/social"),
+  )
+    ? backRaw
+    : "fortnight";
+  const backClient = (Array.isArray(sp.client) ? sp.client[0] : sp.client) ?? "";
+  const backHref =
+    (backKey === "overview" ? "/social" : `/social/${backKey}`) +
+    (backClient ? `?client=${encodeURIComponent(backClient)}` : "");
+
   return (
     <div className="mx-auto max-w-3xl">
+      {/* Where you came from, not one hardcoded board.
+          This link was always "/social/fortnight", so opening a piece from the
+          backlog, production, publishing, the calendar or the waiting list and
+          pressing back dropped you on a different screen — and, for a
+          designer, on one that is not even in their nav. It also lost the
+          client filter every time, which is the module's most repeated
+          papercut in a studio running six clients. */}
       <Link
-        href={"/social/fortnight" as Route}
+        href={backHref as Route}
         className="mb-4 inline-block text-sm text-muted-foreground hover:text-foreground"
       >
-        ← {t("piece.back")}
+        ← {t(`piece.backTo.${backKey}`)}
       </Link>
 
       <header className="mb-6">

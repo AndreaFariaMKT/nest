@@ -22,6 +22,9 @@ export default async function ProductionPage({
   setRequestLocale(locale);
   const t = await getTranslations("social");
   const scope = await loadScope(searchParams);
+  // Carried into every piece link so pressing back returns to THIS screen,
+  // with the client filter still applied.
+  const backSuffix = scope.client ? `&client=${scope.client.slug}` : "";
   const isDesign = scope.caps.includes("design") && !scope.caps.includes("coordinate");
   const queue = scope.pieces.filter((p) => p.status === "creative_review");
   const open = queue.filter((p) => p.design_state !== "signed_off").length;
@@ -57,7 +60,7 @@ export default async function ProductionPage({
                 {items.map((p) => (
                   <Link
                     key={p.id}
-                    href={`/social/pieces/${p.id}` as Route}
+                    href={`/social/pieces/${p.id}?back=production${backSuffix}` as Route}
                     className="block rounded-xl border border-border bg-card p-3 transition-colors hover:border-brand"
                   >
                     <p className="text-sm leading-snug text-foreground">
