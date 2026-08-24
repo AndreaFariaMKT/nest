@@ -77,6 +77,18 @@ export default async function BusinessPlanPage({
   return (
     <>
       <PageHeader title="Business plan" subtitle={content.subtitle} />
+      {/* Starter content, written into the component — not read from any
+          table and not editable in the app. Saying so matters: a founder
+          should never be shown goals and a house voice she did not write, in
+          her own sidebar, with nothing indicating where they came from. */}
+      <p
+        role="status"
+        className="mb-5 rounded-xl border border-border bg-muted/50 px-4 py-3 text-sm text-muted-foreground"
+      >
+        {locale === "en"
+          ? "This is starter text that ships with the app, not your own. Nothing here is saved or editable yet — tell the studio what it should say."
+          : "Este é um texto inicial que vem com o sistema, não é seu. Nada aqui é salvo nem editável ainda — diga o que ele deveria dizer."}
+      </p>
       <div className="grid gap-4 md:grid-cols-3">
         {content.sections.map((s) => (
           <section
