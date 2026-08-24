@@ -146,10 +146,23 @@ npx vercel inspect --prod <domain>
 # or visit the "Cron Jobs" tab in the project settings
 ```
 
-Expected entries:
-- `/api/cron/cycles` — `0 3 1 * *` (monthly)
-- `/api/cron/publish` — `*/5 * * * *` (every 5 min)
+Expected entries — all five, all UTC:
+- `/api/cron/cycles` — `0 3 1 * *` (1st of the month)
 - `/api/cron/meta-refresh` — `0 4 * * *` (daily)
+- `/api/cron/metrics-collect` — `0 5 * * *` (daily)
+- `/api/cron/social-digest` — `0 11 * * 1-5` (weekdays, 08:00 in São Paulo)
+- `/api/cron/publish` — `10 11 * * *` (daily, 08:10 in São Paulo)
+
+> **Why `publish` is daily, and what it costs.** Once a day is the Vercel Hobby
+> plan's ceiling. The run takes everything whose `scheduled_for` has already
+> passed, so a piece set for the morning goes out on time and one set for the
+> afternoon waits for the next morning — `publish_time` is honoured to within
+> that window, not to the minute. On a Pro plan, `10 * * * *` makes it hourly
+> and the chosen time close to exact; no code changes.
+>
+> `/api/cron/transcript-pull` exists and is deliberately NOT scheduled — it
+> only matters if the Google Meet integration is in use, and it is called by
+> hand today.
 
 Each job runs as an authenticated fetch with `Authorization: Bearer $CRON_SECRET` — Vercel adds this automatically when `CRON_SECRET` is defined in env.
 

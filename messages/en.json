@@ -1393,7 +1393,8 @@
       "remove": "Remove",
       "removeConfirm": "Confirm",
       "pickHint": "PNG or JPG, up to 10 MB each, 10 at most. Publishing order is the order you pick them in.",
-      "slideAlt": "Image {n}"
+      "slideAlt": "Image {n}",
+      "dailyWindow": "Publishing runs once a day, at 08:10. A piece set for the morning goes out on time; set for the afternoon, it goes out the next morning."
     }
   }
 }

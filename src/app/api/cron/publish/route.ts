@@ -35,6 +35,16 @@ type Admin = ReturnType<typeof createAdminClient>;
  *
  * Auth: `Authorization: Bearer <CRON_SECRET>`.
  *
+ * SCHEDULE — `10 11 * * *` in vercel.json, i.e. 08:10 in São Paulo, ten
+ * minutes past the module's default publish time. Once a day is the Vercel
+ * Hobby plan's ceiling, and it is the reason `publish_time` is honoured to
+ * within a window rather than to the minute: this run takes everything whose
+ * scheduled_for has passed, so a piece set for the afternoon waits for the
+ * next morning. Moving to a Pro plan and an hourly schedule (`10 * * * *`)
+ * makes the chosen time close to exact; nothing in the code changes.
+ * src/app/[locale]/(app)/social/_components/ArtworkPanel.tsx tells the studio
+ * this, so the interface does not imply a precision the schedule lacks.
+ *
  * When Meta credentials aren't configured, the endpoint returns 503 with the
  * missing env list so Vercel Cron logs surface the blocker clearly. It does
  * NOT touch `attempt_count` in that case (the row will be retried once creds

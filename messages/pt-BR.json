@@ -1393,7 +1393,8 @@
       "remove": "Remover",
       "removeConfirm": "Confirmar",
       "pickHint": "PNG ou JPG, até 10 MB cada, no máximo 10. A ordem de publicação é a ordem em que você escolher os arquivos.",
-      "slideAlt": "Imagem {n}"
+      "slideAlt": "Imagem {n}",
+      "dailyWindow": "A publicação roda uma vez por dia, às 8h10. Uma peça marcada para a manhã sai no horário; marcada para a tarde, sai na manhã seguinte."
     }
   }
 }

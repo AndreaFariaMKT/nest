@@ -60,6 +60,15 @@ export function ArtworkPanel({
         {images.length ? t("hasArtworkNote") : t("noArtworkNote")}
       </p>
 
+      {/* Stated because the interface would otherwise imply a precision the
+          schedule does not have. The publish cron runs once a day — the Hobby
+          plan's ceiling — so `publish_time` is honoured to within that window,
+          not to the minute. Promising "08:00" and delivering the next morning
+          is worse than saying so here. */}
+      {images.length ? (
+        <p className="mt-2 text-xs text-muted-foreground">{t("dailyWindow")}</p>
+      ) : null}
+
       {images.length ? (
         <ol className="mt-4 flex flex-wrap gap-3">
           {images.map((img) => (
