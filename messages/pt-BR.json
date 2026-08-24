@@ -1069,7 +1069,11 @@
       "noFolder": "sem link da pasta",
       "markLive": "Marcar como no ar",
       "undo": "Desfazer",
-      "empty": "Nada na ordem para este filtro."
+      "empty": "Nada na ordem para este filtro.",
+      "ofWhichAutomatic": "{n} com arte anexada saem sozinhas; {manual} vão precisar ser publicadas à mão.",
+      "allManual": "Nenhuma tem arte anexada, então todas serão publicadas à mão.",
+      "willSend": "Sai sozinha",
+      "byHand": "À mão"
     },
     "calendar": {
       "title": "Calendário",
@@ -1238,7 +1242,12 @@
       "dbFailed": "Não deu para salvar e nada mudou. Tente de novo — se repetir, avise a coordenação; o erro já está registrado do nosso lado.",
       "needsPlatform": "Escolha a rede.",
       "needsAccountRef": "Falta o identificador da conta que vai publicar.",
-      "needsToken": "Não dá para ligar uma conta sem token. Cole o token e salve."
+      "needsToken": "Não dá para ligar uma conta sem token. Cole o token e salve.",
+      "needsArtworkFiles": "Escolha ao menos um arquivo.",
+      "tooManyArtworkFiles": "O Instagram aceita no máximo 10 imagens num carrossel.",
+      "artworkWrongType": "Só PNG e JPG. Exporte de novo num desses formatos.",
+      "artworkTooLarge": "Cada imagem precisa ter menos de 10 MB.",
+      "artworkUploadFailed": "Não deu para subir os arquivos. Tente de novo — se repetir, avise a coordenação."
     },
     "portal": {
       "contentSubtitle": "Texto e criativo juntos, uma peça de cada vez.",
@@ -1372,6 +1381,19 @@
       "enabled": "Publicar por esta conta",
       "enabledHint": "Desligada, a conta fica cadastrada e nada sai por ela.",
       "save": "Salvar alterações"
+    },
+    "artwork": {
+      "title": "Arte final",
+      "willPublish": "Vai publicar sozinha",
+      "willBeManual": "Publicação manual",
+      "hasArtworkNote": "Estas imagens vão ao ar nesta ordem. Depois de entrar na ordem de publicação, a peça sai sozinha — ninguém precisa postar à mão.",
+      "noArtworkNote": "Sem arquivos anexados esta peça segue o caminho manual: alguém publica na rede e marca como no ar aqui. Anexe a arte final se quiser que ela saia sozinha. O link da pasta continua sendo onde o trabalho mora.",
+      "attach": "Anexar a arte",
+      "replace": "Substituir a arte",
+      "remove": "Remover",
+      "removeConfirm": "Confirmar",
+      "pickHint": "PNG ou JPG, até 10 MB cada, no máximo 10. A ordem de publicação é a ordem em que você escolher os arquivos.",
+      "slideAlt": "Imagem {n}"
     }
   }
 }

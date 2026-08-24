@@ -209,6 +209,45 @@ export function toIsoDate(date: Date): string {
  */
 export const STUDIO_TIMEZONE = "America/Sao_Paulo";
 
+/**
+ * The studio's offset from UTC, as a fixed string.
+ *
+ * Brazil has observed no daylight saving since 2019, so this is a constant and
+ * not a lie. Written as an offset rather than computed, because the one place
+ * it is used builds an instant from a date and a time the studio typed — and a
+ * literal with an offset is unambiguous in a way `new Date(y, m, d)` (which
+ * reads the SERVER's timezone, not the studio's) is not.
+ */
+export const STUDIO_UTC_OFFSET = "-03:00";
+
+/**
+ * The instant a piece publishes, from the day and time the studio chose.
+ *
+ * `publish_on` is a calendar day and `publish_time` is a wall-clock time —
+ * together they mean "08:00 in São Paulo", and the publishing queue stores a
+ * timestamptz. This is the only place in the module where those two
+ * representations meet, and getting it wrong by three hours would publish a
+ * piece the evening before its date.
+ *
+ * Returns null when there is no date: a piece with no publish_on is not
+ * scheduled for anything, and inventing an instant for it would be worse than
+ * refusing.
+ */
+export function publishInstant(
+  publishOn: string | null | undefined,
+  publishTime: string | null | undefined,
+): string | null {
+  if (!publishOn || !isIsoDate(publishOn)) return null;
+  // publish_time arrives as "08:00:00" from Postgres and "08:00" from a form.
+  const raw = (publishTime ?? "08:00").trim();
+  const m = /^(\d{2}):(\d{2})/.exec(raw);
+  if (!m) return null;
+  const at = new Date(
+    `${publishOn}T${m[1]}:${m[2]}:00${STUDIO_UTC_OFFSET}`,
+  );
+  return Number.isNaN(at.getTime()) ? null : at.toISOString();
+}
+
 // en-CA formats as YYYY-MM-DD, which is the shape the whole module speaks.
 const studioDay = new Intl.DateTimeFormat("en-CA", {
   timeZone: STUDIO_TIMEZONE,
@@ -464,6 +503,11 @@ export const BLOCKED_REASONS = [
   "needsPlatform",
   "needsAccountRef",
   "needsToken",
+  "needsArtworkFiles",
+  "tooManyArtworkFiles",
+  "artworkWrongType",
+  "artworkTooLarge",
+  "artworkUploadFailed",
   "noSecretKey",
   "noPassword",
   "secretUnreadable",

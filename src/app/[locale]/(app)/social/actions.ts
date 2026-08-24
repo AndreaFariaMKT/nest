@@ -32,6 +32,7 @@ type AccountRow =
 
 import {
   actionAllowedForRole,
+  publishInstant,
   PULL_LEAD_WORKING_DAYS,
   addWorkingDays,
   canRun,
@@ -257,7 +258,7 @@ export async function runTransitionAction(
   const comment = str(formData, "comment");
   const locale = str(formData, "locale") || "pt-BR";
 
-  const { supabase, role, user } = await ctx();
+  const { supabase, tenantId, role, user } = await ctx();
   if (!actionAllowedForRole(action, role)) return fail("notYours");
 
   const piece = await loadPiece(id);
@@ -359,6 +360,23 @@ export async function runTransitionAction(
     await writer.from("content_drafts").update(patch).eq("id", id).select("id"),
   );
   if (!written.ok) return written;
+
+  // Entering the order is the one transition that can hand the piece to a
+  // machine. Whether it actually does depends on the piece having artwork —
+  // see enqueueForPublish, which stays silent for the manual path.
+  if (action === "queue") {
+    await enqueueForPublish(supabase, tenantId, [id]);
+  }
+  // Leaving `scheduled` means the piece is no longer going out on its own.
+  // A queued row left behind would publish something the studio just pulled
+  // back — the one mistake in this module that cannot be undone.
+  if (action === "unmark_live" || action === "return_to_backlog") {
+    await supabase
+      .from("scheduled_posts")
+      .delete()
+      .eq("draft_id", id)
+      .eq("status", "pending");
+  }
 
   // No notification here on purpose. The client hears once a day, from
   // /api/cron/social-digest — four hand-offs on a Tuesday used to mean four
@@ -528,6 +546,81 @@ export async function releaseSignedOffAction(
  * Build the publishing order: every approved piece becomes a scheduled one, so
  * publishing gets a single list with the approved text already on it.
  */
+
+/**
+ * Put a piece in the real publishing queue — but only if it can actually be
+ * published without a person.
+ *
+ * This is what makes "both paths" work. A piece with artwork attached gets
+ * `scheduled_posts` rows and the cron sends it; a piece without gets nothing
+ * here, keeps its `scheduled` stage, and is published by hand exactly as
+ * before. Neither one is an error, so this never fails the caller: entering
+ * the order is a decision about the pipeline, and whether the machine can
+ * finish the job is a separate fact about the piece.
+ *
+ * One row per channel, because `scheduled_posts` is per platform and a piece
+ * can run on more than one.
+ */
+async function enqueueForPublish(
+  supabase: Awaited<ReturnType<typeof ctx>>["supabase"],
+  tenantId: string,
+  pieceIds: string[],
+): Promise<void> {
+  if (!pieceIds.length) return;
+
+  const { data: rows } = await supabase
+    .from("content_drafts")
+    .select("id, channels, post_type, publish_on, publish_time, slides(id)")
+    .in("id", pieceIds);
+
+  type Row = {
+    id: string;
+    channels: Database["public"]["Enums"]["platform"][] | null;
+    post_type: Database["public"]["Enums"]["post_type"] | null;
+    publish_on: string | null;
+    publish_time: string | null;
+    slides: { id: string }[] | null;
+  };
+
+  const queued: Database["public"]["Tables"]["scheduled_posts"]["Insert"][] = [];
+  for (const r of (rows ?? []) as unknown as Row[]) {
+    // No artwork → the manual path. Nothing to queue.
+    if (!r.slides?.length) continue;
+    const scheduledFor = publishInstant(r.publish_on, r.publish_time);
+    // No date → nothing to schedule FOR. The stage still moved; a human will
+    // give it a date, and re-entering the order will queue it then.
+    if (!scheduledFor) continue;
+
+    for (const platform of r.channels ?? []) {
+      queued.push({
+        draft_id: r.id,
+        tenant_id: tenantId,
+        platform,
+        post_type: r.post_type ?? "carousel",
+        scheduled_for: scheduledFor,
+        status: "pending",
+      });
+    }
+  }
+  if (!queued.length) return;
+
+  // Clear first: re-entering the order after a date change must not leave the
+  // old instant queued alongside the new one, which would publish twice.
+  await supabase
+    .from("scheduled_posts")
+    .delete()
+    .in("draft_id", pieceIds)
+    .eq("status", "pending");
+
+  const { error } = await supabase.from("scheduled_posts").insert(queued);
+  if (error) {
+    // Logged, not returned. The stage change already succeeded and is the
+    // thing the person asked for; a queue that did not take is recoverable by
+    // re-entering the order, and the piece still shows as manual until it is.
+    log.error("social.enqueue", "queue_insert_failed", { code: error.code });
+  }
+}
+
 export async function buildOrderAction(
   _prev: Result,
   formData: FormData,
@@ -560,6 +653,8 @@ export async function buildOrderAction(
     log.error("social.write", "write_failed", { code: error.code ?? "unknown" });
     return fail(dbError(error));
   }
+
+  await enqueueForPublish(supabase, tenantId, approved.map((p) => p.id));
 
   revalidateModule(locale);
   return OK;
@@ -920,5 +1015,159 @@ export async function deleteSocialAccountAction(
   if (!written.ok) return written;
 
   revalidateModule(locale);
+  return { ok: true };
+}
+
+
+// ───────────────────────────────────────────────────────────────────────────
+// Artwork · the files that make a piece publishable
+//
+// The folder link (`material_url`) is where the work LIVES: versions, open
+// files, the way the designer organises it. That stays exactly as it is.
+//
+// These are something else — the final images, in order, hosted somewhere
+// Instagram's API can fetch them, because it can only build a post from URLs
+// it can open. A Drive folder is not one of those.
+//
+// Attaching is optional, per piece, and that is what gives the studio both
+// paths at once: a piece with artwork can go into the real publishing queue,
+// and a piece without behaves exactly as it does today — someone posts it by
+// hand and marks it live.
+// ───────────────────────────────────────────────────────────────────────────
+
+const ARTWORK_MIMES = ["image/png", "image/jpeg"];
+/** Matches the bucket's own file_size_limit, so a refusal is ours and legible. */
+const ARTWORK_MAX_BYTES = 10 * 1024 * 1024;
+/** Instagram's carousel ceiling. Past this the API refuses the whole post. */
+const ARTWORK_MAX_FILES = 10;
+
+export async function attachArtworkAction(
+  _prev: Result,
+  formData: FormData,
+): Promise<Result> {
+  const { supabase, tenantId, role } = await ctx();
+  // Design attaches it; coordination can too, because coordination is who
+  // finalises a piece and is often the one holding the exported files.
+  if (!hasCap(role, "design") && !hasCap(role, "coordinate")) {
+    return fail("notYours");
+  }
+
+  const id = str(formData, "id");
+  const locale = str(formData, "locale") || "pt-BR";
+  if (!id) return fail("notFound");
+
+  const piece = await loadPiece(id);
+  if (!piece) return fail("notFound");
+
+  const files = formData
+    .getAll("artwork")
+    .filter((f): f is File => f instanceof File && f.size > 0);
+  if (!files.length) return fail("needsArtworkFiles");
+  if (files.length > ARTWORK_MAX_FILES) return fail("tooManyArtworkFiles");
+  for (const f of files) {
+    if (!ARTWORK_MIMES.includes(f.type)) return fail("artworkWrongType");
+    if (f.size > ARTWORK_MAX_BYTES) return fail("artworkTooLarge");
+  }
+
+  // Replace, not append. A designer re-uploading is delivering the final set,
+  // not adding to a pile — and a half-replaced carousel would publish in an
+  // order nobody chose. Old storage objects go too: nothing in the database
+  // references storage.objects, so a row delete alone would leave the images
+  // sitting in a public bucket forever.
+  const cleared = await clearArtwork(supabase, id);
+  if (!cleared.ok) return cleared;
+
+  for (const [index, file] of files.entries()) {
+    const { data: slide, error: slideError } = await supabase
+      .from("slides")
+      .insert({ draft_id: id, tenant_id: tenantId, position: index + 1, data: {} })
+      .select("id")
+      .single();
+    if (slideError || !slide) {
+      log.error("social.artwork", "slide_insert_failed", {
+        code: slideError?.code ?? "unknown",
+      });
+      return fail(slideError ? dbError(slideError) : "dbFailed");
+    }
+
+    const ext = file.type === "image/jpeg" ? "jpg" : "png";
+    const path = `${id}/${slide.id}-v1.${ext}`;
+    const { error: uploadError } = await supabase.storage
+      .from("creatives")
+      .upload(path, file, { contentType: file.type, upsert: true });
+    if (uploadError) {
+      log.error("social.artwork", "upload_failed", {
+        message: uploadError.message,
+      });
+      return fail("artworkUploadFailed");
+    }
+
+    const { data: urlData } = supabase.storage
+      .from("creatives")
+      .getPublicUrl(path);
+
+    const { error: creativeError } = await supabase.from("creatives").insert({
+      slide_id: slide.id,
+      draft_id: id,
+      tenant_id: tenantId,
+      version: 1,
+      image_url: urlData.publicUrl,
+    });
+    if (creativeError) {
+      log.error("social.artwork", "creative_insert_failed", {
+        code: creativeError.code,
+      });
+      return fail(dbError(creativeError));
+    }
+  }
+
+  revalidateModule(locale);
+  return { ok: true };
+}
+
+export async function removeArtworkAction(
+  formData: FormData,
+): Promise<Result> {
+  const { supabase, role } = await ctx();
+  if (!hasCap(role, "design") && !hasCap(role, "coordinate")) {
+    return fail("notYours");
+  }
+  const id = str(formData, "id");
+  const locale = str(formData, "locale") || "pt-BR";
+  if (!id) return fail("notFound");
+  if (!(await loadPiece(id))) return fail("notFound");
+
+  const cleared = await clearArtwork(supabase, id);
+  if (!cleared.ok) return cleared;
+
+  revalidateModule(locale);
+  return { ok: true };
+}
+
+/** Drop a piece's slides, creatives and the files behind them. */
+async function clearArtwork(
+  supabase: Awaited<ReturnType<typeof ctx>>["supabase"],
+  draftId: string,
+): Promise<Result> {
+  // The bucket first: once the rows are gone there is nothing left that knows
+  // which files belonged to this piece.
+  const { data: existing } = await supabase.storage
+    .from("creatives")
+    .list(draftId);
+  const paths = (existing ?? []).map((o) => `${draftId}/${o.name}`);
+  if (paths.length) {
+    const { error } = await supabase.storage.from("creatives").remove(paths);
+    if (error) {
+      log.error("social.artwork", "remove_failed", { message: error.message });
+      return fail("artworkUploadFailed");
+    }
+  }
+
+  // creatives cascade from slides, so one delete is enough.
+  const { error } = await supabase.from("slides").delete().eq("draft_id", draftId);
+  if (error) {
+    log.error("social.artwork", "slides_delete_failed", { code: error.code });
+    return fail(dbError(error));
+  }
   return { ok: true };
 }

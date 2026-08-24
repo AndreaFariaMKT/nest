@@ -5,6 +5,7 @@ import type { Route } from "next";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { Pill } from "@/components/ui/Pill";
 import { formatLabel } from "@/lib/social";
+import { createClient } from "@/lib/supabase/server";
 import { loadScope } from "../_data";
 import { ModuleShell } from "../_components/ModuleShell";
 import { StageBadge } from "../_components/StageBadge";
@@ -31,6 +32,22 @@ export default async function PublishingPage({
     .filter((p) => p.status === "scheduled" || p.status === "published")
     .sort((a, b) => (a.publish_on ?? "9999").localeCompare(b.publish_on ?? "9999"));
   const toGo = order.filter((p) => p.status === "scheduled").length;
+
+  // Which pieces can go out without a person. A piece publishes on its own
+  // only when it has artwork attached; the rest are posted by hand and marked
+  // live here. This screen is where the order gets built, so it is where that
+  // difference has to be visible — the worst outcome in this whole flow is
+  // someone believing a post is scheduled when nothing will send it.
+  const supabase = await createClient();
+  const { data: withArt } = await supabase
+    .from("slides")
+    .select("draft_id")
+    .in(
+      "draft_id",
+      [...approved, ...order].map((p) => p.id),
+    );
+  const automatic = new Set((withArt ?? []).map((r) => r.draft_id));
+  const approvedAuto = approved.filter((p) => automatic.has(p.id)).length;
   const live = order.filter((p) => p.status === "published").length;
 
   return (
@@ -50,7 +67,13 @@ export default async function PublishingPage({
       {approved.length && scope.caps.includes("publish") ? (
         <div className="mb-4 flex flex-wrap items-center gap-3 rounded-xl border border-destructive/25 bg-destructive/5 px-4 py-3">
           <p className="min-w-0 flex-1 text-sm leading-relaxed text-foreground">
-            {t("publishing.notInOrder", { n: approved.length })}
+            {t("publishing.notInOrder", { n: approved.length })}{" "}
+            {approvedAuto
+              ? t("publishing.ofWhichAutomatic", {
+                  n: approvedAuto,
+                  manual: approved.length - approvedAuto,
+                })
+              : t("publishing.allManual")}
           </p>
           <BuildOrderButton
             locale={locale}
@@ -84,6 +107,16 @@ export default async function PublishingPage({
                 · {p.channels.map((c) => t(`channel.${c}`)).join(" + ")}
               </span>
               <StageBadge stage={p.status} />
+              {p.status === "scheduled" ? (
+                <Pill
+                  tone={automatic.has(p.id) ? "brand" : "muted"}
+                  className="text-[10px]"
+                >
+                  {automatic.has(p.id)
+                    ? t("publishing.willSend")
+                    : t("publishing.byHand")}
+                </Pill>
+              ) : null}
             </header>
 
             <Link

@@ -15,6 +15,7 @@ import {
   type DesignState,
   PULL_LEAD_WORKING_DAYS,
 } from "@/lib/social";
+import { createClient } from "@/lib/supabase/server";
 import { getPiece, listSocialClients } from "../../_data";
 import { getCurrentRole } from "@/lib/roles-server";
 import { socialCaps, todayIso } from "@/lib/social";
@@ -22,6 +23,7 @@ import { StageBadge, DesignBadge } from "../../_components/StageBadge";
 import { DesignStateForm } from "../../_components/PieceActions";
 import { Moves } from "../../_components/Moves";
 import { SaveFields } from "../../_components/SaveFields";
+import { ArtworkPanel } from "../../_components/ArtworkPanel";
 import { CopyText } from "../../_components/CopyText";
 
 export const dynamic = "force-dynamic";
@@ -40,12 +42,44 @@ export default async function PiecePage({
   setRequestLocale(locale);
   const t = await getTranslations("social");
 
-  const [piece, clients, role] = await Promise.all([
+  const supabase = await createClient();
+  const [piece, clients, role, artworkRes] = await Promise.all([
     getPiece(id),
     listSocialClients(),
     getCurrentRole(),
+    // The final images, in publishing order. Ordered here rather than sorted
+    // in the component, so the order the designer chose is the order the
+    // publish path reads too — they walk the same `position`.
+    supabase
+      .from("slides")
+      .select("id, position, creatives(image_url, version)")
+      .eq("draft_id", id)
+      .order("position", { ascending: true }),
   ]);
   if (!piece) notFound();
+
+  type ArtRow = {
+    id: string;
+    position: number;
+    creatives:
+      | { image_url: string; version: number }
+      | Array<{ image_url: string; version: number }>
+      | null;
+  };
+  const artwork = ((artworkRes.data ?? []) as unknown as ArtRow[])
+    .map((row) => {
+      const list = Array.isArray(row.creatives)
+        ? row.creatives
+        : row.creatives
+          ? [row.creatives]
+          : [];
+      // Highest version wins, matching what the publish cron picks.
+      const latest = [...list].sort((a, b) => b.version - a.version)[0];
+      return latest
+        ? { id: row.id, position: row.position, url: latest.image_url }
+        : null;
+    })
+    .filter((x): x is { id: string; position: number; url: string } => x !== null);
 
   const caps = socialCaps(role);
   const today = todayIso();
@@ -234,6 +268,16 @@ export default async function PiecePage({
           </p>
         )}
       </section>
+
+      {/* ── The final images, and which path this piece will take ─ */}
+      <div className="mb-4">
+        <ArtworkPanel
+          pieceId={piece.id}
+          locale={locale}
+          images={artwork}
+          canEdit={design || coordinate}
+        />
+      </div>
 
       {/* ── Design's own panel ─────────────────────────────────── */}
       {design && piece.status === "creative_review" ? (

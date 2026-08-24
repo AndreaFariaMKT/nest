@@ -1069,7 +1069,11 @@
       "noFolder": "no folder link",
       "markLive": "Mark live",
       "undo": "Undo live",
-      "empty": "Nothing in the order for this filter."
+      "empty": "Nothing in the order for this filter.",
+      "ofWhichAutomatic": "{n} with artwork attached send on their own; {manual} will need posting by hand.",
+      "allManual": "None have artwork attached, so all of them get posted by hand.",
+      "willSend": "Sends itself",
+      "byHand": "By hand"
     },
     "calendar": {
       "title": "Calendar",
@@ -1238,7 +1242,12 @@
       "dbFailed": "That could not be saved and nothing changed. Try again — if it repeats, tell coordination; the error is already logged on our side.",
       "needsPlatform": "Pick the network.",
       "needsAccountRef": "The account that will publish is missing its identifier.",
-      "needsToken": "An account cannot be switched on without a token. Paste one and save."
+      "needsToken": "An account cannot be switched on without a token. Paste one and save.",
+      "needsArtworkFiles": "Pick at least one file.",
+      "tooManyArtworkFiles": "Instagram takes at most 10 images in a carousel.",
+      "artworkWrongType": "PNG and JPG only. Export again in one of those.",
+      "artworkTooLarge": "Each image has to be under 10 MB.",
+      "artworkUploadFailed": "The files could not be uploaded. Try again — if it repeats, tell coordination."
     },
     "portal": {
       "contentSubtitle": "Text and creative together, one piece at a time.",
@@ -1372,6 +1381,19 @@
       "enabled": "Publish through this account",
       "enabledHint": "Switched off, the account stays registered and nothing goes out through it.",
       "save": "Save changes"
+    },
+    "artwork": {
+      "title": "Final artwork",
+      "willPublish": "Will publish on its own",
+      "willBeManual": "Published by hand",
+      "hasArtworkNote": "These images go out in this order. Once the piece joins the publishing order it sends on its own — nobody has to post it.",
+      "noArtworkNote": "With no files attached this piece takes the manual path: someone posts it on the network and marks it live here. Attach the final artwork if you want it to go out on its own. The folder link stays where the work lives.",
+      "attach": "Attach the artwork",
+      "replace": "Replace the artwork",
+      "remove": "Remove",
+      "removeConfirm": "Confirm",
+      "pickHint": "PNG or JPG, up to 10 MB each, 10 at most. Publishing order is the order you pick them in.",
+      "slideAlt": "Image {n}"
     }
   }
 }
