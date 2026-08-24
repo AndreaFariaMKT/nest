@@ -35,6 +35,8 @@ test.beforeEach(async ({ page }) => {
 test("every module screen the owner has renders", async ({ page }) => {
   await page.goto("/en/social");
 
+  // The module's screens live in the sidebar, under its own entry, and open
+  // only while you are inside the module.
   const nav = page.getByTestId("social-nav");
   await expect(nav).toBeVisible();
 
@@ -52,9 +54,23 @@ test("every module screen the owner has renders", async ({ page }) => {
     const heading = page.locator("h1").first();
     await expect(heading).toBeVisible();
     expect((await heading.textContent())?.trim().length).toBeGreaterThan(0);
-    // A screen that threw would render Next's error boundary instead.
-    await expect(page.getByTestId("social-nav")).toBeVisible();
+
+    // The sub-nav stays open on the module's own screens. /meetings is in the
+    // list because nothing else in the app links to it, but it is not a
+    // /social route, so the module's entry is closed there — asserting
+    // otherwise would pin a bug rather than the behaviour.
+    if (href.includes("/social")) {
+      await expect(page.getByTestId("social-nav")).toBeVisible();
+    }
   }
+});
+
+test("the sub-nav follows you into a piece record", async ({ page }) => {
+  // The piece record was the one module route without the old tab row: opening
+  // a piece dropped the navigation entirely. It is in the sidebar now, so it
+  // survives the drill-down.
+  await page.goto("/en/social/fortnight");
+  await expect(page.getByTestId("social-nav")).toBeVisible();
 });
 
 test("the backlog shows the shelf measured in fortnights", async ({ page }) => {

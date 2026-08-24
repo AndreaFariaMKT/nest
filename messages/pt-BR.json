@@ -841,6 +841,7 @@
       "client": "Cliente",
       "allClients": "Todos os clientes"
     },
+    "overdueBar": "{n, plural, one {# peça passou da data de resposta} other {# peças passaram da data de resposta}}",
     "stage": {
       "backlog": "No backlog",
       "draft": "Em escrita",

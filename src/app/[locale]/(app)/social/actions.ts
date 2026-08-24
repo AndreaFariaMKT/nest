@@ -513,6 +513,10 @@ export async function releaseSignedOffAction(
     .from("content_drafts")
     .select("id, client_id, title")
     .eq("tenant_id", tenantId)
+    // Social pieces only. `status` carries two state machines — migration 026
+    // added `engine` for exactly this — and without the filter a batch reaches
+    // into the content engine's drafts, which share these status values.
+    .eq("engine", "social")
     .eq("status", "creative_review")
     .eq("design_state", "signed_off")
     .in("client_id", clientId ? [clientId] : eligible);
@@ -637,6 +641,11 @@ export async function buildOrderAction(
     .from("content_drafts")
     .select("id")
     .eq("tenant_id", tenantId)
+    // Social pieces only — see releaseSignedOffAction. This one is the sharper
+    // of the two: everything it selects is queued for publication, so a
+    // content-engine draft that happened to be `approved` would be posted to
+    // the client's real account.
+    .eq("engine", "social")
     .eq("status", "approved")
     .in("client_id", clientId ? [clientId] : eligible);
   const approved = data ?? [];

@@ -340,7 +340,11 @@ async function handler(request: NextRequest) {
         .eq("id", row.id);
       await admin
         .from("content_drafts")
-        .update({ status: "published" })
+        // published_at, not just the status. The monthly report counts a
+        // month's pieces by `published_at` range — marking a piece live by
+        // hand set it, this path never did, so every piece the cron posted
+        // was missing from the client's own report and from its pillar mix.
+        .update({ status: "published", published_at: new Date().toISOString() })
         .eq("id", draft.id);
 
       summary.published += 1;

@@ -7,6 +7,7 @@ import type { NotificationItem } from "@/components/layout/NotificationsBell";
 import { getCurrentTenant } from "@/lib/tenant-server";
 import { getSessionUser, getCurrentProfile } from "@/lib/auth";
 import { getCurrentRole, getActualRole, getViewRole } from "@/lib/roles-server";
+import { socialSidebarScreens } from "@/lib/social";
 
 export default async function AppLayout({
   children,
@@ -54,6 +55,10 @@ export default async function AppLayout({
         .is("read_at", null),
     ]);
 
+  // Pure — a filter over a constant list, no query. The module's screens hang
+  // off the sidebar's own entry now that there are thirteen of them.
+  const socialScreens = socialSidebarScreens(role);
+
   const notifications = (list.data ?? []) as NotificationItem[];
   const unreadCount = unread.count ?? 0;
   const collapsed = (await cookies()).get("nest-sidebar")?.value === "1";
@@ -70,6 +75,7 @@ export default async function AppLayout({
         notifications={notifications}
         unreadCount={unreadCount}
         initialCollapsed={collapsed}
+        socialScreens={socialScreens}
       />
       <main className="min-w-0 flex-1 overflow-y-auto px-8 py-8">{children}</main>
     </div>

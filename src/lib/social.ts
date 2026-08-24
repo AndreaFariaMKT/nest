@@ -1080,3 +1080,20 @@ export function waitingFor(
 
   return out;
 }
+
+/**
+ * The module's screens as the sidebar renders them.
+ *
+ * Same list, same caps, one omission: `messages`. Every role that holds a
+ * social cap already carries Messages in its own sidebar group (NAV_BY_ROLE),
+ * so repeating it as a sub-item would be the same link twice in one column.
+ *
+ * `meetings` stays, and should not — it is the only path to /meetings in the
+ * whole app, because NAV has no entry for it. Until it gets one, removing it
+ * from here would make the meeting list unreachable.
+ */
+export function socialSidebarScreens(
+  role: AppRole,
+): { key: string; href: string }[] {
+  return socialScreensFor(role).filter((s) => s.key !== "messages");
+}

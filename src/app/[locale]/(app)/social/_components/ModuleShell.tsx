@@ -1,63 +1,53 @@
-import {
-  backlogStock,
-  IN_FLIGHT_STAGES,
-  socialScreensFor,
-  waitingFor,
-  type SocialPiece,
-} from "@/lib/social";
+import { getTranslations } from "next-intl/server";
+import { Link } from "@/i18n/routing";
+import type { Route } from "next";
+
+import { waitingFor, type SocialPiece } from "@/lib/social";
 import type { SocialScope } from "../_data";
-import { ModuleNav, type ScreenLink } from "./ModuleNav";
+import { ClientFilter } from "./ClientFilter";
 
 /**
- * The bar every module screen sits under. The counts are the point: a tab that
- * says "3" is the difference between remembering to look and finding out on
- * Friday.
+ * The bar every module screen sits under.
+ *
+ * It used to be a row of thirteen tabs, each carrying a count. The row wrapped
+ * onto two lines, and the counts had stopped meaning anything: four of the
+ * five were lit on any ordinary fortnight, in the same grey, so "in flight, as
+ * expected" and "past its reply date" looked identical.
+ *
+ * The screens moved to the sidebar. What is left here is the client filter —
+ * which belongs to the page, not the navigation — and exactly one count: how
+ * many pieces are past the date the client was given. That one is news, and it
+ * is the only one that gets a colour.
  */
-export function ModuleShell({ scope }: { scope: SocialScope }) {
-  const { pieces, caps, role, clients, client } = scope;
+export async function ModuleShell({ scope }: { scope: SocialScope }) {
+  const { pieces, caps, clients, client } = scope;
+  const t = await getTranslations("social");
 
-  const waiting = waitingFor(caps, {
+  const overdue = waitingFor(caps, {
     pieces: pieces as SocialPiece[],
     clients: scope.clientIndex,
     today: scope.today,
-  }).length;
+  }).filter((e) => e.reason === "replyPassed").length;
 
-  // The badge must count exactly what the board behind it renders.
-  const inFortnight = pieces.filter((p) =>
-    IN_FLIGHT_STAGES.includes(p.status),
-  ).length;
-
-  const inDesign = pieces.filter(
-    (p) => p.status === "creative_review" && p.design_state !== "signed_off",
-  ).length;
-
-  const toPublish = pieces.filter((p) => p.status === "scheduled").length;
-
-  const backlog = pieces.filter((p) => p.status === "backlog").length;
-  const perCycle = client
-    ? client.posts_per_cycle
-    : clients.reduce((sum, c) => sum + c.posts_per_cycle, 0);
-  const stock = backlogStock(backlog, perCycle || 1);
-
-  const badges: Record<string, number> = {
-    waiting,
-    fortnight: inFortnight,
-    production: inDesign,
-    publishing: toPublish,
-    // The shelf badges only when it is thin — a healthy backlog is not news.
-    backlog: stock.low ? backlog : 0,
-  };
-
-  const screens: ScreenLink[] = socialScreensFor(role).map((s) => ({
-    ...s,
-    badge: badges[s.key] ?? 0,
-  }));
+  const suffix = client ? `?client=${client.slug}` : "";
 
   return (
-    <ModuleNav
-      screens={screens}
-      clients={clients.map((c) => ({ slug: c.slug, name: c.name }))}
-      currentClient={client?.slug ?? ""}
-    />
+    <div className="mb-6 flex flex-wrap items-center justify-between gap-3 border-b border-border pb-4">
+      {overdue ? (
+        <Link
+          href={`/social/waiting${suffix}` as Route}
+          className="rounded-md bg-destructive/10 px-3 py-1.5 text-sm text-destructive transition-colors hover:bg-destructive/15 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+        >
+          {t("overdueBar", { n: overdue })}
+        </Link>
+      ) : (
+        <span />
+      )}
+
+      <ClientFilter
+        clients={clients.map((c) => ({ slug: c.slug, name: c.name }))}
+        currentClient={client?.slug ?? ""}
+      />
+    </div>
   );
 }

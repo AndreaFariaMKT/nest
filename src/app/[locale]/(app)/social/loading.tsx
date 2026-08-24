@@ -6,9 +6,9 @@
  * this module — so every navigation here started parsing a layout that then
  * vanished. A skeleton of the wrong shape reads worse than no skeleton at all.
  *
- * It also sits above ModuleShell, so switching tabs blanked the tab bar you
- * had just clicked. Holding the strip in place is most of what makes moving
- * between these screens feel instant.
+ * It also sits above ModuleShell, so it holds that bar's shape too — the
+ * screens moved to the sidebar, but the client filter did not, and blanking
+ * the control you had just used reads as the page losing your place.
  */
 export default function SocialLoading() {
   return (
@@ -18,14 +18,9 @@ export default function SocialLoading() {
         <div className="mt-3 h-4 w-96 max-w-full rounded bg-muted" />
       </div>
 
-      {/* The tab strip, in place — same shape as ModuleNav. */}
-      <div className="mb-6 border-b border-border pb-4">
-        <div className="flex flex-wrap gap-1">
-          {[24, 28, 20, 22, 24, 26, 22].map((w, i) => (
-            <div key={i} className="h-8 rounded-md bg-muted"
-              style={{ width: `${w * 4}px` }} />
-          ))}
-        </div>
+      {/* The filter bar, in place — same shape as ModuleShell. */}
+      <div className="mb-6 flex items-center justify-end border-b border-border pb-4">
+        <div className="h-9 w-56 rounded-md bg-muted" />
       </div>
 
       <div className="grid gap-4 lg:grid-cols-2">
