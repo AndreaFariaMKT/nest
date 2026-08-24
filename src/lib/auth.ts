@@ -1,5 +1,4 @@
 import { cache } from "react";
-import type { User } from "@supabase/supabase-js";
 
 import { createClient } from "@/lib/supabase/server";
 import type { Database } from "@/types/database";
@@ -13,18 +12,41 @@ type Profile = Omit<
   | "google_scopes"
 >;
 
+/** What the app actually uses off the session: an id, and one label. */
+export type SessionUser = { id: string; email: string | null };
+
 /**
- * The authenticated user for the current request. Wrapped in React.cache() so
- * every server component in one render (layout, top bar, page, helpers) shares
- * a SINGLE auth validation instead of each doing its own remote round-trip to
- * Supabase Auth — the main source of per-click latency.
+ * The authenticated user for the current request.
+ *
+ * `getClaims()` rather than `getUser()`. `getUser()` asks the Auth server "is
+ * this token still valid right now" — a network round-trip on every render.
+ * `getClaims()` verifies the JWT's signature locally via WebCrypto against a
+ * cached JWKS, so on a project using asymmetric signing keys it costs nothing.
+ * On a project still using the symmetric secret it falls back to a
+ * getUser()-equivalent request, so this is a safe swap either way: the worst
+ * case is exactly what today costs.
+ *
+ * THE TRADE, stated because it is a real one: the token is trusted until it
+ * expires. Revoking a session or banning a user now takes effect within one
+ * token lifetime instead of immediately. Shortening the JWT expiry narrows
+ * that window at the cost of more refreshes.
+ *
+ * Still wrapped in React.cache() so every server component in one render —
+ * layout, sidebar, page, helpers — shares a single validation.
+ *
+ * The line this draws, deliberately: READS go through here and are cheap.
+ * WRITES — the server actions and API routes — keep calling `getUser()`
+ * directly, because "is this session still valid right now" is exactly the
+ * question worth a round-trip before mutating something, and a write happens
+ * once per click rather than several times per render. So a revoked session
+ * can still browse until its token expires, and cannot change anything.
  */
-export const getSessionUser = cache(async (): Promise<User | null> => {
+export const getSessionUser = cache(async (): Promise<SessionUser | null> => {
   const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  return user;
+  const { data, error } = await supabase.auth.getClaims();
+  const sub = data?.claims?.sub;
+  if (error || !sub) return null;
+  return { id: sub, email: data.claims.email ?? null };
 });
 
 /** Current user's profile row (null when unauthenticated). Cached per request. */

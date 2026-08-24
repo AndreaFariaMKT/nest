@@ -35,9 +35,17 @@ export async function updateSession(
     },
   );
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  // getClaims(), not getUser(): the JWT is verified locally against a cached
+  // JWKS instead of asking the Auth server on every single request that the
+  // matcher lets through. Falls back to a getUser()-equivalent call on a
+  // project still signing with the symmetric secret, so it is never worse.
+  //
+  // The trade: a revoked session keeps passing this guard until its token
+  // expires. What it gates is which ROUTE you may see — RLS, which is the
+  // thing that decides what data you may read, is unaffected and still runs
+  // against the database on every query.
+  const { data: claims } = await supabase.auth.getClaims();
+  const user = claims?.claims?.sub ? { id: claims.claims.sub } : null;
 
   if (user) {
     // Locale-strip the path (pt-BR default = no prefix, en = /en).
