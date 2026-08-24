@@ -5,6 +5,7 @@ import { createHash, randomBytes } from "node:crypto";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { dbError, type PgLikeError } from "@/lib/db-error";
 import { log, redact } from "@/lib/log";
+import type { Json } from "@/types/database.gen";
 
 /**
  * Failures worth keeping, and the code a person can quote.
@@ -164,7 +165,12 @@ export async function recordError(input: RecordErrorInput): Promise<string> {
       // Both through log.ts's redact(), so there is exactly one redaction set
       // in the codebase and it is the one with tests.
       detail: detail ? scrubStack(detail) : null,
-      context: (redact(input.context ?? {}) ?? {}) as Record<string, unknown>,
+      // redact() returns unknown by design — it walks arbitrary shapes. The
+      // column is jsonb, and what comes out of redact is always JSON-safe
+      // (it only ever emits primitives, arrays, plain objects and the two
+      // sentinel strings), so the assertion is narrowing a return type rather
+      // than claiming something about the value.
+      context: (redact(input.context ?? {}) ?? {}) as Json,
       tenant_id: input.tenantId ?? null,
       client_id: input.clientId ?? null,
       actor_id: input.actorId ?? null,

@@ -964,6 +964,114 @@ export type Database = {
           },
         ]
       }
+      error_log: {
+        Row: {
+          actor_id: string | null
+          area: string
+          client_id: string | null
+          code: string | null
+          context: Json
+          detail: string | null
+          fingerprint: string
+          id: string
+          locale: string | null
+          message: string | null
+          occurred_at: string
+          path: string | null
+          ref: string
+          release: string | null
+          resolved_at: string | null
+          resolved_by: string | null
+          role: string | null
+          scope: string
+          severity: string
+          source: string
+          tenant_id: string | null
+        }
+        Insert: {
+          actor_id?: string | null
+          area: string
+          client_id?: string | null
+          code?: string | null
+          context?: Json
+          detail?: string | null
+          fingerprint: string
+          id?: string
+          locale?: string | null
+          message?: string | null
+          occurred_at?: string
+          path?: string | null
+          ref: string
+          release?: string | null
+          resolved_at?: string | null
+          resolved_by?: string | null
+          role?: string | null
+          scope: string
+          severity?: string
+          source: string
+          tenant_id?: string | null
+        }
+        Update: {
+          actor_id?: string | null
+          area?: string
+          client_id?: string | null
+          code?: string | null
+          context?: Json
+          detail?: string | null
+          fingerprint?: string
+          id?: string
+          locale?: string | null
+          message?: string | null
+          occurred_at?: string
+          path?: string | null
+          ref?: string
+          release?: string | null
+          resolved_at?: string | null
+          resolved_by?: string | null
+          role?: string | null
+          scope?: string
+          severity?: string
+          source?: string
+          tenant_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "error_log_actor_id_fkey"
+            columns: ["actor_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "error_log_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "error_log_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "portal_client"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "error_log_resolved_by_fkey"
+            columns: ["resolved_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "error_log_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       media_assets: {
         Row: {
           access_note: string | null
@@ -2097,6 +2205,7 @@ export type Database = {
     }
     Functions: {
       has_client_access: { Args: { target_client: string }; Returns: boolean }
+      is_founder: { Args: { target_tenant: string }; Returns: boolean }
       is_owner: { Args: never; Returns: boolean }
       is_portal_user: { Args: never; Returns: boolean }
       is_tenant_member: { Args: { target_tenant: string }; Returns: boolean }
