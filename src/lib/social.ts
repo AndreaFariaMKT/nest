@@ -1110,6 +1110,59 @@ export function waitingFor(
  * `meetings` left too, once NAV gained an entry for it — it stayed here only
  * because this list was the only path to /meetings in the whole app.
  */
+/**
+ * May this role open this path inside the module?
+ *
+ * Nav is nav — a link that is not rendered is not a permission. Every screen
+ * here declares who it is for, and until now only /social/accounts acted on
+ * that: the middleware let any role holding ANY social capability into the
+ * whole /social prefix, so a designer who typed /social/backlog read every
+ * client's shelf, /social/publishing the whole order, /social/logins the
+ * shared accounts. The per-screen `caps.includes` calls dotted around the
+ * pages only hide buttons.
+ *
+ * Derived from SOCIAL_SCREENS rather than restated, so a screen added without
+ * a thought about who may see it is denied rather than open.
+ *
+ * `base` is locale-stripped and query-stripped, as the middleware produces it.
+ */
+export function canReachSocialPath(role: AppRole, base: string): boolean {
+  const caps = socialCaps(role);
+  if (caps.length === 0) return false;
+
+  // A piece record is not a screen in this list. It renders per-capability
+  // panels of its own and is the destination of links on screens each role
+  // legitimately reaches, so it is open to anyone the module admits.
+  if (base === "/social/pieces" || base.startsWith("/social/pieces/")) {
+    return true;
+  }
+
+  // Exact first. The overview's href is "/social", which is a prefix of every
+  // other screen in the list — matching on prefix alone answered "overview"
+  // for /social/waiting and judged it by the wrong screen's capabilities.
+  const screen =
+    SOCIAL_SCREENS.find((candidate) => candidate.href === base) ??
+    SOCIAL_SCREENS.find(
+      (candidate) =>
+        candidate.href !== "/social" && base.startsWith(`${candidate.href}/`),
+    );
+  // An unlisted path under /social is not a screen anyone has been granted.
+  if (!screen) return false;
+  return screen.caps.some((c) => caps.includes(c));
+}
+
+/**
+ * Where to send a role that reached a module screen it may not see.
+ *
+ * Their own first screen, not /today: being bounced out of the module for
+ * opening one wrong page reads as losing access to all of it. Every role with
+ * a social capability holds `waiting`, so this is never empty for anyone this
+ * function is asked about.
+ */
+export function firstSocialScreen(role: AppRole): string {
+  return socialScreensFor(role)[0]?.href ?? "/today";
+}
+
 export function socialSidebarScreens(
   role: AppRole,
 ): { key: string; href: string }[] {

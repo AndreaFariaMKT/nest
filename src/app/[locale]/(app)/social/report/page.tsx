@@ -20,7 +20,7 @@ export default async function SocialReportPage({
   setRequestLocale(locale);
   const [t, scope, sp] = await Promise.all([
     getTranslations("social"),
-    loadScope(searchParams),
+    loadScope(searchParams, "report"),
     searchParams,
   ]);
 

@@ -47,7 +47,7 @@ export default async function SocialOverview({
   const { locale } = await params;
   setRequestLocale(locale);
   const t = await getTranslations("social");
-  const scope = await loadScope(searchParams);
+  const scope = await loadScope(searchParams, "overview");
 
   // The sidebar links every module role at /social, but this screen is built
   // for whoever runs the fortnight. Send everyone else to the first screen they

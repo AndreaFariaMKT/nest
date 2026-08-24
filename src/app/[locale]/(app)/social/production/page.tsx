@@ -21,7 +21,7 @@ export default async function ProductionPage({
   const { locale } = await params;
   setRequestLocale(locale);
   const t = await getTranslations("social");
-  const scope = await loadScope(searchParams);
+  const scope = await loadScope(searchParams, "production");
   // Carried into every piece link so pressing back returns to THIS screen,
   // with the client filter still applied.
   const backSuffix = scope.client ? `&client=${scope.client.slug}` : "";

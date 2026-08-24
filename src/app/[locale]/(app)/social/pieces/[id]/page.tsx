@@ -109,7 +109,10 @@ export default async function PiecePage({
     (screen) => screen.key === backRaw && screen.href.startsWith("/social"),
   )
     ? backRaw
-    : "fortnight";
+    // The fortnight was the old hardcoded target, and it is not a screen every
+    // role may open — a designer bounced straight back out of the record they
+    // had just closed. `waiting` is the one screen all five capabilities hold.
+    : "waiting";
   const backClient = (Array.isArray(sp.client) ? sp.client[0] : sp.client) ?? "";
   const backHref =
     (backKey === "overview" ? "/social" : `/social/${backKey}`) +

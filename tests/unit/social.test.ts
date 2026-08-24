@@ -1,31 +1,36 @@
 import { describe, it, expect } from "vitest";
 
+import { APP_ROLES } from "@/lib/app-roles";
+
 import {
   BLOCKED_REASONS,
   CLIENT_VISIBLE_STAGES,
   IN_FLIGHT_STAGES,
+  SOCIAL_ACTIONS,
+  SOCIAL_SCREENS,
+  actionAllowedForRole,
   addWorkingDays,
   backlogStock,
+  canReachSocialPath,
   canRun,
   canSetDesignState,
   canUseSocial,
   clientHealth,
+  dayOf,
   daysBetween,
-  fortnightOf,
+  firstSocialScreen,
   formatLabel,
+  fortnightOf,
   isBlockedReason,
   isReplyOverdue,
   replyDueBy,
-  dayOf,
   socialCaps,
   socialScreensFor,
-  SOCIAL_ACTIONS,
   todayIso,
-  actionAllowedForRole,
-  weekStart,
-  waitingFor,
   type SocialPiece,
   type SocialStage,
+  waitingFor,
+  weekStart,
 } from "@/lib/social";
 
 const piece = (over: Partial<SocialPiece> = {}): SocialPiece => ({
@@ -680,5 +685,43 @@ describe("format labels", () => {
 
   it("says so when the format is not set", () => {
     expect(formatLabel(null, null, label)).toBe("—");
+  });
+});
+
+describe("per-screen access inside the module", () => {
+  // The middleware and loadScope both ask this one function, so these cases
+  // are the whole rule. A screen added to SOCIAL_SCREENS without a thought
+  // about who may see it is denied here rather than silently open.
+  it("holds every screen to the capabilities it declares", () => {
+    for (const screen of SOCIAL_SCREENS) {
+      if (!screen.href.startsWith("/social")) continue;
+      for (const role of APP_ROLES) {
+        const allowed = canReachSocialPath(role, screen.href);
+        const caps = socialCaps(role);
+        expect(
+          allowed,
+          `${role} → ${screen.href}`,
+        ).toBe(screen.caps.some((c) => caps.includes(c)));
+      }
+    }
+  });
+
+  it("admits the piece record to anyone the module admits", () => {
+    // Not a screen in the list: it renders per-capability panels of its own,
+    // and it is where the screens each role legitimately reaches all link.
+    expect(canReachSocialPath("designer_social", "/social/pieces/x")).toBe(true);
+    expect(canReachSocialPath("accountant", "/social/pieces/x")).toBe(false);
+  });
+
+  it("denies a path that is not a screen at all", () => {
+    expect(canReachSocialPath("founder", "/social/not-a-screen")).toBe(false);
+  });
+
+  it("never bounces a role somewhere it cannot go", () => {
+    for (const role of APP_ROLES) {
+      if (socialCaps(role).length === 0) continue;
+      const target = firstSocialScreen(role);
+      expect(canReachSocialPath(role, target), `${role} → ${target}`).toBe(true);
+    }
   });
 });

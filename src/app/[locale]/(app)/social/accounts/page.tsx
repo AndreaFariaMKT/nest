@@ -1,5 +1,4 @@
 import { setRequestLocale, getTranslations } from "next-intl/server";
-import { redirect } from "next/navigation";
 
 import { PageHeader } from "@/components/ui/PageHeader";
 import { createClient } from "@/lib/supabase/server";
@@ -17,8 +16,10 @@ export const dynamic = "force-dynamic";
  * Which account each client publishes as.
  *
  * The nav entry is coordinate-only, but nav is nav — a link that is not
- * rendered is not a permission. The redirect below is the actual gate, because
- * this screen decides what the platform may post publicly on a client's behalf.
+ * rendered is not a permission. This screen used to be the only one in the
+ * module that acted on that, with a redirect of its own; the rule now lives
+ * with the screen list, so every screen is held to the capabilities it
+ * declares and this one no longer has to remember.
  */
 export default async function AccountsPage({
   params,
@@ -30,9 +31,12 @@ export default async function AccountsPage({
   const { locale } = await params;
   setRequestLocale(locale);
   const t = await getTranslations("social");
-  const scope = await loadScope(searchParams);
+  const scope = await loadScope(searchParams, "accounts");
 
-  if (!scope.caps.includes("coordinate")) redirect("/social");
+  // loadScope("accounts") already refused anyone without `coordinate`, and the
+  // middleware refused them before that. This was the only screen in the
+  // module that guarded itself; now the rule lives with the screen list and
+  // every screen gets it.
 
   const supabase = await createClient();
   const tenantId = await currentTenantId();

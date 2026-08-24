@@ -21,7 +21,7 @@ export default async function WaitingPage({
   setRequestLocale(locale);
   const [t, scope] = await Promise.all([
     getTranslations("social"),
-    loadScope(searchParams),
+    loadScope(searchParams, "waiting"),
   ]);
 
   const date = (iso: string) => formatIsoDate(iso, locale) ?? iso;

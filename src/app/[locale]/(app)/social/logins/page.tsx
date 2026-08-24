@@ -22,7 +22,7 @@ export default async function LoginsPage({
   const { locale } = await params;
   setRequestLocale(locale);
   const t = await getTranslations("social");
-  const scope = await loadScope(searchParams);
+  const scope = await loadScope(searchParams, "logins");
 
   const supabase = await createClient();
   const tenantId = await currentTenantId();

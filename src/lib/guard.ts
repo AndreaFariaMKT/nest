@@ -4,7 +4,11 @@ import {
   mapStoredRole,
   type AppRole,
 } from "@/lib/app-roles";
-import { canUseSocial } from "@/lib/social";
+import {
+  canReachSocialPath,
+  canUseSocial,
+  firstSocialScreen,
+} from "@/lib/social";
 
 const ROLES: readonly AppRole[] = APP_ROLES;
 
@@ -64,5 +68,13 @@ export function guardRedirect(base: string, role: AppRole): string | null {
       if (!r.roles.includes(role)) return "/today";
     }
   }
+
+  // Inside the module, per screen. The RESTRICTED entry above admits any role
+  // holding a social capability to the whole prefix; each screen says who it
+  // is actually for, and until now only one of eleven enforced it.
+  if (base === "/social" || base.startsWith("/social/")) {
+    if (!canReachSocialPath(role, base)) return firstSocialScreen(role);
+  }
+
   return null;
 }

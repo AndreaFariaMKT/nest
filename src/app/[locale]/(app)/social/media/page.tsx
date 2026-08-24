@@ -21,7 +21,7 @@ export default async function MediaPage({
   const { locale } = await params;
   setRequestLocale(locale);
   const t = await getTranslations("social");
-  const scope = await loadScope(searchParams);
+  const scope = await loadScope(searchParams, "media");
 
   const supabase = await createClient();
   const tenantId = await currentTenantId();

@@ -40,7 +40,7 @@ export default async function SocialCalendarPage({
   const [t, format, scope, sp] = await Promise.all([
     getTranslations("social"),
     getFormatter(),
-    loadScope(searchParams),
+    loadScope(searchParams, "calendar"),
     searchParams,
   ]);
   // Carried into every piece link so pressing back returns to THIS screen,

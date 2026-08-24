@@ -13,9 +13,14 @@ import { createClient } from "@/lib/supabase/server";
 import { currentTenantId } from "@/lib/tenant-server";
 import { getCurrentRole } from "@/lib/roles-server";
 import type { AppRole } from "@/lib/roles";
+import { getLocale } from "next-intl/server";
+import { redirect } from "@/i18n/routing";
 import {
+  canReachSocialPath,
+  firstSocialScreen,
   isSocialStage,
   socialCaps,
+  SOCIAL_SCREENS,
   todayIso,
   type SocialCap,
   type SocialPiece,
@@ -176,6 +181,17 @@ export interface SocialScope {
  */
 export async function loadScope(
   searchParams: Promise<Record<string, string | string[] | undefined>>,
+  /**
+   * Which screen is asking. The middleware already refuses a screen a role may
+   * not open, and this refuses it a second time on the server — the module's
+   * own note on /social/accounts says it best: nav is nav, and a link that is
+   * not rendered is not a permission. A middleware matcher is one edit away
+   * from not covering a path, and this is the only layer under it.
+   *
+   * Optional so the piece record, which is not a screen in the list, can load
+   * a scope without naming one.
+   */
+  screen?: (typeof SOCIAL_SCREENS)[number]["key"],
 ): Promise<SocialScope> {
   const [params, role, clients, allPieces] = await Promise.all([
     searchParams,
@@ -183,6 +199,18 @@ export async function loadScope(
     listSocialClients(),
     listPieces(),
   ]);
+
+  if (screen) {
+    const href =
+      SOCIAL_SCREENS.find((s) => s.key === screen)?.href ?? "/social";
+    if (!canReachSocialPath(role, href)) {
+      const locale = await getLocale();
+      redirect({
+        href: firstSocialScreen(role),
+        locale: locale as "pt-BR" | "en",
+      });
+    }
+  }
 
   const raw = params.client;
   const wanted = Array.isArray(raw) ? raw[0] : raw;

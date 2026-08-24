@@ -69,11 +69,57 @@ describe("guardRedirect", () => {
 
   // The social media module. The prefix's role list is derived from
   // socialCaps(), so these cases fail the moment the two drift apart.
-  it("lets the module's roles into /social", () => {
-    for (const role of ["founder", "manager", "social", "designer_social"] as const) {
+  it("lets the module's roles into the screens that are theirs", () => {
+    for (const role of ["founder", "manager", "social"] as const) {
       expect(guardRedirect("/social", role)).toBeNull();
       expect(guardRedirect("/social/backlog", role)).toBeNull();
     }
+    // Everyone the module admits reaches their own waiting list and a piece
+    // record; the record renders per-capability panels of its own.
+    for (const role of ["founder", "manager", "social", "designer_social"] as const) {
+      expect(guardRedirect("/social/waiting", role)).toBeNull();
+      expect(guardRedirect("/social/pieces/abc-123", role)).toBeNull();
+    }
+  });
+
+  it("holds each screen to the capabilities it declares", () => {
+    // This is the whole point of the per-screen check. A designer holds
+    // `design` only: production, the calendar and the media library are
+    // theirs; the shelf, the order, the shared logins and the client health
+    // overview are not. Before, the prefix was open to any role with any
+    // social capability, so typing the path was enough.
+    expect(guardRedirect("/social/production", "designer_social")).toBeNull();
+    expect(guardRedirect("/social/calendar", "designer_social")).toBeNull();
+    expect(guardRedirect("/social/media", "designer_social")).toBeNull();
+
+    for (const path of [
+      "/social",
+      "/social/backlog",
+      "/social/fortnight",
+      "/social/publishing",
+      "/social/logins",
+      "/social/accounts",
+      "/social/report",
+    ]) {
+      expect(guardRedirect(path, "designer_social")).toBe("/social/waiting");
+    }
+  });
+
+  it("bounces to the role's own first screen, not out of the module", () => {
+    // Being thrown to /today for opening one wrong page reads as losing
+    // access to all of it — and the target has to be somewhere that role can
+    // actually reach, or the redirect loops.
+    const target = guardRedirect("/social/backlog", "designer_social");
+    expect(target).toBe("/social/waiting");
+    expect(guardRedirect(target as string, "designer_social")).toBeNull();
+  });
+
+  it("denies a path under /social that is not a screen at all", () => {
+    // Fails closed: a screen added without a thought about who may see it is
+    // denied rather than open.
+    expect(guardRedirect("/social/not-a-screen", "social")).toBe(
+      "/social",
+    );
   });
 
   it("keeps roles outside the module out of it", () => {
