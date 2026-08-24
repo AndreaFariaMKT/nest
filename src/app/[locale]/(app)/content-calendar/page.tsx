@@ -39,6 +39,11 @@ export default async function ContentCalendarPage({
       .from("content_drafts")
       .select("id, title, pillar, status, client_id")
       .eq("tenant_id", tenantId)
+      // Content-engine drafts only. `status` carries two state machines —
+      // migration 026 added `engine` for exactly this — so without the filter
+      // this screen listed social pieces too and sent them to the content
+      // editor, around the eleven-stage pipeline and every guard in it.
+      .eq("engine", "content")
       .neq("status", "archived")
       .order("updated_at", { ascending: false }),
     supabase.from("clients").select("id, name").eq("tenant_id", tenantId),

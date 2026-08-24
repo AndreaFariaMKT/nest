@@ -9,10 +9,6 @@ export const dynamic = "force-dynamic";
 
 const IN_PRODUCTION = ["draft", "text_review", "creative_review"] as const;
 
-function titleCase(s: string): string {
-  return s.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
-}
-
 export default async function ProductionQueuePage({
   params,
 }: {
@@ -30,6 +26,11 @@ export default async function ProductionQueuePage({
       .from("content_drafts")
       .select("id, title, status, pillar, client_id, updated_at")
       .eq("tenant_id", tenantId)
+      // Content-engine drafts only. `status` carries two state machines —
+      // migration 026 added `engine` for exactly this — so without the filter
+      // this screen listed social pieces too and sent them to the content
+      // editor, around the eleven-stage pipeline and every guard in it.
+      .eq("engine", "content")
       .in("status", IN_PRODUCTION)
       .order("updated_at", { ascending: true }),
     supabase.from("clients").select("id, name").eq("tenant_id", tenantId),
@@ -58,7 +59,12 @@ export default async function ProductionQueuePage({
                   {d.pillar ? ` · ${d.pillar}` : ""}
                 </span>
                 <span className="rounded-full bg-brand-soft px-2 py-0.5 text-[10px] text-brand-soft-foreground">
-                  {titleCase(d.status)}
+                  {/* Rendered through the dictionary, not title-cased from the
+                      stored value — a Portuguese page was showing "Creative
+                      Review" because the English column name was the label. */}
+                  {t.has(`status.${d.status}`)
+                    ? t(`status.${d.status}`)
+                    : d.status}
                 </span>
               </Link>
             </li>

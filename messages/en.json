@@ -99,14 +99,35 @@
   },
   "scheduling": {
     "title": "Scheduling",
-    "subtitle": "Upcoming and past scheduled posts.",
-    "empty": "Nothing scheduled yet.",
+    "subtitle": "Every post the queue holds — what is waiting, what went out, and what did not.",
+    "empty": "Nothing scheduled yet. Approved pieces join the queue when the publishing order is built.",
     "th": {
       "when": "When",
       "content": "Content",
       "platform": "Platform",
       "type": "Type",
-      "status": "Status"
+      "status": "Status",
+      "error": "Problem"
+    },
+    "status": {
+      "pending": "Waiting",
+      "publishing": "Sending",
+      "published": "Published",
+      "failed": "Did not go out",
+      "unknown": "Unknown"
+    },
+    "failedHint": "This one did not publish. Open the piece, fix what the message names, and it goes back in the queue.",
+    "platform": {
+      "instagram": "Instagram",
+      "linkedin": "LinkedIn",
+      "tiktok": "TikTok"
+    },
+    "postType": {
+      "carousel": "Carousel",
+      "single_image": "Single post",
+      "reel": "Reel",
+      "story": "Story",
+      "text": "Text only"
     }
   },
   "marketing": {
@@ -122,7 +143,12 @@
   "productionQueue": {
     "title": "Production queue",
     "subtitle": "Content in production.",
-    "empty": "Nothing in production right now."
+    "empty": "Nothing in production right now.",
+    "status": {
+      "draft": "Drafting",
+      "text_review": "Text review",
+      "creative_review": "Creative review"
+    }
   },
   "feedback": {
     "title": "Feedback & status",
