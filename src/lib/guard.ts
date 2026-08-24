@@ -42,6 +42,11 @@ const RESTRICTED: { prefix: string; roles: AppRole[] }[] = [
   { prefix: "/commercial", roles: ["founder"] },
   { prefix: "/finance", roles: ["founder", "accountant"] },
   { prefix: "/administration", roles: ["founder", "accountant"] },
+  // /admin/* — the error log and the usage screen. This prefix was MISSING:
+  // /administration is a different route, so everything under /admin was
+  // reachable by every internal role at the middleware layer, saved only by
+  // whatever each page checked for itself.
+  { prefix: "/admin", roles: ["founder"] },
   // Derived, not restated: a hand-copied list drifts the first time a role's
   // responsibilities change. src/lib/social.ts is pure and Edge-safe.
   { prefix: "/social", roles: ROLES.filter(canUseSocial) },

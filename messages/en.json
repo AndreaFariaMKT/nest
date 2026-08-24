@@ -13,7 +13,8 @@
       "marketing": "Marketing",
       "operation": "Operation",
       "finance": "Finance",
-      "portal": "Portal"
+      "portal": "Portal",
+      "system": "System"
     },
     "today": "Today",
     "clients": "Clients",
@@ -52,7 +53,8 @@
     "mediaLibrary": "Media library",
     "sharedLogins": "Shared logins",
     "performance": "Performance",
-    "waitingOnYou": "Waiting on you"
+    "waitingOnYou": "Waiting on you",
+    "errors": "Errors"
   },
   "finance": {
     "title": "Finance",
@@ -1395,6 +1397,30 @@
       "pickHint": "PNG or JPG, up to 10 MB each, 10 at most. Publishing order is the order you pick them in.",
       "slideAlt": "Image {n}",
       "dailyWindow": "Publishing runs once a day, at 08:10. A piece set for the morning goes out on time; set for the afternoon, it goes out the next morning."
+    }
+  },
+  "errors": {
+    "title": "Something broke on this screen",
+    "body": "We have recorded what happened. You can try again — if it keeps happening, give the code below to whoever looks after the system.",
+    "ref": "Code {ref}",
+    "retry": "Try again",
+    "generic": "Something went wrong. Code {ref}."
+  },
+  "admin": {
+    "errors": {
+      "title": "Errors",
+      "subtitle": "What broke, grouped by cause. The code is what someone reads you over the phone.",
+      "search": "Search",
+      "searchPlaceholder": "Code, area or screen",
+      "showResolved": "Include resolved",
+      "empty": "No open errors. That is how it should look.",
+      "emptySearch": "Nothing found for that search.",
+      "occurrences": "{n}×",
+      "resolved": "Resolved",
+      "markResolved": "Mark as resolved",
+      "copy": "Copy",
+      "copied": "Copied",
+      "copyFailed": "Could not copy — your browser blocked clipboard access."
     }
   }
 }

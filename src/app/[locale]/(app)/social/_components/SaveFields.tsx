@@ -1,7 +1,6 @@
 "use client";
 
 import { useActionState, useEffect } from "react";
-import { useRouter } from "next/navigation";
 
 import { savePieceAction, type Result } from "../actions";
 import { Refusal } from "./ActionPrimitives";
@@ -27,11 +26,10 @@ export function SaveFields({
   children: React.ReactNode;
 }) {
   const [state, action, pending] = useActionState(savePieceAction, initial);
-  const router = useRouter();
 
   useEffect(() => {
-    if (state.ok) router.refresh();
-  }, [state, router]);
+    // No refresh — savePieceAction revalidates. See Moves.tsx.
+  }, [state]);
 
   return (
     <form action={action} className="space-y-4">

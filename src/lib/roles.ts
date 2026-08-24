@@ -73,6 +73,9 @@ export const NAV: Record<string, NavItem> = {
   messages: { key: "messages", href: "/messages", label: "messages", icon: MessageIcon },
   bplan: { key: "bplan", href: "/business-plan", label: "businessPlan", icon: BookIcon },
   admin: { key: "admin", href: "/administration", label: "administration", icon: FolderIcon },
+  // Founder only, and the nav is the cosmetic half — /admin is in guard.ts's
+  // RESTRICTED and the page redirects on its own.
+  errors: { key: "errors", href: "/admin/errors", label: "errors", icon: FolderIcon },
   finance: { key: "finance", href: "/finance", label: "finance", icon: CoinIcon },
   commercial: { key: "commercial", href: "/commercial", label: "commercial", icon: FunnelIcon },
   marketing: { key: "marketing", href: "/marketing", label: "marketing", icon: MegaphoneIcon },
@@ -115,6 +118,7 @@ export const NAV_BY_ROLE: Record<AppRole, NavGroup[]> = {
     { group: "insights", keys: ["reports"] },
     { group: "operation", keys: ["overview", "clients"] },
     { group: "directory", keys: ["people", "playbook"] },
+    { group: "system", keys: ["errors"] },
   ],
   manager: [
     { group: "daily", keys: ["home", "tasks", "calendar", "messages"] },

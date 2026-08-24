@@ -1,8 +1,7 @@
 "use client";
 
-import { useActionState, useEffect, useId } from "react";
+import { useActionState, useId } from "react";
 import { useTranslations } from "next-intl";
-import { useRouter } from "next/navigation";
 
 import { Pill } from "@/components/ui/Pill";
 import { movesFor, type MoveSet, type SocialPiece } from "@/lib/social";
@@ -47,14 +46,14 @@ export function Moves({
 }) {
   const t = useTranslations("social");
   const [state, action, pending] = useActionState(runTransitionAction, initial);
-  const router = useRouter();
   // One of these renders per piece on a page that maps over many, so a static
   // id would bind every label to the first textarea.
   const commentId = useId();
 
-  useEffect(() => {
-    if (state.ok) router.refresh();
-  }, [state, router]);
+  // No refresh: runTransitionAction calls revalidateModule, so the action's
+  // own response already carries the re-rendered route. Fetching it again cost
+  // a second auth hop, a second layout render and a second listPieces() over
+  // the whole tenant — on every stage move, the thing people click most.
 
   const set: MoveSet = movesFor(piece, caps, today);
 

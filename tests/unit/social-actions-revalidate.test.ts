@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { readFileSync } from "node:fs";
+import { readFileSync, readdirSync } from "node:fs";
 
 /**
  * The invariant the removed `router.refresh()` calls now depend on.
@@ -65,14 +65,33 @@ describe("every social action that can succeed also revalidates", () => {
     },
   );
 
-  it("nothing in the module calls router.refresh() any more", () => {
-    // The refresh fetched a tree the action response already contained: a
-    // second auth hop, a second layout render, a second listPieces() over the
-    // whole tenant, and a second copy of the message catalogue.
-    const components = readFileSync(
-      "src/app/[locale]/(app)/social/_components/ActionPrimitives.tsx",
+  /**
+   * EVERY component in the module, not just the shared hook.
+   *
+   * The first version of this test checked ActionPrimitives alone, and the
+   * commit that shipped it claimed the refresh was gone from all six write
+   * paths. It was gone from one. Moves, SaveFields and ConfirmDeleteButton
+   * use useActionState directly rather than the hook, so they were never
+   * covered — and the module's most-clicked control kept doing every write
+   * twice for another two rounds of work.
+   *
+   * A test scoped to the file you happened to edit proves nothing about the
+   * claim you made. This one reads the directory.
+   */
+  it.each(
+    readdirSync("src/app/[locale]/(app)/social/_components").filter((f) =>
+      f.endsWith(".tsx"),
+    ),
+  )("%s does not call router.refresh()", (file) => {
+    const src = readFileSync(
+      `src/app/[locale]/(app)/social/_components/${file}`,
       "utf8",
     );
-    expect(components).not.toMatch(/^\s*router\.refresh\(\)/m);
+    // Comments explaining the absence are fine; a call is not.
+    const calls = src
+      .split("\n")
+      .filter((l) => /router\.refresh\(\)/.test(l))
+      .filter((l) => !/^\s*(\/\/|\*)/.test(l.trim()) && !l.includes("* "));
+    expect(calls).toEqual([]);
   });
 });

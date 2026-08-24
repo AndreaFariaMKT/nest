@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { useRouter } from "next/navigation";
 
 import type { Result } from "../actions";
 
@@ -27,7 +26,6 @@ export function ConfirmDeleteButton({
 }) {
   const [armed, setArmed] = useState(false);
   const [pending, startTransition] = useTransition();
-  const router = useRouter();
 
   function onClick() {
     if (!armed) {
@@ -40,7 +38,7 @@ export function ConfirmDeleteButton({
     startTransition(async () => {
       await action(fd);
       setArmed(false);
-      router.refresh();
+
     });
   }
 

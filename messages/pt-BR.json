@@ -13,7 +13,8 @@
       "marketing": "Marketing",
       "operation": "Operação",
       "finance": "Financeiro",
-      "portal": "Portal"
+      "portal": "Portal",
+      "system": "Sistema"
     },
     "today": "Hoje",
     "clients": "Clientes",
@@ -52,7 +53,8 @@
     "mediaLibrary": "Biblioteca de mídia",
     "sharedLogins": "Acessos compartilhados",
     "performance": "Performance",
-    "waitingOnYou": "Esperando você"
+    "waitingOnYou": "Esperando você",
+    "errors": "Erros"
   },
   "finance": {
     "title": "Financeiro",
@@ -1395,6 +1397,30 @@
       "pickHint": "PNG ou JPG, até 10 MB cada, no máximo 10. A ordem de publicação é a ordem em que você escolher os arquivos.",
       "slideAlt": "Imagem {n}",
       "dailyWindow": "A publicação roda uma vez por dia, às 8h10. Uma peça marcada para a manhã sai no horário; marcada para a tarde, sai na manhã seguinte."
+    }
+  },
+  "errors": {
+    "title": "Algo quebrou nesta tela",
+    "body": "Já registramos o que aconteceu. Você pode tentar de novo — se continuar, passe o código abaixo para quem cuida do sistema.",
+    "ref": "Código {ref}",
+    "retry": "Tentar de novo",
+    "generic": "Algo deu errado. Código {ref}."
+  },
+  "admin": {
+    "errors": {
+      "title": "Erros",
+      "subtitle": "O que quebrou, agrupado por causa. O código é o que a pessoa te passa no telefone.",
+      "search": "Buscar",
+      "searchPlaceholder": "Código, área ou tela",
+      "showResolved": "Incluir resolvidos",
+      "empty": "Nenhum erro em aberto. É para ser assim.",
+      "emptySearch": "Nada encontrado para essa busca.",
+      "occurrences": "{n}×",
+      "resolved": "Resolvido",
+      "markResolved": "Marcar como resolvido",
+      "copy": "Copiar",
+      "copied": "Copiado",
+      "copyFailed": "Não deu para copiar — seu navegador bloqueou o acesso à área de transferência."
     }
   }
 }

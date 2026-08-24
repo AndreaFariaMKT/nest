@@ -5,6 +5,14 @@ export default defineConfig({
   resolve: {
     alias: {
       "@": fileURLToPath(new URL("./src", import.meta.url)),
+      // `server-only` throws on import unless the bundler resolves its
+      // `react-server` condition — which is exactly the guard we want in the
+      // app, and exactly what stops a unit test importing a server module.
+      // Point it at the package's own no-op entry rather than loosening the
+      // resolver globally, so the build-time boundary stays real.
+      "server-only": fileURLToPath(
+        new URL("./node_modules/server-only/empty.js", import.meta.url),
+      ),
     },
   },
   test: {
