@@ -2,7 +2,7 @@ import { setRequestLocale, getTranslations } from "next-intl/server";
 import { Link } from "@/i18n/routing";
 import { createClient } from "@/lib/supabase/server";
 import { currentTenantId } from "@/lib/tenant-server";
-import { isOwner } from "@/lib/auth";
+import { isOwner } from "@/lib/roles-server";
 import { formatCentsAsBrl } from "@/lib/money";
 import type { Database } from "@/types/database";
 

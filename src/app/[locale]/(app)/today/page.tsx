@@ -1,5 +1,6 @@
 import { setRequestLocale, getTranslations } from "next-intl/server";
 import { Link } from "@/i18n/routing";
+import type { Route } from "next";
 import { Pill } from "@/components/ui/Pill";
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentProfile } from "@/lib/auth";
@@ -7,6 +8,13 @@ import { getCurrentRole } from "@/lib/roles-server";
 import { currentTenantId } from "@/lib/tenant-server";
 import { formatCentsAsBrl, sumCents } from "@/lib/money";
 import type { MeetingStatus, TaskPriority, TaskStatus } from "@/types/database";
+
+type PendingApproval = {
+  id: string;
+  title: string;
+  publish_on: string | null;
+  client: { name: string } | null;
+};
 
 type TodayTask = {
   id: string;
@@ -89,6 +97,7 @@ export default async function TodayPage({
     contractRows,
     taskRows,
     meetingsData,
+    awaitingClient,
   ] = await Promise.all([
     ownerView
       ? supabase
@@ -137,6 +146,18 @@ export default async function TodayPage({
       .neq("status", "cancelled")
       .order("starts_at", { ascending: true })
       .limit(8),
+    // Pieces sitting with a client. This panel used to render a hardcoded
+    // sentence saying the feature "wires up in Sprint 7" — an internal
+    // roadmap note, on the first screen, at every login. The data was already
+    // there.
+    supabase
+      .from("content_drafts")
+      .select("id, title, publish_on, client:clients(name)")
+      .eq("tenant_id", tenantId)
+      .eq("engine", "social")
+      .eq("status", "client_review")
+      .order("publish_on", { ascending: true, nullsFirst: false })
+      .limit(6),
   ]);
 
   const activeClients = clientCount?.count ?? 0;
@@ -146,6 +167,7 @@ export default async function TodayPage({
   );
   const tasks = (taskRows?.data ?? []) as TodayTask[];
   const meetings = (meetingsData?.data ?? []) as unknown as TodayMeeting[];
+  const pending = (awaitingClient?.data ?? []) as unknown as PendingApproval[];
 
   return (
     <div className="">
@@ -247,7 +269,29 @@ export default async function TodayPage({
         </SectionCard>
 
         <SectionCard title={t("blocks.approvals.title")}>
-          <Empty>{t("blocks.approvals.hint")}</Empty>
+          {pending.length === 0 ? (
+            <Empty>{t("blocks.approvals.empty")}</Empty>
+          ) : (
+            <ul className="space-y-1">
+              {pending.map((p) => (
+                <li key={p.id}>
+                  <Link
+                    href={`/social/pieces/${p.id}` as Route}
+                    className="group flex items-center gap-3 rounded-xl px-2 py-2 hover:bg-muted/50"
+                  >
+                    <span className="min-w-0 flex-1">
+                      <span className="block truncate text-foreground group-hover:text-brand">
+                        {p.title}
+                      </span>
+                      <span className="text-xs text-muted-foreground">
+                        {p.client?.name ?? ""}
+                      </span>
+                    </span>
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          )}
         </SectionCard>
       </div>
     </div>

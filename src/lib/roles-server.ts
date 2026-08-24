@@ -52,3 +52,15 @@ export const getCurrentRole = cache(async (): Promise<AppRole> => {
   if (actual !== "founder") return actual;
   return (await getViewRole()) ?? "founder";
 });
+
+/**
+ * Is the caller the founder of the tenant they are looking at?
+ *
+ * The gate on Team, Contracts, Services and Admin. Deliberately the ACTUAL
+ * role, not the previewed one: a founder previewing as `accountant` should see
+ * the accountant's app, but "view as" is a lens, not a demotion, and locking
+ * herself out of the page that ends the preview would be a trap.
+ */
+export const isOwner = cache(async (): Promise<boolean> => {
+  return (await getActualRole()) === "founder";
+});

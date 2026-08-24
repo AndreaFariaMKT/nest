@@ -1,36 +1,20 @@
-import type { AppRole } from "@/lib/roles";
+import {
+  APP_ROLES,
+  isAppRole,
+  mapStoredRole,
+  type AppRole,
+} from "@/lib/app-roles";
 import { canUseSocial } from "@/lib/social";
 
-const ROLES: AppRole[] = [
-  "founder",
-  "manager",
-  "social",
-  "designer_social",
-  "designer_identity",
-  "developer",
-  "accountant",
-  "client",
-];
+const ROLES: readonly AppRole[] = APP_ROLES;
 
-export function isAppRoleValue(v: string | undefined | null): v is AppRole {
-  return !!v && (ROLES as string[]).includes(v);
-}
-
-/** Map any legacy tenant_members.role value onto an app role (Edge-safe). */
-export function mapLegacyRole(role: string | null | undefined): AppRole {
-  if (isAppRoleValue(role)) return role;
-  // The legacy values this app actually wrote before app roles existed. Named
-  // explicitly so they keep mapping to what they meant.
-  if (role === "owner" || role === "admin") return "founder";
-  if (role === "member" || role === "staff") return "manager";
-  // Anything else is a value nobody planned for — including the null a user
-  // with NO membership row for the active tenant produces. That used to land
-  // on "manager", which carries coordinate + publish, so such a user was
-  // handed the capability to register publishing credentials. The tenant floor
-  // denied every read and write behind it, but that floor was the only layer
-  // and it does not cover `profiles`. Fail closed instead.
-  return "client";
-}
+// Kept as named exports because callers and tests use these names. Both are
+// now the shared implementation rather than a second copy of it — this file
+// used to restate the eight roles and re-implement the legacy mapping, so a
+// role added to roles.ts and not here would have been judged by a guard that
+// had never heard of it.
+export const isAppRoleValue = isAppRole;
+export const mapLegacyRole = mapStoredRole;
 
 /**
  * Sensitive routes and who may reach them. Anything not listed is allowed for

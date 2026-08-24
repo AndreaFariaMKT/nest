@@ -1,7 +1,7 @@
 import { setRequestLocale, getTranslations } from "next-intl/server";
 import { notFound } from "next/navigation";
 import { Link } from "@/i18n/routing";
-import { isOwner } from "@/lib/auth";
+import { isOwner } from "@/lib/roles-server";
 import { ServiceForm } from "../_components/ServiceForm";
 import { createServiceAction } from "../actions";
 

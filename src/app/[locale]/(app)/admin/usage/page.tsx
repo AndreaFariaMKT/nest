@@ -1,7 +1,7 @@
 import { notFound } from "next/navigation";
 import { setRequestLocale, getTranslations } from "next-intl/server";
 import { createClient } from "@/lib/supabase/server";
-import { isOwner } from "@/lib/auth";
+import { isOwner } from "@/lib/roles-server";
 import { estimateCostUsd, formatUsd } from "@/lib/claude-pricing";
 
 type AiEditRow = {

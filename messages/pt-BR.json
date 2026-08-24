@@ -246,12 +246,11 @@
       },
       "meetings": {
         "title": "Próximas reuniões",
-        "empty": "Nenhuma reunião entre agora e amanhã.",
-        "hint": "Entra no Sprint 9 — sincronização com Google Calendar + transcrições."
+        "empty": "Nenhuma reunião entre agora e amanhã."
       },
       "approvals": {
         "title": "Aprovações pendentes",
-        "hint": "Entra no Sprint 7 — links públicos de aprovação aguardando resposta do cliente."
+        "empty": "Nada com cliente agora. Quando uma peça for enviada para aprovação, ela aparece aqui."
       }
     }
   },
@@ -402,7 +401,7 @@
   },
   "calendar": {
     "title": "Calendário",
-    "subtitle": "Reuniões do Nest. Sincronização com o Google Calendar entra em Sprint 9-10.",
+    "subtitle": "Reuniões do Nest, espelhadas no Google Calendar quando a conta do estúdio está conectada.",
     "newMeeting": "Nova reunião",
     "prev": "Anterior",
     "next": "Próximo",
@@ -411,7 +410,7 @@
   },
   "meetings": {
     "title": "Reuniões",
-    "subtitle": "Próximas chamadas e transcrições anteriores.",
+    "subtitle": "Reuniões do Nest, espelhadas no Google Calendar quando a conta do estúdio está conectada.",
     "new": "Nova reunião",
     "newTitle": "Nova reunião",
     "editTitle": "Editar reunião",
@@ -444,7 +443,7 @@
       "noClient": "Sem cliente",
       "status": "Status",
       "meetUrl": "Link do Google Meet",
-      "meetHint": "Opcional. Quando a integração do Google entrar no Sprint 9-10, esse link passa a ser criado automaticamente.",
+      "meetHint": "Opcional. Deixe em branco e o Nest cria o link do Meet quando a conta Google do estúdio estiver conectada em Configurações.",
       "summary": "Resumo",
       "summaryPlaceholder": "Duas linhas sobre o que foi a reunião.",
       "agendaUrl": "Arquivo da pauta",
@@ -512,7 +511,7 @@
       "render": "Renderizar todos",
       "empty": "Nenhum slide ainda.",
       "notRendered": "não renderizado",
-      "hint": "Renderização usa Chromium local em 1080×1350. Renderizador serverless de produção entra no Sprint 11-12."
+      "hint": "Renderizado em 1080×1350."
     },
     "schedule": {
       "title": "Agendamento",
@@ -775,7 +774,8 @@
     "membersTitle": "Membros",
     "fields": {
       "email": "E-mail",
-      "fullName": "Nome completo"
+      "fullName": "Nome completo",
+      "role": "Papel"
     },
     "roles": {
       "owner": "Owner",
@@ -785,8 +785,28 @@
     "errors": {
       "invalid": "Informe um e-mail válido.",
       "ownerOnly": "Apenas o owner pode convidar integrantes.",
-      "inviteFailed": "Não deu para enviar o convite. Confira o endereço e tente de novo."
-    }
+      "inviteFailed": "Não deu para enviar o convite. Confira o endereço e tente de novo.",
+      "unauthorized": "Só a direção pode alterar isso.",
+      "badRequest": "Faltou alguma coisa nesse pedido.",
+      "badRole": "Esse papel não existe no sistema.",
+      "membershipFailed": "O convite foi enviado, mas a pessoa não entrou no workspace. Peça para ela aguardar antes de entrar.",
+      "roleFailed": "Não deu para alterar o papel. Tente de novo."
+    },
+    "appRoles": {
+      "founder": "Direção",
+      "manager": "Gestão",
+      "social": "Social media",
+      "designer_social": "Design · social",
+      "designer_identity": "Design · identidade",
+      "developer": "Desenvolvimento",
+      "accountant": "Contabilidade",
+      "client": "Cliente"
+    },
+    "membersHint": "Todo mundo com acesso a {tenant}. O papel decide o que a pessoa vê e o que pode fazer.",
+    "pendingName": "Convite ainda não aceito",
+    "pendingInvite": "Esperando a pessoa criar a senha",
+    "roleSaved": "Salvo",
+    "pickRole": "Escolha um papel"
   },
   "notifications": {
     "title": "Notificações",

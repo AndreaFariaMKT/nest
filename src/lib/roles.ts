@@ -29,19 +29,18 @@ import {
  * The 8 roles from the AFM prototype. Each login has one role (per tenant
  * membership) which determines the whole app view — the sidebar menu and which
  * pages are reachable. Founders can preview any role via "View as".
+ *
+ * The vocabulary itself lives in app-roles.ts, which imports nothing: this
+ * file pulls in React icon components, so it cannot be reached from Edge
+ * middleware or a unit test. Re-exported here so existing imports keep working.
  */
-export const APP_ROLES = [
-  "founder",
-  "manager",
-  "social",
-  "designer_social",
-  "designer_identity",
-  "developer",
-  "accountant",
-  "client",
-] as const;
-
-export type AppRole = (typeof APP_ROLES)[number];
+export {
+  APP_ROLES,
+  isAppRole,
+  mapStoredRole,
+  type AppRole,
+} from "@/lib/app-roles";
+import type { AppRole } from "@/lib/app-roles";
 
 export const ROLE_LABEL: Record<AppRole, string> = {
   founder: "Founder",
@@ -53,10 +52,6 @@ export const ROLE_LABEL: Record<AppRole, string> = {
   accountant: "Accountant",
   client: "Client",
 };
-
-export function isAppRole(v: string | undefined | null): v is AppRole {
-  return !!v && (APP_ROLES as readonly string[]).includes(v);
-}
 
 /** Every navigable destination in the app. `label` is an i18n key under nav.*. */
 export interface NavItem {

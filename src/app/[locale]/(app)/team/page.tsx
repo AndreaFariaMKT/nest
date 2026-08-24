@@ -1,21 +1,16 @@
 import { setRequestLocale, getTranslations } from "next-intl/server";
 import { notFound } from "next/navigation";
-import { Pill } from "@/components/ui/Pill";
+
 import { createClient } from "@/lib/supabase/server";
-import { isOwner } from "@/lib/auth";
-import type { Database, UserRole } from "@/types/database";
+import { getSessionUser } from "@/lib/auth";
+import { isOwner } from "@/lib/roles-server";
+import { getCurrentTenant } from "@/lib/tenant-server";
+import { isAppRole, type AppRole } from "@/lib/roles";
 import { InviteForm } from "./_components/InviteForm";
+import { RoleSelect } from "./_components/RoleSelect";
 
-type Profile = Pick<
-  Database["public"]["Tables"]["profiles"]["Row"],
-  "id" | "email" | "full_name" | "avatar_url" | "locale" | "role" | "created_at"
->;
-
-const roleTone: Record<UserRole, "default" | "muted" | "warning"> = {
-  owner: "warning",
-  staff: "default",
-  client: "muted",
-};
+type Row = { user_id: string; role: string };
+type Profile = { id: string; email: string | null; full_name: string | null };
 
 export default async function TeamPage({
   params,
@@ -24,21 +19,49 @@ export default async function TeamPage({
 }) {
   const { locale } = await params;
   setRequestLocale(locale);
-  // Owner-gate (RLS on profiles allows all authed reads, but only the owner
-  // needs to see this page — everyone else gets 404).
   if (!(await isOwner())) notFound();
 
-  const t = await getTranslations("team");
+  const [t, tenant, me, supabase] = await Promise.all([
+    getTranslations("team"),
+    getCurrentTenant(),
+    getSessionUser(),
+    createClient(),
+  ]);
 
-  const supabase = await createClient();
-  const { data } = await supabase
-    .from("profiles")
-    // Not `*`: 029 revokes the google_* token columns from `authenticated`,
-    // and a star select expands to them.
-    .select("id, email, full_name, avatar_url, locale, role, created_at")
-    .order("role", { ascending: true })
-    .order("full_name", { ascending: true });
-  const members = (data ?? []) as Profile[];
+  // The membership table is the role the app actually runs on. This page used
+  // to render `profiles.role` — the legacy owner/staff/client enum nothing
+  // writes — so it showed "Staff" beside a person the app was treating as a
+  // client, which is the one thing a permissions screen must never do.
+  const { data: memberData } = await supabase
+    .from("tenant_members")
+    .select("user_id, role")
+    .eq("tenant_id", tenant.id);
+  const members = (memberData ?? []) as Row[];
+
+  // No FK from tenant_members to profiles (it points at auth.users), so the
+  // names come in a second read rather than an embed.
+  const ids = members.map((m) => m.user_id);
+  const { data: profileData } = ids.length
+    ? await supabase
+        .from("profiles")
+        .select("id, email, full_name")
+        .in("id", ids)
+    : { data: [] };
+  const byId = new Map(
+    ((profileData ?? []) as Profile[]).map((p) => [p.id, p]),
+  );
+
+  const rows = members
+    .map((m) => ({
+      ...m,
+      appRole: (isAppRole(m.role) ? m.role : "client") as AppRole,
+      profile: byId.get(m.user_id),
+    }))
+    .sort((a, b) =>
+      (a.profile?.full_name ?? a.profile?.email ?? "").localeCompare(
+        b.profile?.full_name ?? b.profile?.email ?? "",
+      ),
+    );
 
   return (
     <div className="mx-auto max-w-3xl">
@@ -56,23 +79,33 @@ export default async function TeamPage({
       </section>
 
       <section>
-        <h2 className="mb-3 font-display text-xl">{t("membersTitle")}</h2>
+        <h2 className="mb-1 font-display text-xl">{t("membersTitle")}</h2>
+        <p className="mb-3 text-sm text-muted-foreground">
+          {t("membersHint", { tenant: tenant.name })}
+        </p>
         <ul className="space-y-2">
-          {members.map((member) => (
+          {rows.map((r) => (
             <li
-              key={member.id}
-              className="flex items-center justify-between gap-3 rounded-md border border-border bg-card p-3 text-sm"
+              key={r.user_id}
+              className="flex flex-wrap items-center justify-between gap-3 rounded-md border border-border bg-card p-3 text-sm"
               data-testid="team-member"
             >
-              <div>
-                <div className="font-medium">
-                  {member.full_name ?? member.email}
+              <div className="min-w-0">
+                <div className="truncate font-medium">
+                  {r.profile?.full_name ?? r.profile?.email ?? t("pendingName")}
                 </div>
-                <div className="text-xs text-muted-foreground">
-                  {member.email}
+                <div className="truncate text-xs text-muted-foreground">
+                  {r.profile?.email ?? t("pendingInvite")}
                 </div>
               </div>
-              <Pill tone={roleTone[member.role]}>{t(`roles.${member.role}`)}</Pill>
+              <RoleSelect
+                userId={r.user_id}
+                role={r.appRole}
+                locale={locale}
+                // Her own row. Demoting yourself on a screen only founders can
+                // open is a one-click lockout with no way back in the app.
+                disabled={r.user_id === me?.id}
+              />
             </li>
           ))}
         </ul>

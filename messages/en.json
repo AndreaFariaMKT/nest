@@ -246,12 +246,11 @@
       },
       "meetings": {
         "title": "Next meetings",
-        "empty": "No meetings between now and tomorrow.",
-        "hint": "Wires up in Sprint 9 — Google Calendar sync + transcripts."
+        "empty": "No meetings between now and tomorrow."
       },
       "approvals": {
         "title": "Pending approvals",
-        "hint": "Wires up in Sprint 7 — public approval links waiting on client response."
+        "empty": "Nothing with a client right now. When a piece goes out for approval it appears here."
       }
     }
   },
@@ -402,7 +401,7 @@
   },
   "calendar": {
     "title": "Calendar",
-    "subtitle": "Meetings tracked in Nest. Google Calendar sync lands in Sprint 9-10.",
+    "subtitle": "Meetings tracked in Nest, mirrored to Google Calendar when the studio's account is connected.",
     "newMeeting": "New meeting",
     "prev": "Previous",
     "next": "Next",
@@ -411,7 +410,7 @@
   },
   "meetings": {
     "title": "Meetings",
-    "subtitle": "Upcoming calls and past transcripts.",
+    "subtitle": "Meetings tracked in Nest, mirrored to Google Calendar when the studio's account is connected.",
     "new": "New meeting",
     "newTitle": "New meeting",
     "editTitle": "Edit meeting",
@@ -444,7 +443,7 @@
       "noClient": "No client",
       "status": "Status",
       "meetUrl": "Google Meet link",
-      "meetHint": "Optional. Once the Google integration lands in Sprint 9-10, this link is created automatically.",
+      "meetHint": "Optional. Leave it blank and Nest creates the Meet link when the studio's Google account is connected in Settings.",
       "summary": "Summary",
       "summaryPlaceholder": "Two lines on what the meeting was about.",
       "agendaUrl": "Agenda file",
@@ -512,7 +511,7 @@
       "render": "Render all",
       "empty": "No slides yet.",
       "notRendered": "not rendered",
-      "hint": "Rendering uses local Chromium at 1080×1350. Production serverless renderer lands in Sprint 11-12."
+      "hint": "Rendered at 1080×1350."
     },
     "schedule": {
       "title": "Schedule",
@@ -775,7 +774,8 @@
     "membersTitle": "Members",
     "fields": {
       "email": "Email",
-      "fullName": "Full name"
+      "fullName": "Full name",
+      "role": "Role"
     },
     "roles": {
       "owner": "Owner",
@@ -785,8 +785,28 @@
     "errors": {
       "invalid": "Enter a valid email address.",
       "ownerOnly": "Only the owner can invite teammates.",
-      "inviteFailed": "The invite could not be sent. Check the address and try again."
-    }
+      "inviteFailed": "The invite could not be sent. Check the address and try again.",
+      "unauthorized": "Only the founder can change this.",
+      "badRequest": "Something was missing from that request.",
+      "badRole": "That is not a role this app has.",
+      "membershipFailed": "The invite was sent, but they could not be added to the workspace. Tell them to wait before signing in.",
+      "roleFailed": "The role could not be changed. Try again."
+    },
+    "appRoles": {
+      "founder": "Founder",
+      "manager": "Manager",
+      "social": "Social media",
+      "designer_social": "Designer · social",
+      "designer_identity": "Designer · identity",
+      "developer": "Developer",
+      "accountant": "Accountant",
+      "client": "Client"
+    },
+    "membersHint": "Everyone with access to {tenant}. The role decides what they see and what they can do.",
+    "pendingName": "Invite not accepted yet",
+    "pendingInvite": "Waiting for them to set a password",
+    "roleSaved": "Saved",
+    "pickRole": "Pick a role"
   },
   "notifications": {
     "title": "Notifications",

@@ -79,7 +79,10 @@ export const getCurrentProfile = cache(async (): Promise<Profile | null> => {
   return (data ?? null) as Profile | null;
 });
 
-export async function isOwner(): Promise<boolean> {
-  const profile = await getCurrentProfile();
-  return profile?.role === "owner";
-}
+// isOwner lives in roles-server.ts now. It used to read `profiles.role`, the
+// legacy owner/staff/client enum — which nothing in this repository ever sets
+// to 'owner': the signup trigger writes the 'staff' default and 025 revoked
+// the column from `authenticated`. So the check answered false for everyone,
+// and Team, Contracts, Services and Admin were 404 for their own owner. The
+// real role lives in tenant_members, and it is per-tenant, which this never
+// was.
