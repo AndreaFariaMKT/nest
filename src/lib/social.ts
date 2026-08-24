@@ -42,6 +42,21 @@ export const SOCIAL_STAGES = [
 
 export type SocialStage = (typeof SOCIAL_STAGES)[number];
 
+/**
+ * Stages a piece can only be in because a client has seen it.
+ *
+ * `client_review` is what is with them now; the other three are the three
+ * answers. Used by the feedback screen, which until now read only the content
+ * engine's `approvals` table and so showed no client response from this module
+ * at all — the one screen a designer has for hearing back.
+ */
+export const CLIENT_DECIDED_STAGES = [
+  "client_review",
+  "changes_requested",
+  "rejected",
+  "approved",
+] as const;
+
 export const DESIGN_STATES = ["todo", "done", "signed_off"] as const;
 export type DesignState = (typeof DESIGN_STATES)[number];
 

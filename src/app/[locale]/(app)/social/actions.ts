@@ -330,6 +330,11 @@ export async function runTransitionAction(
     case "client_request_changes":
     case "client_reject":
       patch.client_comment = comment;
+      // The date, not just the words. A refusal had text and no timestamp, so
+      // the monthly report could only infer it from the piece's current stage
+      // — which reports a piece refused in August and approved in September as
+      // approved only, losing exactly the round trip the report exists to show.
+      patch.client_rejected_at = now;
       break;
     case "reopen_to_design":
       // Back to design with the note attached — the art exists, it needs work.
@@ -344,6 +349,11 @@ export async function runTransitionAction(
       patch.publish_on = null;
       patch.direction_ok = false;
       patch.client_comment = null;
+      // Back on the shelf as an unworked theme: the dates of the run that
+      // ended belong to that run, not to the next one.
+      patch.client_rejected_at = null;
+      patch.client_approved_at = null;
+      patch.sent_to_client_at = null;
       break;
     case "mark_live":
       patch.published_at = now;

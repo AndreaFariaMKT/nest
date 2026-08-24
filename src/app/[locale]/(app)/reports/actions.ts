@@ -75,8 +75,15 @@ export async function generateMonthlyReportAction(
 
   const bounds = monthBounds(year, month);
 
-  const [draftsRes, tasksDoneRes, tasksOpenRes, meetingsRes, approvalsRes, publishedRes] =
-    await Promise.all([
+  const [
+    draftsRes,
+    tasksDoneRes,
+    tasksOpenRes,
+    meetingsRes,
+    approvalsRes,
+    publishedRes,
+    socialRes,
+  ] = await Promise.all([
       supabase
         .from("content_drafts")
         .select("id, title, pillar, status, created_at")
@@ -118,6 +125,21 @@ export async function generateMonthlyReportAction(
         )
         .gte("published_at", bounds.startISO)
         .lt("published_at", bounds.endISO),
+      // The social module's own approvals. It does not write to `approvals` —
+      // it records the answer on the piece — so every count below was zero for
+      // the module the studio actually runs on.
+      supabase
+        .from("content_drafts")
+        .select("id, sent_to_client_at, client_approved_at, client_rejected_at")
+        .eq("client_id", clientId)
+        .eq("engine", "social")
+        // Values quoted: the bounds are ISO timestamps and PostgREST splits a
+        // filter on dots, which these are full of.
+        .or(
+          `and(sent_to_client_at.gte."${bounds.startISO}",sent_to_client_at.lt."${bounds.endISO}"),` +
+            `and(client_approved_at.gte."${bounds.startISO}",client_approved_at.lt."${bounds.endISO}"),` +
+            `and(client_rejected_at.gte."${bounds.startISO}",client_rejected_at.lt."${bounds.endISO}")`,
+        ),
     ]);
 
   type DraftRow = {
@@ -156,6 +178,26 @@ export async function generateMonthlyReportAction(
     (p) => pickOne(p.draft)?.client_id === clientId,
   );
 
+  // Counted per column, not per row: one piece can be sent, refused and
+  // approved inside the same month, and the report is about the round trip.
+  type SocialDecision = {
+    sent_to_client_at: string | null;
+    client_approved_at: string | null;
+    client_rejected_at: string | null;
+  };
+  const inMonth = (v: string | null) =>
+    !!v && v >= bounds.startISO && v < bounds.endISO;
+  const socialDecisions = (socialRes.data ?? []) as SocialDecision[];
+  const socialSent = socialDecisions.filter((p) =>
+    inMonth(p.sent_to_client_at),
+  ).length;
+  const socialApproved = socialDecisions.filter((p) =>
+    inMonth(p.client_approved_at),
+  ).length;
+  const socialRejected = socialDecisions.filter((p) =>
+    inMonth(p.client_rejected_at),
+  ).length;
+
   const pillarMap = new Map<string, number>();
   for (const d of draftRows) {
     if (!d.pillar) continue;
@@ -174,9 +216,11 @@ export async function generateMonthlyReportAction(
     tasksCompleted: tasksDoneRes.count ?? 0,
     tasksOpen: tasksOpenRes.count ?? 0,
     meetingsHeld: meetingsRes.count ?? 0,
-    approvalsSent: approvals.length,
-    approvalsApproved: approvals.filter((a) => !!a.approved_at).length,
-    approvalsRejected: approvals.filter((a) => !!a.rejected_at).length,
+    approvalsSent: approvals.length + socialSent,
+    approvalsApproved:
+      approvals.filter((a) => !!a.approved_at).length + socialApproved,
+    approvalsRejected:
+      approvals.filter((a) => !!a.rejected_at).length + socialRejected,
   };
 
   const topDrafts: ReportDraftHighlight[] = draftRows.slice(0, 10).map((d) => ({

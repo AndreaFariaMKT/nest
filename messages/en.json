@@ -157,7 +157,8 @@
     "status": {
       "approved": "Approved",
       "rejected": "Changes requested",
-      "pending": "Awaiting"
+      "pending": "Awaiting",
+      "changes": "Changes requested"
     }
   },
   "messages": {
