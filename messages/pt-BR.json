@@ -1069,7 +1069,8 @@
       "subtitle": "Cada peça anda sozinha.",
       "note": "Texto escrito, a direção aprova o argumento antes de qualquer desenho, o design produz, a coordenação finaliza a arte e a peça vai só para aquele cliente. Nada espera pela peça mais lenta. O corte é por peça: cinco dias úteis antes de publicar — sem retorno até lá, vai ao ar como está.",
       "releaseAll": "Enviar {n} peça(s) finalizada(s) aos clientes",
-      "empty": "Nada nesta quinzena ainda. Puxe temas do backlog."
+      "empty": "Nada nesta quinzena ainda. Puxe temas do backlog.",
+      "releaseAllConfirm": "Clique de novo para enviar {n} aos clientes"
     },
     "actions": {
       "pull": "Puxar para a quinzena",
@@ -1136,7 +1137,8 @@
       "allManual": "Nenhuma tem arte anexada, então todas serão publicadas à mão.",
       "willSend": "Sai sozinha",
       "byHand": "À mão",
-      "noAccount": "Tem arte, falta conta"
+      "noAccount": "Tem arte, falta conta",
+      "buildOrderConfirm": "Clique de novo para fechar a ordem com {n}"
     },
     "calendar": {
       "title": "Calendário",

@@ -86,6 +86,9 @@ export default async function FortnightPage({
               locale={locale}
               clientId={scope.client?.id}
               label={t("fortnight.releaseAll", { n: signedOff.length })}
+              confirmLabel={t("fortnight.releaseAllConfirm", {
+                n: signedOff.length,
+              })}
             />
           </div>
         ) : null}

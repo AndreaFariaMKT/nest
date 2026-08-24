@@ -36,7 +36,11 @@ export async function sendMessageAction(
   if (!body) return { ok: false };
 
   const user = await getSessionUser();
-  if (!user) return { ok: false, error: "unauthorized" };
+  // "notYours" rather than "unauthorized": the portal renders this through
+  // Refusal, whose dictionary is social.blocked, and an unknown key there
+  // falls back to "something went wrong with the database" — which is both
+  // wrong and alarming for a client who has simply been signed out.
+  if (!user) return { ok: false, error: "notYours" };
 
   const tenantId = await currentTenantId();
   const supabase = await createClient();

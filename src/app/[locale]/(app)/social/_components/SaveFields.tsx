@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState, useEffect } from "react";
+import { useActionState } from "react";
 
 import { savePieceAction, type Result } from "../actions";
 import { Refusal } from "./ActionPrimitives";
@@ -27,9 +27,8 @@ export function SaveFields({
 }) {
   const [state, action, pending] = useActionState(savePieceAction, initial);
 
-  useEffect(() => {
-    // No refresh — savePieceAction revalidates. See Moves.tsx.
-  }, [state]);
+  // No refresh — savePieceAction revalidates. See Moves.tsx. The empty effect
+  // that used to hold this comment ran on every state change and did nothing.
 
   return (
     <form action={action} className="space-y-4">
@@ -45,7 +44,9 @@ export function SaveFields({
           {submitLabel}
         </button>
         {state.ok && !pending ? (
-          <span className="text-xs text-emerald-600">{savedLabel}</span>
+          <span role="status" className="text-xs text-emerald-600">
+            {savedLabel}
+          </span>
         ) : null}
         <Refusal error={state.error} />
       </div>

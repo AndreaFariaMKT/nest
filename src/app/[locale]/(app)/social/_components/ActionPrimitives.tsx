@@ -48,8 +48,14 @@ export function Refusal({ error }: { error?: string }) {
   // tables, columns and constraints, and the portal renders this component for
   // clients. The real error is in the log, keyed by area.
   const key = isBlockedReason(error) || isDbError(error) ? error : "dbFailed";
+  // role="alert" because this appears after a round trip, in response to
+  // something the reader did. Without it a screen reader announces nothing at
+  // all: the button re-enables, the page looks unchanged, and the refusal is
+  // invisible to the person who most needs it read aloud.
   return (
-    <p className="mt-2 text-xs text-destructive">{t(key)}</p>
+    <p role="alert" className="mt-2 text-xs text-destructive">
+      {t(key)}
+    </p>
   );
 }
 

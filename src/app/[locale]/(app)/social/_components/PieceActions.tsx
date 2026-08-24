@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import type { DesignState } from "@/lib/social";
 import {
   buildOrderAction,
@@ -53,26 +54,45 @@ export function DesignStateForm({
 /**
  * One button, one batch. Both moves are "take everything in this stage and put
  * it in the next one", so they differ only in which action they call.
+ *
+ * Both arm before they fire, which the module got backwards: deleting one
+ * media row asked for a second click, while sending every signed-off piece to
+ * every client — outbound to customers, and not undoable anywhere in the
+ * module — went on the first. Same two-click pattern as ConfirmDeleteButton,
+ * so the gesture is the one people already know.
  */
 function BatchButton({
   action,
   locale,
   clientId,
   label,
+  confirmLabel,
 }: {
   action: typeof releaseSignedOffAction;
   locale: string;
   clientId?: string;
   label: string;
+  confirmLabel: string;
 }) {
-  const { state, dispatch, pending } = useRefreshingAction(action);
+  const [armed, setArmed] = useState(false);
+  const { state, dispatch, pending } = useRefreshingAction(action, () =>
+    setArmed(false),
+  );
 
   return (
     <form action={dispatch}>
       <input type="hidden" name="locale" value={locale} />
       <input type="hidden" name="client_id" value={clientId ?? ""} />
-      <Btn variant="primary" disabled={pending}>
-        {label}
+      <Btn
+        variant="primary"
+        disabled={pending}
+        aria-live="polite"
+        // Unarmed the button must not submit; arming is the whole point.
+        type={armed ? "submit" : "button"}
+        onClick={armed ? undefined : () => setArmed(true)}
+        onBlur={() => setArmed(false)}
+      >
+        {armed ? confirmLabel : label}
       </Btn>
       <Refusal error={state.error} />
     </form>
@@ -84,6 +104,7 @@ export function ReleaseAllButton(props: {
   locale: string;
   clientId?: string;
   label: string;
+  confirmLabel: string;
 }) {
   return <BatchButton action={releaseSignedOffAction} {...props} />;
 }
@@ -93,6 +114,7 @@ export function BuildOrderButton(props: {
   locale: string;
   clientId?: string;
   label: string;
+  confirmLabel: string;
 }) {
   return <BatchButton action={buildOrderAction} {...props} />;
 }

@@ -122,6 +122,9 @@ export default async function PublishingPage({
             locale={locale}
             clientId={scope.client?.id}
             label={t("publishing.buildOrder")}
+            confirmLabel={t("publishing.buildOrderConfirm", {
+              n: approved.length,
+            })}
           />
         </div>
       ) : null}

@@ -1069,7 +1069,8 @@
       "subtitle": "Every piece walks on its own.",
       "note": "Text written, direction approves the argument before anything is drawn, design produces, coordination signs the art off, and it goes to that client alone. Nothing waits on the slowest piece. The cut is per piece: five working days before it publishes — silence past that and it runs as scheduled.",
       "releaseAll": "Send {n} signed-off piece(s) to their clients",
-      "empty": "Nothing in this fortnight yet. Pull themes from the backlog."
+      "empty": "Nothing in this fortnight yet. Pull themes from the backlog.",
+      "releaseAllConfirm": "Click again to send {n} to their clients"
     },
     "actions": {
       "pull": "Pull into the fortnight",
@@ -1136,7 +1137,8 @@
       "allManual": "None have artwork attached, so all of them get posted by hand.",
       "willSend": "Sends itself",
       "byHand": "By hand",
-      "noAccount": "Has artwork, no account"
+      "noAccount": "Has artwork, no account",
+      "buildOrderConfirm": "Click again to commit {n} to the order"
     },
     "calendar": {
       "title": "Calendar",

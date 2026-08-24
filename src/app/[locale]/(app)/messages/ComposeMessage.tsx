@@ -4,6 +4,7 @@ import { useActionState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 
 import { sendMessageAction, type SendState } from "./actions";
+import { Refusal } from "../social/_components/ActionPrimitives";
 
 const initial: SendState = { ok: false };
 
@@ -34,7 +35,8 @@ export function ComposeMessage({
   }, [state]);
 
   return (
-    <form ref={formRef} action={action} className="flex items-center gap-2">
+    <form ref={formRef} action={action} className="flex flex-col gap-1">
+      <div className="flex items-center gap-2">
       <input type="hidden" name="locale" value={locale} />
       <input type="hidden" name="client_id" value={clientId ?? ""} />
       <input type="hidden" name="room" value={room ?? "client"} />
@@ -51,6 +53,10 @@ export function ComposeMessage({
       >
         {sendLabel}
       </button>
+      </div>
+      {/* A send that failed cleared nothing and said nothing: the message
+          stayed in the box and the only reading was that the click missed. */}
+      <Refusal error={state.error} />
     </form>
   );
 }

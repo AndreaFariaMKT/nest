@@ -3,6 +3,7 @@
 import { useState, useTransition } from "react";
 
 import type { Result } from "../actions";
+import { Refusal } from "./ActionPrimitives";
 
 /**
  * Two clicks, not a `window.confirm`. This is the pattern the rest of the repo
@@ -25,6 +26,7 @@ export function ConfirmDeleteButton({
   action: (formData: FormData) => Promise<Result>;
 }) {
   const [armed, setArmed] = useState(false);
+  const [error, setError] = useState<string | undefined>();
   const [pending, startTransition] = useTransition();
 
   function onClick() {
@@ -36,21 +38,31 @@ export function ConfirmDeleteButton({
     fd.set("id", id);
     fd.set("locale", locale);
     startTransition(async () => {
-      await action(fd);
+      // The Result was thrown away. A delete a foreign key refuses returns
+      // {ok:false, error:"dbBadReference"} and nothing appeared at all: the
+      // button disarmed, the row stayed, and the only reading available was
+      // that the click had missed.
+      const result = await action(fd);
+      setError(result.ok ? undefined : result.error);
       setArmed(false);
-
     });
   }
 
   return (
-    <button
-      type="button"
-      onClick={onClick}
-      onBlur={() => setArmed(false)}
-      disabled={pending}
-      className="rounded-sm text-xs text-muted-foreground underline-offset-2 transition-colors hover:text-destructive hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-50"
-    >
-      {armed ? confirmLabel : label}
-    </button>
+    <span className="inline-flex flex-col items-end">
+      <button
+        type="button"
+        onClick={onClick}
+        onBlur={() => setArmed(false)}
+        disabled={pending}
+        // The label changes under the cursor when armed; without this a screen
+        // reader gets no signal that the next click is the destructive one.
+        aria-live="polite"
+        className="rounded-sm text-xs text-muted-foreground underline-offset-2 transition-colors hover:text-destructive hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-50"
+      >
+        {armed ? confirmLabel : label}
+      </button>
+      <Refusal error={error} />
+    </span>
   );
 }

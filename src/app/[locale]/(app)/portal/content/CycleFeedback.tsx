@@ -1,10 +1,11 @@
 "use client";
 
-import { useActionState, useEffect, useRef } from "react";
+import { useActionState, useEffect, useRef, useState } from "react";
 import { useTranslations } from "next-intl";
 import { useRouter } from "next/navigation";
 
 import { Button } from "@/components/ui/Button";
+import { Refusal } from "../../social/_components/ActionPrimitives";
 import { Label } from "@/components/ui/Label";
 import { Textarea } from "@/components/ui/Textarea";
 import { sendMessageAction, type SendState } from "../../messages/actions";
@@ -49,6 +50,12 @@ export function CycleFeedback({
     return action(formData);
   }
 
+  // With both boxes empty the composed body is empty, and sendMessageAction
+  // returns { ok: false } with no error: the client pressed Send and
+  // absolutely nothing happened — no message, no complaint, no reset. Disabled
+  // is the honest state.
+  const [empty, setEmpty] = useState(true);
+
   return (
     <section className="mt-6 rounded-2xl border border-border bg-card p-5">
       <h2 className="mb-1 text-[10px] font-medium uppercase tracking-widest text-muted-foreground">
@@ -56,7 +63,20 @@ export function CycleFeedback({
       </h2>
       <p className="mb-4 text-xs text-muted-foreground">{t("hint")}</p>
 
-      <form ref={form} action={compose} className="space-y-4">
+      <form
+        ref={form}
+        action={compose}
+        onInput={() => {
+          const el = form.current;
+          if (!el) return;
+          const data = new FormData(el);
+          setEmpty(
+            !(data.get("themes") ?? "").toString().trim() &&
+              !(data.get("cycle") ?? "").toString().trim(),
+          );
+        }}
+        className="space-y-4"
+      >
         <input type="hidden" name="locale" value={locale} />
         <input type="hidden" name="client_id" value={clientId} />
         <input type="hidden" name="room" value="client" />
@@ -72,15 +92,18 @@ export function CycleFeedback({
         </div>
 
         <div className="flex items-center gap-3">
-          <Button type="submit" disabled={pending}>
+          <Button type="submit" disabled={pending || empty}>
             {t("send")}
           </Button>
           {state.ok && !pending ? (
-            <span className="text-xs text-emerald-600">{t("sent")}</span>
+            <span role="status" className="text-xs text-emerald-600">
+              {t("sent")}
+            </span>
           ) : null}
-          {state.error ? (
-            <span className="text-xs text-destructive">{state.error}</span>
-          ) : null}
+          {/* Was rendering the raw key — a client saw the literal string
+              "unauthorized" or "dbFailed" in the middle of a Portuguese page.
+              Refusal is the component that turns those into sentences. */}
+          <Refusal error={state.error} />
         </div>
       </form>
     </section>
