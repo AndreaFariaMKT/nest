@@ -5,6 +5,7 @@ import { getSessionUser } from "@/lib/auth";
 import { getPortalClient } from "@/lib/client-portal";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { ComposeMessage } from "../../messages/ComposeMessage";
+import { LiveMessages } from "../../messages/LiveMessages";
 import { NotLinked } from "../_NotLinked";
 
 export const dynamic = "force-dynamic";
@@ -100,6 +101,15 @@ export default async function PortalChat({
         room="client"
         placeholder={t("chat.placeholder")}
         sendLabel={t("chat.send")}
+      />
+      {/* The client's side of the same room. Realtime applies this table's
+          RLS per subscriber, so they are told about their own room and about
+          nothing else — the team room's events are hidden by the same policy
+          that hides its rows. */}
+      <LiveMessages
+        clientId={client.id}
+        room="client"
+        selfId={user?.id ?? null}
       />
     </div>
   );

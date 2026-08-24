@@ -11,6 +11,7 @@ import { PageHeader } from "@/components/ui/PageHeader";
 import { Pill } from "@/components/ui/Pill";
 import { cn } from "@/lib/utils";
 import { ComposeMessage } from "./ComposeMessage";
+import { LiveMessages } from "./LiveMessages";
 
 export const dynamic = "force-dynamic";
 
@@ -250,6 +251,11 @@ export default async function MessagesPage({
               room={active.kind}
               placeholder={t("placeholder")}
               sendLabel={t("send")}
+            />
+            <LiveMessages
+              clientId={active.clientId || null}
+              room={active.kind}
+              selfId={user?.id ?? null}
             />
           </div>
         </section>

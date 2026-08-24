@@ -1,7 +1,6 @@
 "use client";
 
 import { useActionState, useEffect, useRef } from "react";
-import { useRouter } from "next/navigation";
 
 import { sendMessageAction, type SendState } from "./actions";
 import { Refusal } from "../social/_components/ActionPrimitives";
@@ -22,15 +21,16 @@ export function ComposeMessage({
   /** "team" keeps the message inside the studio; "client" is readable by them. */
   room?: "team" | "client";
 }) {
-  const router = useRouter();
   const [state, action, pending] = useActionState(sendMessageAction, initial);
   const formRef = useRef<HTMLFormElement>(null);
 
   useEffect(() => {
-    if (state.ok) {
-      formRef.current?.reset();
-      router.refresh();
-    }
+    if (!state.ok) return;
+    formRef.current?.reset();
+    // No refresh. sendMessageAction revalidates both message routes, so the
+    // action's own response already carries the re-rendered list for whichever
+    // one you are on — the refresh fetched an identical tree a second time.
+    // With the live subscription now mounted, it would have been a third.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [state]);
 

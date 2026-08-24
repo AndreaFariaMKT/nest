@@ -62,7 +62,14 @@ export async function sendMessageAction(
     return { ok: false, error: dbError(error) };
   }
 
-  revalidatePath(`/${locale}/messages`);
-  revalidatePath(`/${locale}/portal/messages`);
+  // Both forms, the way the social module does it. localePrefix is
+  // "as-needed" with pt-BR as the default, so a Brazilian reader is on
+  // `/messages` and the locale-prefixed path alone never matched the route
+  // they were actually looking at. The compose box used to paper over that
+  // with its own router.refresh(); without one, this is the whole mechanism.
+  for (const path of ["/messages", "/portal/messages"]) {
+    revalidatePath(`/${locale}${path}`);
+    revalidatePath(path);
+  }
   return { ok: true };
 }
