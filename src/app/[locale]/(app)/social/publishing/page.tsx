@@ -39,14 +39,28 @@ export default async function PublishingPage({
   // difference has to be visible — the worst outcome in this whole flow is
   // someone believing a post is scheduled when nothing will send it.
   const supabase = await createClient();
-  const { data: withArt } = await supabase
-    .from("slides")
-    .select("draft_id")
-    .in(
-      "draft_id",
-      [...approved, ...order].map((p) => p.id),
-    );
-  const automatic = new Set((withArt ?? []).map((r) => r.draft_id));
+  //
+  // Asked of content_drafts, not of slides. Querying `slides` directly returns
+  // one row PER IMAGE — up to ten per piece — against PostgREST's silent
+  // 1000-row cap, and the set here is cumulative: every approved, scheduled
+  // and published piece the tenant has ever made. A hundred artworked pieces
+  // is one year of use and a thousand slide rows, and past the cap pieces drop
+  // out of this Set silently: they render "by hand" and the count undercounts.
+  // That is the same truncation listPieces was hardened against, and it would
+  // produce exactly the failure this screen exists to prevent.
+  //
+  // Bounded by the piece count instead — the shape enqueueForPublish uses.
+  const ids = [...approved, ...order].map((p) => p.id);
+  const automatic = new Set<string>();
+  if (ids.length) {
+    const { data: withArt } = await supabase
+      .from("content_drafts")
+      .select("id, slides(id)")
+      .in("id", ids);
+    for (const row of withArt ?? []) {
+      if ((row.slides as unknown[] | null)?.length) automatic.add(row.id);
+    }
+  }
   const approvedAuto = approved.filter((p) => automatic.has(p.id)).length;
   const live = order.filter((p) => p.status === "published").length;
 

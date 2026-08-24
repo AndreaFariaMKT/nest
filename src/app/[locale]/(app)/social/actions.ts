@@ -1077,48 +1077,86 @@ export async function attachArtworkAction(
   const cleared = await clearArtwork(supabase, id);
   if (!cleared.ok) return cleared;
 
-  for (const [index, file] of files.entries()) {
-    const { data: slide, error: slideError } = await supabase
-      .from("slides")
-      .insert({ draft_id: id, tenant_id: tenantId, position: index + 1, data: {} })
-      .select("id")
-      .single();
-    if (slideError || !slide) {
-      log.error("social.artwork", "slide_insert_failed", {
-        code: slideError?.code ?? "unknown",
-      });
-      return fail(slideError ? dbError(slideError) : "dbFailed");
-    }
-
-    const ext = file.type === "image/jpeg" ? "jpg" : "png";
-    const path = `${id}/${slide.id}-v1.${ext}`;
-    const { error: uploadError } = await supabase.storage
-      .from("creatives")
-      .upload(path, file, { contentType: file.type, upsert: true });
-    if (uploadError) {
-      log.error("social.artwork", "upload_failed", {
-        message: uploadError.message,
-      });
-      return fail("artworkUploadFailed");
-    }
-
-    const { data: urlData } = supabase.storage
-      .from("creatives")
-      .getPublicUrl(path);
-
-    const { error: creativeError } = await supabase.from("creatives").insert({
-      slide_id: slide.id,
-      draft_id: id,
-      tenant_id: tenantId,
-      version: 1,
-      image_url: urlData.publicUrl,
+  // Bulk, not one-at-a-time.
+  //
+  // This used to insert a slide, await, upload, await, insert a creative,
+  // await — per file. Ten images meant thirty sequential round trips plus ten
+  // strictly serial uploads of up to 10 MB each: the worst wall-clock path in
+  // the module by a wide margin, on a Brazilian upstream link.
+  const { data: slides, error: slideError } = await supabase
+    .from("slides")
+    .insert(
+      files.map((_, i) => ({
+        draft_id: id,
+        tenant_id: tenantId,
+        position: i + 1,
+        data: {},
+      })),
+    )
+    .select("id, position");
+  if (slideError || !slides || slides.length !== files.length) {
+    log.error("social.artwork", "slide_insert_failed", {
+      code: slideError?.code ?? "unknown",
     });
-    if (creativeError) {
-      log.error("social.artwork", "creative_insert_failed", {
-        code: creativeError.code,
-      });
-      return fail(dbError(creativeError));
+    await clearArtwork(supabase, id);
+    return fail(slideError ? dbError(slideError) : "artworkUploadFailed");
+  }
+
+  const ordered = [...slides].sort((a, b) => a.position - b.position);
+
+  // Uploaded in small batches rather than all at once: ten 10 MB files held in
+  // a function's memory together is how a 1 GB limit becomes an OOM.
+  const BATCH = 3;
+  const creatives: Database["public"]["Tables"]["creatives"]["Insert"][] = [];
+  for (let i = 0; i < files.length; i += BATCH) {
+    const slice = files.slice(i, i + BATCH);
+    const results = await Promise.all(
+      slice.map(async (file, k) => {
+        const slide = ordered[i + k];
+        const ext = file.type === "image/jpeg" ? "jpg" : "png";
+        const path = `${id}/${slide.id}-v1.${ext}`;
+        const { error } = await supabase.storage
+          .from("creatives")
+          .upload(path, file, { contentType: file.type, upsert: true });
+        if (error) return { ok: false as const, message: error.message };
+        const { data: urlData } = supabase.storage
+          .from("creatives")
+          .getPublicUrl(path);
+        return {
+          ok: true as const,
+          row: {
+            slide_id: slide.id,
+            draft_id: id,
+            tenant_id: tenantId,
+            version: 1,
+            image_url: urlData.publicUrl,
+          },
+        };
+      }),
+    );
+    for (const r of results) {
+      if (!r.ok) {
+        // All or nothing, and this is not optional. A partial set would leave
+        // slide rows with fewer creatives than images, so the piece reads as
+        // "will publish on its own" and the cron posts an incomplete carousel
+        // — worse than the upload simply having failed.
+        log.error("social.artwork", "upload_failed", { message: r.message });
+        await clearArtwork(supabase, id);
+        return fail("artworkUploadFailed");
+      }
+      creatives.push(r.row);
     }
+  }
+
+  const { error: creativeError } = await supabase
+    .from("creatives")
+    .insert(creatives);
+  if (creativeError) {
+    log.error("social.artwork", "creative_insert_failed", {
+      code: creativeError.code,
+    });
+    await clearArtwork(supabase, id);
+    return fail(dbError(creativeError));
   }
 
   revalidateModule(locale);
