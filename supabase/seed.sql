@@ -48,8 +48,24 @@ begin
     );
   end if;
 
-  -- handle_new_user() trigger creates the profile; promote to owner
+  -- handle_new_user() trigger creates the profile.
   update public.profiles
      set role = 'owner', full_name = 'Dev Owner'
    where id = dev_user_id;
+
+  -- The half that was missing, and the reason `supabase db reset` produced a
+  -- login that could not use the app.
+  --
+  -- Since migration 013 the app resolves a role from `tenant_members`, not
+  -- from `profiles.role`. With no membership row, mapStoredRole() fails closed
+  -- to `client`, the guard redirects every internal route to /portal, and
+  -- getPortalClient() returns null because the dev user is no client's
+  -- portal_user_id — so a developer following the README landed on an empty
+  -- "not linked yet" box with no way out but hand-written SQL.
+  --
+  -- Founder in both tenants, matching what the README promises.
+  insert into public.tenant_members (tenant_id, user_id, role)
+  select t.id, dev_user_id, 'founder'
+    from public.tenants t
+  on conflict (tenant_id, user_id) do update set role = 'founder';
 end $$;

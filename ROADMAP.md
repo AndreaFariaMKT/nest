@@ -21,12 +21,14 @@ Living document. Source of truth for **what is built**, **what is next**, and **
 - **Perf** — `React.cache()` auth dedupe, `staleTimes.dynamic=30`, `loading.tsx` skeleton.
 - **Types** — `database.ts` swapped to generated `database.gen.ts` (`npm run types:gen` needs `supabase login`).
 
-### Test logins (admin-created, email confirmed)
-| Role · Tenant | Email | Password |
-|---|---|---|
-| Founder · AFM | afm@andreafariamkt.com | Afm-6de0bad9 |
-| Founder · Nest | nest@andreafariamkt.com | Nest-99b6a8c1 |
-| Client · AFM | client@andreafariamkt.com | Client-demo123 |
+### Test logins
+
+Removed from this file. Three email/password pairs lived here in plaintext —
+two of them founder accounts on the production tenants — in a tracked file on
+a GitHub remote. Deleting them here does not remove them from the history, so
+the passwords were rotated rather than hidden.
+
+Credentials do not belong in the repository. Ask whoever holds them.
 
 ### Social media module — 2026-08
 
