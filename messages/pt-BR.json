@@ -1148,7 +1148,9 @@
       "willSend": "Sai sozinha",
       "byHand": "À mão",
       "noAccount": "Tem arte, falta conta",
-      "buildOrderConfirm": "Clique de novo para fechar a ordem com {n}"
+      "buildOrderConfirm": "Clique de novo para fechar a ordem com {n}",
+      "failed": "Não saiu",
+      "failedNote": "Esse não publicou. A fila reportou: {error}. Resolva o que ela aponta e monte a ordem de novo."
     },
     "calendar": {
       "title": "Calendário",

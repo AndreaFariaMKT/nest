@@ -1148,7 +1148,9 @@
       "willSend": "Sends itself",
       "byHand": "By hand",
       "noAccount": "Has artwork, no account",
-      "buildOrderConfirm": "Click again to commit {n} to the order"
+      "buildOrderConfirm": "Click again to commit {n} to the order",
+      "failed": "Did not go out",
+      "failedNote": "This one did not publish. The queue reported: {error}. Fix what it names, then build the order again."
     },
     "calendar": {
       "title": "Calendar",

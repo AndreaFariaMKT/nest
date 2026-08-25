@@ -287,6 +287,20 @@ export async function invitePortalLoginAction(
     return { error: "inviteFailed" };
   }
 
+  // Which tenant this client belongs to. The membership row below needs it,
+  // and reading it from the client record rather than the caller's session
+  // keeps the two from ever disagreeing.
+  const { data: clientRow } = await admin
+    .from("clients")
+    .select("tenant_id")
+    .eq("id", clientId)
+    .maybeSingle();
+
+  if (!clientRow) {
+    log.error("clients.portal-login", "client_not_found", {});
+    return { error: "linkFailed" };
+  }
+
   // Service role: `clients` is not writable by a session that is not already
   // a member, and this runs before the invitee is anyone at all.
   const { error: linkError } = await admin
@@ -297,6 +311,27 @@ export async function invitePortalLoginAction(
   if (linkError) {
     log.error("clients.portal-login", "link_failed", {
       code: linkError.code ?? "unknown",
+    });
+    return { error: "linkFailed" };
+  }
+
+  // And the membership, which is the half that makes the link mean anything.
+  //
+  // Migration 014 installs a RESTRICTIVE `tenant_isolation` policy on every
+  // tenant-owned table — restrictive ANDs with every permissive grant, so a
+  // login with no membership row reads NOTHING, whatever else allows it.
+  // Without this the invited client signs in, reaches their portal, and every
+  // screen is empty forever. Exactly the failure the team invite had.
+  const { error: memberError } = await admin
+    .from("tenant_members")
+    .upsert(
+      { tenant_id: clientRow.tenant_id, user_id: userId, role: "client" },
+      { onConflict: "tenant_id,user_id" },
+    );
+
+  if (memberError) {
+    log.error("clients.portal-login", "membership_failed", {
+      code: memberError.code ?? "unknown",
     });
     return { error: "linkFailed" };
   }

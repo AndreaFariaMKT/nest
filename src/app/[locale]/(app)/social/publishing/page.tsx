@@ -91,6 +91,22 @@ export default async function PublishingPage({
     piece.channels.length > 0 &&
     piece.channels.every((c) => connected.has(`${piece.client_id}:${c}`));
 
+  // What the QUEUE says, which is the only place a failure is recorded. The
+  // cron writes `failed` and `last_error` to scheduled_posts and never touches
+  // content_drafts — so a piece that failed three times still rendered the
+  // brand-coloured "will publish on its own" pill on the screen whose entire
+  // job is to make that difference visible.
+  const { data: queueRows } = ids.length
+    ? await supabase
+        .from("scheduled_posts")
+        .select("draft_id, status, last_error")
+        .in("draft_id", ids)
+    : { data: [] };
+  const queueTrouble = new Map<string, string | null>();
+  for (const row of queueRows ?? []) {
+    if (row.status === "failed") queueTrouble.set(row.draft_id, row.last_error);
+  }
+
   const approvedAuto = approved.filter(
     (p) => automatic.has(p.id) && canSend(p),
   ).length;
@@ -157,7 +173,11 @@ export default async function PublishingPage({
               </span>
               <StageBadge stage={p.status} />
               {p.status === "scheduled" ? (
-                automatic.has(p.id) && !canSend(p) ? (
+                queueTrouble.has(p.id) ? (
+                  <Pill tone="danger" className="text-[10px]">
+                    {t("publishing.failed")}
+                  </Pill>
+                ) : automatic.has(p.id) && !canSend(p) ? (
                   // Has the artwork, has no account: the one case that used to
                   // read as "will publish on its own" and would not have.
                   <Pill tone="warning" className="text-[10px]">
@@ -182,6 +202,14 @@ export default async function PublishingPage({
             >
               {p.title}
             </Link>
+
+            {queueTrouble.has(p.id) ? (
+              <p className="mt-2 rounded-md bg-destructive/10 px-3 py-2 text-xs leading-relaxed text-destructive">
+                {t("publishing.failedNote", {
+                  error: queueTrouble.get(p.id) ?? "—",
+                })}
+              </p>
+            ) : null}
 
             {p.note_publish ? (
               <p className="mt-2 rounded-md bg-amber-500/10 px-3 py-2 text-xs leading-relaxed text-amber-700 dark:text-amber-300">

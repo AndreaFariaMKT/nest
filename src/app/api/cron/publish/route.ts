@@ -16,6 +16,7 @@ import {
   type SocialAccountRow,
 } from "@/lib/social-accounts";
 import { log } from "@/lib/log";
+import { recordError } from "@/lib/error-log";
 import { checkRateLimit, ipFromHeaders } from "@/lib/rate-limit";
 
 export const dynamic = "force-dynamic";
@@ -61,6 +62,7 @@ type ScheduledRow = {
   post_type: "carousel" | "single_image" | "reel" | "story" | "text";
   scheduled_for: string;
   attempt_count: number;
+  tenant_id: string;
 };
 
 type DraftWithSlides = {
@@ -145,7 +147,7 @@ async function handler(request: NextRequest) {
   // so a single run never blocks for too long.
   const { data: dueData, error: pickError } = await admin
     .from("scheduled_posts")
-    .select("id, draft_id, platform, post_type, scheduled_for, attempt_count")
+    .select("id, draft_id, platform, post_type, scheduled_for, attempt_count, tenant_id")
     .eq("status", "pending")
     .lte("scheduled_for", new Date().toISOString())
     .order("scheduled_for", { ascending: true })
@@ -378,8 +380,32 @@ async function bumpFailure(admin: Admin, row: ScheduledRow, reason: string) {
     attempt_count: nextAttempt,
     last_error: reason.slice(0, 2000),
   };
-  if (nextAttempt >= MAX_ATTEMPTS) patch.status = "failed";
+  const givingUp = nextAttempt >= MAX_ATTEMPTS;
+  if (givingUp) patch.status = "failed";
   await admin.from("scheduled_posts").update(patch).eq("id", row.id);
+
+  // The error log had exactly one caller — the browser error boundary — so
+  // the screen labelled "what broke" was blind to every automated pipeline in
+  // the app. A post that never went out is the failure that costs a client
+  // something, and it was the one nobody could see without reading Vercel
+  // logs. Only on the final attempt: the first two are retried and the retry
+  // usually works.
+  if (givingUp) {
+    await recordError({
+      source: "cron",
+      area: "cron.publish",
+      scope: "publish_failed",
+      severity: "error",
+      err: new Error(reason),
+      tenantId: row.tenant_id,
+      context: {
+        scheduledId: row.id,
+        draftId: row.draft_id,
+        platform: row.platform,
+        attempts: nextAttempt,
+      },
+    });
+  }
 }
 
 export { handler as GET, handler as POST };

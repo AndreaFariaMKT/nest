@@ -27,11 +27,12 @@ export const dynamic = "force-dynamic";
  *   META_APP_SECRET                — same place
  *
  * Responses:
- *   - 200 { ok, previewNewToken, expiresInSec, expiresAt, reminder }
+ *   - 200 { ok, accessToken, previewNewToken, expiresInSec, expiresAt, reminder }
  *     — success. `reminder` tells the operator that the new token is
  *       NOT auto-persisted; they must update Vercel env + redeploy.
- *       previewNewToken shows a prefix + suffix only (full token logged
- *       by `log.info` at source, never returned in the API response).
+ *       The full token comes back as `accessToken` and is NOT logged — the
+ *       logger redacts any key containing "token", so logging it was a
+ *       recovery path that never worked.
  *   - 401 on missing / wrong CRON_SECRET
  *   - 429 on rate limit
  *   - 502 when Graph API refuses (invalid secret, revoked token, etc.)
@@ -128,9 +129,18 @@ async function handler(request: NextRequest) {
     ? new Date(Date.now() + result.expiresInSec * 1000).toISOString()
     : null;
 
+  // Not the token. This used to log it under the key `full_access_token`, and
+  // the runbook told the operator to recover it with `vercel logs`. It never
+  // could: log.ts redacts by SUBSTRING, and "token" is one of the patterns, so
+  // that field has always come out as "[redacted]". The one documented way to
+  // read a refreshed Meta token has never worked, and would have been
+  // discovered at the next sixty-day expiry with publishing already down.
+  //
+  // Un-redacting was the wrong fix. A live credential in a log persists, is
+  // visible to anyone with Vercel access, and outlives the person reading it.
+  // The token goes back to the caller instead — this endpoint requires
+  // CRON_SECRET, so the caller is the operator who asked for it.
   log.info("cron.meta-refresh", "refresh_success", {
-    // Emits the full token to server logs — read with `vercel logs`.
-    full_access_token: fullToken,
     preview,
     expiresInSec: result.expiresInSec,
     expiresAt,
@@ -138,15 +148,18 @@ async function handler(request: NextRequest) {
 
   return NextResponse.json({
     ok: true,
+    // The whole point of calling this by hand. Bearer-gated, and returned
+    // rather than logged so it exists exactly once, in the operator's terminal.
+    accessToken: fullToken,
     previewNewToken: preview,
     tokenType: result.tokenType,
     expiresInSec: result.expiresInSec,
     expiresAt,
     reminder:
-      "Token refreshed but NOT persisted. Copy the full token from the server " +
-      "logs (`vercel logs` — look for full_access_token) into the " +
-      "META_LONG_LIVED_TOKEN env var in Vercel → Project → Settings → " +
-      "Environment Variables, then redeploy so the new token takes effect.",
+      "Token refreshed but NOT persisted. Copy `accessToken` from THIS " +
+      "response into META_LONG_LIVED_TOKEN in Vercel → Project → Settings → " +
+      "Environment Variables, then redeploy. It is not written to the logs: " +
+      "this response is the only place it appears.",
   });
 }
 
