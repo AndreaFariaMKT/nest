@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { useEffect, useState } from "react";
 import { usePathname } from "@/i18n/routing";
 import { BrandLockup } from "@/components/icons/Brand";
@@ -49,6 +50,7 @@ export function MobileNav({
   unreadCount: number;
   socialScreens: SubScreen[];
 }) {
+  const tCommon = useTranslations("common");
   const [open, setOpen] = useState(false);
   const pathname = usePathname();
 
@@ -81,7 +83,7 @@ export function MobileNav({
         <button
           type="button"
           onClick={() => setOpen(true)}
-          aria-label="Menu"
+          aria-label={tCommon("openMenu")}
           aria-expanded={open}
           className="grid h-9 w-9 place-items-center rounded-lg text-sidebar-foreground/70 hover:bg-white/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
         >
@@ -119,7 +121,7 @@ export function MobileNav({
         <div className="fixed inset-0 z-50 md:hidden">
           <button
             type="button"
-            aria-label="Close menu"
+            aria-label={tCommon("closeMenu")}
             onClick={() => setOpen(false)}
             className="absolute inset-0 bg-black/50"
           />
@@ -135,7 +137,7 @@ export function MobileNav({
               <button
                 type="button"
                 onClick={() => setOpen(false)}
-                aria-label="Close menu"
+                aria-label={tCommon("closeMenu")}
                 className="grid h-8 w-8 place-items-center rounded-lg text-sidebar-foreground/60 hover:bg-white/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
               >
                 <svg

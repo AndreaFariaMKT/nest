@@ -2,7 +2,7 @@
 // resolves — the navigation feels immediate even while server data loads.
 export default function Loading() {
   return (
-    <div className=" animate-pulse" aria-busy aria-label="Loading">
+    <div className=" animate-pulse" aria-busy aria-label="…">
       <div className="mb-8">
         <div className="h-3 w-28 rounded bg-muted" />
         <div className="mt-3 h-8 w-72 rounded bg-muted" />

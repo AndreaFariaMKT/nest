@@ -883,7 +883,11 @@
     "create": "Criar",
     "edit": "Editar",
     "search": "Buscar",
-    "comingSoon": "Em breve"
+    "comingSoon": "Em breve",
+    "signOut": "Sair",
+    "openMenu": "Abrir menu",
+    "closeMenu": "Fechar menu",
+    "toggleSidebar": "Recolher ou expandir a barra lateral"
   },
   "social": {
     "screens": {

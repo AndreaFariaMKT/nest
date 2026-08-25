@@ -230,7 +230,7 @@ export default async function KpiPage({
                 <CardTitle>{t("sparkline")}</CardTitle>
               </CardHeader>
               <CardContent>
-                <Sparkline points={series} />
+                <Sparkline label={t("sparkline")} points={series} />
               </CardContent>
             </Card>
           ) : null}
@@ -251,8 +251,11 @@ function Tile({ label, value }: { label: string; value: string }) {
 
 function Sparkline({
   points,
+  label,
 }: {
   points: { day: string; reach: number }[];
+  /** Read aloud in place of the chart, so it belongs in the dictionary. */
+  label: string;
 }) {
   const width = 600;
   const height = 80;
@@ -276,7 +279,7 @@ function Sparkline({
       viewBox={`0 0 ${width} ${height}`}
       preserveAspectRatio="none"
       className="h-20 w-full"
-      aria-label="Daily reach"
+      aria-label={label}
     >
       <path d={d} fill="none" stroke="currentColor" strokeWidth="1.5" />
       {points.map((p, i) => (

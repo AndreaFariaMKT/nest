@@ -2,10 +2,12 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 
 import { createClient } from "@/lib/supabase/client";
 
 export function SignOutButton() {
+  const t = useTranslations("common");
   const router = useRouter();
   const [pending, setPending] = useState(false);
 
@@ -20,8 +22,8 @@ export function SignOutButton() {
     <button
       onClick={signOut}
       disabled={pending}
-      title="Sign out"
-      aria-label="Sign out"
+      title={t("signOut")}
+      aria-label={t("signOut")}
       className="grid h-8 w-8 place-items-center rounded-lg text-sidebar-foreground/70 transition-colors hover:bg-white/5 hover:text-sidebar-foreground"
     >
       <svg

@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { BrandLockup, BrandMark } from "@/components/icons/Brand";
@@ -58,6 +59,7 @@ export function Sidebar({
   /** The social module's screens, rendered as sub-items while inside it. */
   socialScreens: SubScreen[];
 }) {
+  const tCommon = useTranslations("common");
   const [collapsed, setCollapsed] = useState(initialCollapsed);
   const router = useRouter();
 
@@ -101,7 +103,7 @@ export function Sidebar({
         )}
         <button
           onClick={toggle}
-          aria-label="Toggle sidebar"
+          aria-label={tCommon("toggleSidebar")}
           className="grid h-7 w-7 place-items-center rounded-lg text-sidebar-foreground/60 hover:bg-white/5 hover:text-sidebar-foreground"
         >
           <Chevron dir={collapsed ? "right" : "left"} />
