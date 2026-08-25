@@ -608,7 +608,6 @@ export type Database = {
           created_by: string | null
           design_feedback: string | null
           design_state: Database["public"]["Enums"]["design_state"]
-          direction_ok: boolean
           embedding: string | null
           engine: string
           hashtags: string[] | null
@@ -652,7 +651,6 @@ export type Database = {
           created_by?: string | null
           design_feedback?: string | null
           design_state?: Database["public"]["Enums"]["design_state"]
-          direction_ok?: boolean
           embedding?: string | null
           engine?: string
           hashtags?: string[] | null
@@ -696,7 +694,6 @@ export type Database = {
           created_by?: string | null
           design_feedback?: string | null
           design_state?: Database["public"]["Enums"]["design_state"]
-          direction_ok?: boolean
           embedding?: string | null
           engine?: string
           hashtags?: string[] | null
