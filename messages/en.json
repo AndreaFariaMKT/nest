@@ -887,7 +887,8 @@
     "signOut": "Sign out",
     "openMenu": "Open menu",
     "closeMenu": "Close menu",
-    "toggleSidebar": "Collapse or expand the sidebar"
+    "toggleSidebar": "Collapse or expand the sidebar",
+    "viewAs": "View as"
   },
   "social": {
     "screens": {

@@ -11,7 +11,25 @@ const sans = Inter({
   display: "swap",
 });
 
-// Manier · Indian Type Foundry — licensed to Studio Andréa Faria
+// Manier — TRIAL FILES, NOT LICENSED. Read this before touching the display face.
+//
+// The comment here used to read "Indian Type Foundry — licensed to Studio
+// Andréa Faria". Both halves were false. The files name themselves
+// "Manier Regular-Trial" and carry "Copyright © 2018 by Piotr Łapa".
+//
+// They also cannot set Portuguese. Each weight holds 70 glyphs — A-Z, a-z,
+// 0-9 and a little punctuation — and NONE of the accents this product is
+// written in: á à â ã é ê í ó ô õ ú ü ç and every capital form, plus
+// ; ' " ( ) [ ] { } – — … / % $ @ # * + =
+//
+// The browser falls back per character, so "Configurações" renders as
+// "Configura" in Manier, "çõ" in the system face, "es" in Manier again —
+// mismatched letterforms inside one word. 27 page titles in messages/pt-BR.json
+// are affected, including Calendário, Reuniões, Administração and Visão geral.
+//
+// Fixing this means buying the licence and shipping the full-charset files, or
+// choosing a different display face. Both are the studio's call, not a code
+// change — which is why this is a comment and not a swap.
 const manier = localFont({
   src: [
     { path: "../../public/fonts/Manier-Thin.otf",         weight: "100", style: "normal" },

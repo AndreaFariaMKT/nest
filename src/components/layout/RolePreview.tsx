@@ -3,7 +3,9 @@
 import { useRouter } from "next/navigation";
 import { useTransition } from "react";
 
-import { APP_ROLES, ROLE_LABEL, type AppRole } from "@/lib/roles";
+import { useTranslations } from "next-intl";
+
+import { APP_ROLES, type AppRole } from "@/lib/roles";
 
 /**
  * Founder-only role preview — see the app exactly as any role would. Non-founders
@@ -16,13 +18,20 @@ export function RolePreview({
   actualRole: AppRole;
   current: AppRole | null;
 }) {
+  // ROLE_LABEL is a hardcoded English map. This mounts in the sidebar footer
+  // and the mobile drawer — persistent chrome on every page, for every user —
+  // so "Founder" and "Designer · identity" were sitting in English on every
+  // screen of a Portuguese product. team.appRoles already carries the right
+  // strings in both dictionaries; they were written and never used here.
+  const t = useTranslations("team");
+  const tCommon = useTranslations("common");
   const router = useRouter();
   const [pending, startTransition] = useTransition();
 
   if (actualRole !== "founder") {
     return (
       <div className="px-1 text-xs text-sidebar-foreground/60">
-        {ROLE_LABEL[actualRole]}
+        {t(`appRoles.${actualRole}`)}
       </div>
     );
   }
@@ -40,7 +49,7 @@ export function RolePreview({
   return (
     <div>
       <p className="mb-1 px-1 text-[10px] font-semibold uppercase tracking-[0.14em] text-sidebar-muted">
-        View as
+        {tCommon("viewAs")}
       </p>
       <select
         value={value}
@@ -50,7 +59,7 @@ export function RolePreview({
       >
         {APP_ROLES.map((r) => (
           <option key={r} value={r} className="text-ink">
-            {ROLE_LABEL[r]}
+            {t(`appRoles.${r}`)}
           </option>
         ))}
       </select>

@@ -41,16 +41,9 @@ export {
 } from "@/lib/app-roles";
 import type { AppRole } from "@/lib/app-roles";
 
-export const ROLE_LABEL: Record<AppRole, string> = {
-  founder: "Founder",
-  manager: "Manager",
-  social: "Social media",
-  designer_social: "Designer · social",
-  designer_identity: "Designer · identity",
-  developer: "Developer",
-  accountant: "Accountant",
-  client: "Client",
-};
+// ROLE_LABEL lived here: a hardcoded English map rendered in the sidebar
+// footer on every page of a Portuguese product. The dictionaries already
+// carried team.appRoles in both locales.
 
 /** Every navigable destination in the app. `label` is an i18n key under nav.*. */
 export interface NavItem {

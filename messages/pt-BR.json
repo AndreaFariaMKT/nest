@@ -887,7 +887,8 @@
     "signOut": "Sair",
     "openMenu": "Abrir menu",
     "closeMenu": "Fechar menu",
-    "toggleSidebar": "Recolher ou expandir a barra lateral"
+    "toggleSidebar": "Recolher ou expandir a barra lateral",
+    "viewAs": "Ver como"
   },
   "social": {
     "screens": {
