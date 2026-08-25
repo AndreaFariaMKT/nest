@@ -95,3 +95,30 @@ describe("every social action that can succeed also revalidates", () => {
     expect(calls).toEqual([]);
   });
 });
+
+describe("scheduled_posts cleanup", () => {
+  const source = readFileSync(
+    `${process.cwd()}/src/app/[locale]/(app)/social/actions.ts`,
+    "utf8",
+  );
+
+  /**
+   * The cron selects on `scheduled_posts.status = 'pending'` alone — it never
+   * reads the draft's stage — and it runs once a day. So every transition that
+   * takes a piece OUT of `scheduled` has to remove its queued row, or the
+   * cron posts it again the next morning to the client's real account.
+   *
+   * `mark_live` was missing. A piece scheduled for the afternoon, published by
+   * hand that afternoon and marked live, was published a second time at 08:10
+   * the next day.
+   */
+  it("clears the queue on every move out of scheduled", () => {
+    for (const action of ["mark_live", "unmark_live", "return_to_backlog"]) {
+      expect(source, action).toContain(`action === "${action}"`);
+    }
+    // And it clears failed rows too, not just pending: a row the cron gave up
+    // on was otherwise permanent, and kept the publishing screen red after a
+    // successful re-queue.
+    expect(source).toContain('.in("status", ["pending", "failed"])');
+  });
+});

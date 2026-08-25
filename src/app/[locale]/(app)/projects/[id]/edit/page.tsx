@@ -1,3 +1,4 @@
+import { listAssignablePeople } from "@/lib/people";
 import { setRequestLocale, getTranslations } from "next-intl/server";
 import { notFound } from "next/navigation";
 import { Link } from "@/i18n/routing";
@@ -41,14 +42,10 @@ export default async function EditTaskPage({
     name: c.name,
   }));
 
-  const { data: profilesData } = await supabase
-    .from("profiles")
-    .select("id, full_name, email")
-    .order("full_name", { ascending: true });
-  const assignees: AssigneeChoice[] = (profilesData ?? []).map((p) => ({
-    id: p.id,
-    label: p.full_name ?? p.email,
-  }));
+  // Not `profiles`: that table's `role` column is the legacy enum the
+  // app never writes, so filtering on it matched everyone and not
+  // filtering matched every tenant. See listAssignablePeople.
+  const assignees: AssigneeChoice[] = await listAssignablePeople();
 
   return (
     <div className="mx-auto max-w-2xl">

@@ -2,7 +2,7 @@ import { getTranslations } from "next-intl/server";
 import { Link } from "@/i18n/routing";
 import type { Route } from "next";
 
-import { waitingFor, type SocialPiece } from "@/lib/social";
+import { isReplyOverdue } from "@/lib/social";
 import type { SocialScope } from "../_data";
 import { ClientFilter } from "./ClientFilter";
 
@@ -20,14 +20,20 @@ import { ClientFilter } from "./ClientFilter";
  * is the only one that gets a colour.
  */
 export async function ModuleShell({ scope }: { scope: SocialScope }) {
-  const { pieces, caps, clients, client } = scope;
+  const { pieces, clients, client } = scope;
   const t = await getTranslations("social");
 
-  const overdue = waitingFor(caps, {
-    pieces: pieces as SocialPiece[],
-    clients: scope.clientIndex,
-    today: scope.today,
-  }).filter((e) => e.reason === "replyPassed").length;
+  // Counted from the pieces, not from waitingFor(). `replyPassed` is emitted
+  // only under `caps.includes("client")`, and no internal role holds that cap
+  // — the guard bounces role `client` out of /social entirely. So this bar was
+  // structurally always zero and never rendered on any of the eleven screens.
+  // The count it needs is the studio-side one: how many pieces are sitting
+  // with a client past the date that client was given.
+  const overdue = pieces.filter(
+    (p) =>
+      (p.status === "client_review" || p.status === "changes_requested") &&
+      isReplyOverdue(p.publish_on, scope.today),
+  ).length;
 
   const suffix = client ? `?client=${client.slug}` : "";
 

@@ -384,12 +384,23 @@ export async function runTransitionAction(
   // Leaving `scheduled` means the piece is no longer going out on its own.
   // A queued row left behind would publish something the studio just pulled
   // back — the one mistake in this module that cannot be undone.
-  if (action === "unmark_live" || action === "return_to_backlog") {
+  //
+  // `mark_live` belongs here and was missing, which is the same mistake in its
+  // worst form. The cron selects on `scheduled_posts.status = 'pending'` alone
+  // and never reads the draft's stage, and it runs once a day at 08:10. So a
+  // piece scheduled for the afternoon, published by hand that afternoon and
+  // marked live, still had a pending row the next morning — and the cron
+  // posted it a second time, to the client's real account.
+  if (
+    action === "mark_live" ||
+    action === "unmark_live" ||
+    action === "return_to_backlog"
+  ) {
     await supabase
       .from("scheduled_posts")
       .delete()
       .eq("draft_id", id)
-      .eq("status", "pending");
+      .in("status", ["pending", "failed"]);
   }
 
   // No notification here on purpose. The client hears once a day, from
@@ -624,11 +635,17 @@ async function enqueueForPublish(
 
   // Clear first: re-entering the order after a date change must not leave the
   // old instant queued alongside the new one, which would publish twice.
+  //
+  // `failed` goes too, not just `pending`. A row the cron gave up on was
+  // terminal — nothing in the app ever deleted or reset one — so it sat in
+  // /scheduling forever, and kept the publishing screen painting the piece
+  // red long after a successful re-queue. Re-entering the order IS the retry
+  // gesture; the attempt it replaces is history, not a live warning.
   await supabase
     .from("scheduled_posts")
     .delete()
     .in("draft_id", pieceIds)
-    .eq("status", "pending");
+    .in("status", ["pending", "failed"]);
 
   const { error } = await supabase.from("scheduled_posts").insert(queued);
   if (error) {
