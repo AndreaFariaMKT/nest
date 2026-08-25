@@ -30,7 +30,6 @@
     "home": "Home",
     "tasks": "Tasks",
     "messages": "Messages",
-    "businessPlan": "Business plan",
     "administration": "Administration",
     "finance": "Finance",
     "commercial": "Commercial",
@@ -39,8 +38,6 @@
     "scheduling": "Scheduling",
     "overview": "Overview",
     "people": "People",
-    "playbook": "Playbook",
-    "productionQueue": "Production queue",
     "feedback": "Feedback",
     "identityProjects": "Identity projects",
     "websiteBuilds": "Website builds",
@@ -139,16 +136,6 @@
     "byPillar": "By pillar",
     "noPillar": "No pillar",
     "empty": "No content yet."
-  },
-  "productionQueue": {
-    "title": "Production queue",
-    "subtitle": "Content in production.",
-    "empty": "Nothing in production right now.",
-    "status": {
-      "draft": "Drafting",
-      "text_review": "Text review",
-      "creative_review": "Creative review"
-    }
   },
   "feedback": {
     "title": "Feedback & status",
@@ -339,7 +326,8 @@
       "portalEmpty": "No portal link yet. Generate one to let the client see upcoming posts and pending approvals without a login.",
       "reports": "Monthly report",
       "reportsHint": "Generate a Claude-written monthly recap — highlights, lessons, and next-month pillars.",
-      "reportMonth": "Month"
+      "reportMonth": "Month",
+      "portalLinkNote": "Or a shared link, for a client who would rather not have a login. Anyone holding it can read the portal, so rotate it if it leaves their hands."
     },
     "fields": {
       "name": "Name",
@@ -382,6 +370,20 @@
     "report": {
       "badPeriod": "That month could not be read. Nothing was generated.",
       "notClosed": "That month has not ended yet. The report is written about a closed month — its numbers would still change."
+    },
+    "portalLogin": {
+      "label": "Client's email",
+      "invite": "Send portal invite",
+      "hint": "They get an email to set a password, and then see their own portal — text, artwork, approvals, calendar and report. Nothing internal.",
+      "sent": "Invite sent to {email}.",
+      "linked": "{email} has a portal login for this client.",
+      "errors": {
+        "unauthorized": "Only the founder can do this.",
+        "badRequest": "Something was missing from that request.",
+        "badEmail": "Enter a valid email address.",
+        "inviteFailed": "The invite could not be sent. Check the address and try again.",
+        "linkFailed": "The invite was sent, but the login is not linked to this client yet. Tell them to wait before signing in."
+      }
     }
   },
   "projects": {
@@ -646,12 +648,6 @@
       "stories": "The stories were not generated. Try again — if it keeps failing, the AI key may be missing or expired.",
       "reelScript": "The reel script did not run. Try again — if it keeps failing, the AI key may be missing or expired."
     }
-  },
-  "brandKits": {
-    "title": "Brand Kits",
-    "subtitle": "Every client's palette, typography and assets in one place.",
-    "empty": "No brand kits yet. Configure one from a client's detail page.",
-    "colorsSuffix": "colors"
   },
   "services": {
     "title": "Services",
@@ -961,7 +957,8 @@
       "noClients": "No client has the social module switched on yet.",
       "fortnight": "The fortnight",
       "noClientsAction": "Add a client",
-      "moduleOffAction": "Switch the module on"
+      "moduleOffAction": "Switch the module on",
+      "reference": "Reference and setup"
     },
     "health": {
       "onRhythm": "On rhythm",

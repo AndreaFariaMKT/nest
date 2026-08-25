@@ -26,7 +26,6 @@ export const mapLegacyRole = mapStoredRole;
  * stay reachable. Clients are hard-isolated to the portal below.
  */
 const RESTRICTED: { prefix: string; roles: AppRole[] }[] = [
-  { prefix: "/business-plan", roles: ["founder"] },
   { prefix: "/commercial", roles: ["founder"] },
   { prefix: "/finance", roles: ["founder", "accountant"] },
   { prefix: "/administration", roles: ["founder", "accountant"] },

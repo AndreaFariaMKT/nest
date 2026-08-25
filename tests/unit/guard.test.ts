@@ -55,8 +55,7 @@ describe("guardRedirect", () => {
     expect(guardRedirect("/administration", "accountant")).toBeNull();
   });
 
-  it("gates business-plan + commercial to founder only", () => {
-    expect(guardRedirect("/business-plan", "manager")).toBe("/today");
+  it("gates commercial to founder only", () => {
     expect(guardRedirect("/commercial", "accountant")).toBe("/today");
     expect(guardRedirect("/commercial", "founder")).toBeNull();
   });

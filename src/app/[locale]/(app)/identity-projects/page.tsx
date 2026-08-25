@@ -23,8 +23,9 @@ export default async function IdentityProjectsPage({
     supabase.from("brand_kits").select("id, name, palette, guidelines_url, client_id").eq("tenant_id", tenantId).order("updated_at", { ascending: false }),
     supabase.from("clients").select("id, name, slug").eq("tenant_id", tenantId),
   ]);
-  // The orphaned /brand-kits screen linked these correctly; this one, which is
-  // the one in the sidebar, printed the client as text.
+  // This printed the client as dead text; a duplicate index screen at
+  // /brand-kits linked them correctly and was reachable from nowhere. That
+  // screen is gone and this one links.
   const clientOf = new Map(
     (clients ?? []).map((c) => [c.id, { name: c.name, slug: c.slug }]),
   );

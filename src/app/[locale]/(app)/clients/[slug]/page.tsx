@@ -31,6 +31,8 @@ import {
 } from "./_components/ClientMembersCard";
 import { SocialModuleCard } from "./_components/SocialModuleCard";
 import { recentMonths } from "@/lib/social";
+import { PortalLoginForm } from "./_components/PortalLoginForm";
+import { createAdminClient } from "@/lib/supabase/admin";
 
 type Client = Database["public"]["Tables"]["clients"]["Row"];
 type BrandKitPreview = {
@@ -86,6 +88,21 @@ export default async function ClientDetailPage({
 
   if (!data) notFound();
   const client = data as Client;
+
+  // Who, if anyone, already has a portal login for this client. Read with the
+  // service key because `profiles` carries no grant that lets one session look
+  // up another user's email, and the answer here is a fact about this client's
+  // own record.
+  const portalLoginEmail = client.portal_user_id
+    ? ((
+        await createAdminClient()
+          .from("profiles")
+          .select("email")
+          .eq("id", client.portal_user_id)
+          .maybeSingle()
+      ).data?.email ?? null)
+    : null;
+
 
   // isOwner() is React.cache()-wrapped, so this costs nothing beyond the
   // profile read the layout already did.
@@ -540,7 +557,25 @@ export default async function ClientDetailPage({
                 {t("sections.portal")}
               </CardTitle>
             </CardHeader>
-            <CardContent className="text-sm">
+            <CardContent className="space-y-5 text-sm">
+              {/* The login. clients.portal_user_id had no write site anywhere,
+                  so the authenticated portal — ten screens and the client
+                  role's whole navigation — could not be reached by any real
+                  client, and the shared link below was the only thing that
+                  worked. */}
+              <PortalLoginForm
+                clientId={client.id}
+                slug={client.slug}
+                locale={locale}
+                linkedEmail={portalLoginEmail}
+              />
+
+              <div className="border-t border-border pt-4">
+                <p className="mb-2 text-xs text-muted-foreground">
+                  {t("sections.portalLinkNote")}
+                </p>
+              </div>
+
               {client.portal_token ? (
                 <div className="space-y-3">
                   <code className="block select-all overflow-x-auto rounded bg-muted px-2 py-1.5 text-xs">

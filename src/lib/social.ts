@@ -1150,25 +1150,13 @@ export function waitingFor(
 }
 
 /**
- * The module's screens as the sidebar renders them.
- *
- * Same list, same caps, one omission: `messages`. Every role that holds a
- * social cap already carries Messages in its own sidebar group (NAV_BY_ROLE),
- * so repeating it as a sub-item would be the same link twice in one column.
- *
- * `meetings` left too, once NAV gained an entry for it — it stayed here only
- * because this list was the only path to /meetings in the whole app.
- */
-/**
  * May this role open this path inside the module?
  *
  * Nav is nav — a link that is not rendered is not a permission. Every screen
- * here declares who it is for, and until now only /social/accounts acted on
- * that: the middleware let any role holding ANY social capability into the
- * whole /social prefix, so a designer who typed /social/backlog read every
- * client's shelf, /social/publishing the whole order, /social/logins the
- * shared accounts. The per-screen `caps.includes` calls dotted around the
- * pages only hide buttons.
+ * declares who it is for, and only /social/accounts used to act on that: the
+ * middleware let any role holding ANY social capability into the whole /social
+ * prefix, so a designer who typed /social/backlog read every client's shelf.
+ * The `caps.includes` calls dotted around the pages only hide buttons.
  *
  * Derived from SOCIAL_SCREENS rather than restated, so a screen added without
  * a thought about who may see it is denied rather than open.
@@ -1212,12 +1200,56 @@ export function firstSocialScreen(role: AppRole): string {
   return socialScreensFor(role)[0]?.href ?? "/today";
 }
 
+/**
+ * The screens on the daily path, in the order a fortnight runs.
+ *
+ * The sub-nav used to list all thirteen, which is every screen the module has
+ * — including three that are touched at onboarding and then almost never, and
+ * a monthly report. A navigation that lists everything ranks nothing.
+ */
+const DAILY_SCREENS = [
+  "waiting",
+  "fortnight",
+  "backlog",
+  "production",
+  "publishing",
+  "calendar",
+] as const;
+
+/** Reference and configuration: real, and not part of a fortnight. */
+export const REFERENCE_SCREENS = ["media", "logins", "accounts"] as const;
+
+/**
+ * The module's screens as the sidebar renders them.
+ *
+ * `messages` and `meetings` left once both had their own sidebar entries —
+ * meetings only stayed this long because this list was the sole path to it in
+ * the whole app. `report` moved to Insights, beside the other reports, because
+ * it is a monthly artifact and not a fortnight one.
+ *
+ * The reference screens are linked from the module's overview, so for anyone
+ * who can open that they would be the same link twice. A designer cannot open
+ * it — direction and coordination only — so for them the reference screens
+ * they hold stay here, which is the difference between "off the daily path"
+ * and "unreachable".
+ */
 export function socialSidebarScreens(
   role: AppRole,
 ): { key: string; href: string }[] {
-  // Both now have their own sidebar entries, in the group where people
-  // actually look for them. Repeating them under the module would be the same
-  // link twice in one column.
-  const elsewhere = new Set(["messages", "meetings"]);
-  return socialScreensFor(role).filter((s) => !elsewhere.has(s.key));
+  const mine = socialScreensFor(role);
+  const hasOverview = mine.some((s) => s.key === "overview");
+  const keep = new Set<string>(DAILY_SCREENS);
+  if (!hasOverview) {
+    for (const key of REFERENCE_SCREENS) keep.add(key);
+  }
+  // Ordered by DAILY_SCREENS, not by the declaration order of SOCIAL_SCREENS:
+  // this list is a sequence, and reading it top to bottom should describe how
+  // a fortnight actually moves.
+  const rank = (key: string) => {
+    const i = (DAILY_SCREENS as readonly string[]).indexOf(key);
+    return i === -1 ? DAILY_SCREENS.length : i;
+  };
+  return mine
+    .filter((s) => keep.has(s.key))
+    .sort((a, b) => rank(a.key) - rank(b.key));
 }

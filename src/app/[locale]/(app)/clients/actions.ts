@@ -7,6 +7,8 @@ import type { Route } from "next";
 import { createClient as createSupabaseClient } from "@/lib/supabase/server";
 import { currentTenantId } from "@/lib/tenant-server";
 import { slugify } from "@/lib/slug";
+import { createAdminClient } from "@/lib/supabase/admin";
+import { isOwner } from "@/lib/roles-server";
 
 export type ClientStatus = "prospect" | "active" | "paused" | "archived";
 
@@ -233,4 +235,73 @@ export async function revokePortalTokenAction(
 
   revalidatePath(`/${locale}/clients/${slug}`);
   redirect(localePath(locale, `/clients/${slug}`));
+}
+
+export type PortalLoginState = { error?: string; success?: string };
+
+/**
+ * Give a client a real login, and link it to their record.
+ *
+ * `clients.portal_user_id` is what the whole authenticated portal reads — ten
+ * screens, the client role's entire navigation, `owns_portal_client()`, the
+ * daily digest's recipient list. Migration 017 declared the column and
+ * NOTHING in this repository ever wrote it. So the good portal was
+ * unreachable for every real client, and the only client-facing surface that
+ * worked was the anonymous bearer link at /p/[token].
+ *
+ * Same shape as the team invite: create the auth user, then write the row that
+ * makes them somebody. A failure to write the link is reported rather than
+ * hidden behind a success that leaves them with a login and nothing to see.
+ */
+export async function invitePortalLoginAction(
+  _prev: PortalLoginState,
+  formData: FormData,
+): Promise<PortalLoginState> {
+  if (!(await isOwner())) return { error: "unauthorized" };
+
+  const clientId = (formData.get("clientId") ?? "").toString();
+  const slug = (formData.get("slug") ?? "").toString();
+  const locale = (formData.get("locale") ?? "pt-BR").toString();
+  const email = (formData.get("email") ?? "").toString().trim().toLowerCase();
+
+  if (!clientId || !slug) return { error: "badRequest" };
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return { error: "badEmail" };
+
+  const admin = createAdminClient();
+  const { data, error } = await admin.auth.admin.inviteUserByEmail(email, {
+    redirectTo: `${process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000"}/portal`,
+  });
+
+  if (error) {
+    // Collapsed, like the team invite: a distinct "already registered" turns
+    // this into an account-enumeration oracle against the studio's clients.
+    log.error("clients.portal-login", "invite_failed", {
+      status: error.status,
+    });
+    return { error: "inviteFailed" };
+  }
+
+  const userId = data?.user?.id;
+  if (!userId) {
+    log.error("clients.portal-login", "invite_returned_no_user", {});
+    return { error: "inviteFailed" };
+  }
+
+  // Service role: `clients` is not writable by a session that is not already
+  // a member, and this runs before the invitee is anyone at all.
+  const { error: linkError } = await admin
+    .from("clients")
+    .update({ portal_user_id: userId })
+    .eq("id", clientId);
+
+  if (linkError) {
+    log.error("clients.portal-login", "link_failed", {
+      code: linkError.code ?? "unknown",
+    });
+    return { error: "linkFailed" };
+  }
+
+  revalidatePath(`/${locale}/clients/${slug}`);
+  revalidatePath(`/clients/${slug}`);
+  return { success: email };
 }

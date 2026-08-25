@@ -30,7 +30,6 @@
     "home": "Início",
     "tasks": "Tarefas",
     "messages": "Mensagens",
-    "businessPlan": "Plano de negócio",
     "administration": "Administração",
     "finance": "Financeiro",
     "commercial": "Comercial",
@@ -39,8 +38,6 @@
     "scheduling": "Agendamento",
     "overview": "Visão geral",
     "people": "Pessoas",
-    "playbook": "Playbook",
-    "productionQueue": "Fila de produção",
     "feedback": "Feedback",
     "identityProjects": "Projetos de identidade",
     "websiteBuilds": "Sites",
@@ -139,16 +136,6 @@
     "byPillar": "Por pilar",
     "noPillar": "Sem pilar",
     "empty": "Nenhum conteúdo ainda."
-  },
-  "productionQueue": {
-    "title": "Fila de produção",
-    "subtitle": "Conteúdo em produção.",
-    "empty": "Nada em produção no momento.",
-    "status": {
-      "draft": "Em redação",
-      "text_review": "Revisão de texto",
-      "creative_review": "Revisão de criativo"
-    }
   },
   "feedback": {
     "title": "Feedback e status",
@@ -339,7 +326,8 @@
       "portalEmpty": "Nenhum link gerado. Crie um pra deixar o cliente acompanhar posts + aprovações sem precisar de login.",
       "reports": "Relatório mensal",
       "reportsHint": "Gera um recap mensal escrito pelo Claude — destaques, aprendizados e pilares pro próximo ciclo.",
-      "reportMonth": "Mês"
+      "reportMonth": "Mês",
+      "portalLinkNote": "Ou um link compartilhado, para um cliente que prefere não ter login. Quem tiver o link lê o portal, então gire-o se ele sair das mãos dela."
     },
     "fields": {
       "name": "Nome",
@@ -382,6 +370,20 @@
     "report": {
       "badPeriod": "Não deu para ler esse mês. Nada foi gerado.",
       "notClosed": "Esse mês ainda não terminou. O relatório é sobre um mês fechado — os números ainda mudariam."
+    },
+    "portalLogin": {
+      "label": "E-mail do cliente",
+      "invite": "Enviar convite do portal",
+      "hint": "A pessoa recebe um e-mail para criar a senha e passa a ver o portal dela — texto, arte, aprovações, calendário e relatório. Nada interno.",
+      "sent": "Convite enviado para {email}.",
+      "linked": "{email} tem login no portal deste cliente.",
+      "errors": {
+        "unauthorized": "Só a direção pode fazer isso.",
+        "badRequest": "Faltou alguma coisa nesse pedido.",
+        "badEmail": "Digite um e-mail válido.",
+        "inviteFailed": "Não deu para enviar o convite. Confira o endereço e tente de novo.",
+        "linkFailed": "O convite foi enviado, mas o login ainda não está ligado a este cliente. Peça para a pessoa aguardar antes de entrar."
+      }
     }
   },
   "projects": {
@@ -646,12 +648,6 @@
       "stories": "Os stories não foram gerados. Tente de novo — se continuar falhando, a chave da IA pode estar faltando ou vencida.",
       "reelScript": "O roteiro do reels não rodou. Tente de novo — se continuar falhando, a chave da IA pode estar faltando ou vencida."
     }
-  },
-  "brandKits": {
-    "title": "Brand Kits",
-    "subtitle": "Paletas, tipografia e assets de todos os clientes em um só lugar.",
-    "empty": "Nenhum brand kit ainda. Configure um pela página de detalhe do cliente.",
-    "colorsSuffix": "cores"
   },
   "services": {
     "title": "Serviços",
@@ -961,7 +957,8 @@
       "noClients": "Nenhum cliente tem o módulo de social ligado ainda.",
       "fortnight": "A quinzena",
       "noClientsAction": "Cadastrar um cliente",
-      "moduleOffAction": "Ligar o módulo"
+      "moduleOffAction": "Ligar o módulo",
+      "reference": "Referência e configuração"
     },
     "health": {
       "onRhythm": "No ritmo",

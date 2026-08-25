@@ -119,7 +119,6 @@ function revalidateModule(locale: string): void {
     "/portal/media",
     "/portal/logins",
     "/content-calendar",
-    "/production-queue",
     "/scheduling",
   ]) {
     revalidatePath(`/${locale}${path}`);

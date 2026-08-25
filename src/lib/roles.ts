@@ -8,14 +8,11 @@ import {
   ContentIcon,
   MessageIcon,
   CoinIcon,
-  BookIcon,
   FolderIcon,
   FunnelIcon,
   MegaphoneIcon,
   ClockIcon,
   EyeIcon,
-  PlaybookIcon,
-  LayersIcon,
   PenIcon,
   CodeIcon,
   FileIcon,
@@ -23,6 +20,7 @@ import {
   ChartIcon,
   FilmIcon,
   KeyIcon,
+  ServicesIcon,
   SettingsIcon,
 } from "@/components/icons/NavIcons";
 
@@ -67,7 +65,6 @@ export const NAV: Record<string, NavItem> = {
   tasks: { key: "tasks", href: "/projects", label: "tasks", icon: ProjectsIcon },
   calendar: { key: "calendar", href: "/calendar", label: "calendar", icon: CalendarIcon },
   messages: { key: "messages", href: "/messages", label: "messages", icon: MessageIcon },
-  bplan: { key: "bplan", href: "/business-plan", label: "businessPlan", icon: BookIcon },
   admin: { key: "admin", href: "/administration", label: "administration", icon: FolderIcon },
   // Founder only, and the nav is the cosmetic half — /admin is in guard.ts's
   // RESTRICTED and the page redirects on its own.
@@ -83,13 +80,21 @@ export const NAV: Record<string, NavItem> = {
   finance: { key: "finance", href: "/finance", label: "finance", icon: CoinIcon },
   commercial: { key: "commercial", href: "/commercial", label: "commercial", icon: FunnelIcon },
   marketing: { key: "marketing", href: "/marketing", label: "marketing", icon: MegaphoneIcon },
+  // The content engine's own board. /production-queue pointed at the same
+  // table with a narrower status filter — literally this screen's first
+  // bucket — and the same editor, so it was one door too many.
   content: { key: "content", href: "/content-calendar", label: "contentCalendar", icon: ContentIcon },
+  // The module's monthly report, beside the other reports rather than inside
+  // the fortnight's navigation: it is a monthly artifact, not a daily screen.
+  socialReport: { key: "socialReport", href: "/social/report", label: "performance", icon: ChartIcon },
+  // The service catalogue. ClientServicesCard assigns services to clients and
+  // never linked to the place they are created, so the only way in was typing
+  // the URL.
+  services: { key: "services", href: "/services", label: "services", icon: ServicesIcon },
   schedule: { key: "schedule", href: "/scheduling", label: "scheduling", icon: ClockIcon },
   overview: { key: "overview", href: "/overview", label: "overview", icon: EyeIcon },
   clients: { key: "clients", href: "/clients", label: "clients", icon: ClientsIcon },
   people: { key: "people", href: "/team", label: "people", icon: TeamIcon },
-  playbook: { key: "playbook", href: "/playbook", label: "playbook", icon: PlaybookIcon },
-  queue: { key: "queue", href: "/production-queue", label: "productionQueue", icon: LayersIcon },
   social: { key: "social", href: "/social", label: "socialMedia", icon: MegaphoneIcon },
   reports: { key: "reports", href: "/reports", label: "reports", icon: ChartIcon },
   feedback: { key: "feedback", href: "/feedback", label: "feedback", icon: MeetingsIcon },
@@ -117,39 +122,38 @@ export interface NavGroup {
 export const NAV_BY_ROLE: Record<AppRole, NavGroup[]> = {
   founder: [
     { group: "daily", keys: ["home", "tasks", "calendar", "meetings", "messages"] },
-    { group: "leadership", keys: ["bplan", "admin", "finance", "commercial", "marketing"] },
+    { group: "leadership", keys: ["admin", "finance", "commercial", "marketing"] },
     { group: "content", keys: ["social", "content", "schedule"] },
-    { group: "insights", keys: ["reports"] },
+    { group: "insights", keys: ["reports", "socialReport"] },
     { group: "operation", keys: ["overview", "clients"] },
-    { group: "directory", keys: ["people", "playbook"] },
+    { group: "directory", keys: ["people", "services"] },
     { group: "system", keys: ["errors", "settings"] },
   ],
   manager: [
     { group: "daily", keys: ["home", "tasks", "calendar", "meetings", "messages"] },
     { group: "marketing", keys: ["marketing", "social", "content", "schedule"] },
-    { group: "insights", keys: ["reports"] },
+    { group: "insights", keys: ["reports", "socialReport"] },
     { group: "operation", keys: ["overview", "clients"] },
-    { group: "directory", keys: ["people", "playbook"] },
+    { group: "directory", keys: ["people"] },
   ],
   social: [
     { group: "daily", keys: ["home", "tasks", "messages"] },
-    { group: "content", keys: ["social", "content", "schedule", "marketing"] },
-    { group: "directory", keys: ["playbook"] },
+    { group: "content", keys: ["social", "content", "marketing"] },
+    { group: "insights", keys: ["socialReport"] },
   ],
   designer_social: [
     { group: "daily", keys: ["home", "calendar", "messages"] },
-    { group: "work", keys: ["social", "queue", "feedback"] },
-    { group: "directory", keys: ["playbook"] },
+    // No "queue" here any more: it pointed at the content engine's board,
+    // while a social designer's actual queue is inside the module.
+    { group: "work", keys: ["social", "feedback"] },
   ],
   designer_identity: [
     { group: "daily", keys: ["home", "messages"] },
     { group: "work", keys: ["idprojects"] },
-    { group: "directory", keys: ["playbook"] },
   ],
   developer: [
     { group: "daily", keys: ["home", "messages"] },
     { group: "work", keys: ["builds"] },
-    { group: "directory", keys: ["playbook"] },
   ],
   accountant: [
     { group: "daily", keys: ["home", "messages"] },

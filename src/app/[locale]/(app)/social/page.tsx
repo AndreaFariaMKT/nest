@@ -6,13 +6,15 @@ import { PageHeader } from "@/components/ui/PageHeader";
 import { Pill } from "@/components/ui/Pill";
 import { cn } from "@/lib/utils";
 import {
-  formatIsoDate,
+  FORTNIGHT_ANCHOR,
+  REFERENCE_SCREENS,
+  SOCIAL_SCREENS,
   addDays,
   clientHealth,
-  type HealthLevel,
+  formatIsoDate,
   fortnightOf,
-  FORTNIGHT_ANCHOR,
   socialScreensFor,
+  type HealthLevel,
   type SocialPiece,
 } from "@/lib/social";
 import { loadScope } from "./_data";
@@ -193,6 +195,32 @@ export default async function SocialOverview({
           </section>
         </div>
       </div>
+
+      {/* The reference screens. They were in the sidebar beside the six that a
+          fortnight actually moves through, which is where they stopped
+          ranking: media, shared logins and publishing accounts are touched at
+          onboarding and then almost never. They live here, on the module's
+          own front page, one click from anywhere inside it. */}
+      <section className="mt-6 rounded-2xl border border-border bg-card p-5">
+        <h2 className="mb-3 text-[10px] font-medium uppercase tracking-widest text-muted-foreground">
+          {t("overview.reference")}
+        </h2>
+        <div className="flex flex-wrap gap-2">
+          {SOCIAL_SCREENS.filter(
+            (screen) =>
+              (REFERENCE_SCREENS as readonly string[]).includes(screen.key) &&
+              screen.caps.some((c) => scope.caps.includes(c)),
+          ).map((screen) => (
+            <Link
+              key={screen.key}
+              href={`${screen.href}${scope.client ? `?client=${scope.client.slug}` : ""}` as Route}
+              className="inline-flex items-center rounded-md border border-border px-3 py-1.5 text-sm text-muted-foreground transition-colors hover:border-brand hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            >
+              {t(`screens.${screen.key}`)}
+            </Link>
+          ))}
+        </div>
+      </section>
     </>
   );
 }

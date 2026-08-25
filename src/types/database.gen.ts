@@ -600,9 +600,9 @@ export type Database = {
           caption: string | null
           channels: Database["public"]["Enums"]["platform"][]
           client_approved_at: string | null
-          client_rejected_at: string | null
           client_comment: string | null
           client_id: string
+          client_rejected_at: string | null
           compliance_report: Json | null
           created_at: string
           created_by: string | null
@@ -644,9 +644,9 @@ export type Database = {
           caption?: string | null
           channels?: Database["public"]["Enums"]["platform"][]
           client_approved_at?: string | null
-          client_rejected_at?: string | null
           client_comment?: string | null
           client_id: string
+          client_rejected_at?: string | null
           compliance_report?: Json | null
           created_at?: string
           created_by?: string | null
@@ -688,9 +688,9 @@ export type Database = {
           caption?: string | null
           channels?: Database["public"]["Enums"]["platform"][]
           client_approved_at?: string | null
-          client_rejected_at?: string | null
           client_comment?: string | null
           client_id?: string
+          client_rejected_at?: string | null
           compliance_report?: Json | null
           created_at?: string
           created_by?: string | null
