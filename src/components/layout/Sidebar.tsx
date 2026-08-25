@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { NestMark } from "@/components/icons/NestMark";
+import { BrandLockup, BrandMark } from "@/components/icons/Brand";
 import { RolePreview } from "@/components/layout/RolePreview";
 import { SignOutButton } from "@/components/layout/SignOutButton";
 import { LanguageSwitcher } from "@/components/ui/LanguageSwitcher";
@@ -33,6 +33,7 @@ function Chevron({ dir }: { dir: "left" | "right" }) {
 
 export function Sidebar({
   theme,
+  tenantName,
   locale,
   profileName,
   role,
@@ -44,6 +45,8 @@ export function Sidebar({
   socialScreens,
 }: {
   theme: Theme;
+  /** The tenant's own name, from the database — the mark's accessible name. */
+  tenantName: string;
   locale: string;
   profileName: string;
   role: AppRole;
@@ -84,14 +87,17 @@ export function Sidebar({
         }`}
       >
         {collapsed ? (
-          <NestMark className="h-6 w-6 text-brand-soft" />
+          <BrandMark
+            theme={theme}
+            className="h-4 w-auto max-w-9 text-brand-soft"
+            aria-label={tenantName}
+          />
         ) : (
-          <div className="flex items-center gap-2">
-            <NestMark className="h-6 w-6 text-brand-soft" />
-            <span className="font-display text-2xl lowercase tracking-tight text-brand-soft">
-              {theme === "afm" ? "AFM" : "nest"}
-            </span>
-          </div>
+          <BrandLockup
+            theme={theme}
+            className="h-6 w-auto text-brand-soft"
+            aria-label={tenantName}
+          />
         )}
         <button
           onClick={toggle}

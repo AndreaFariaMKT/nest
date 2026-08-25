@@ -68,6 +68,7 @@ export default async function AppLayout({
     <div className="flex h-screen overflow-hidden bg-background">
       <Sidebar
         theme={tenant.theme}
+        tenantName={tenant.name}
         locale={locale}
         profileName={profile?.full_name ?? user.email ?? ""}
         role={role}
@@ -84,6 +85,7 @@ export default async function AppLayout({
       <div className="flex min-w-0 flex-1 flex-col overflow-hidden">
         <MobileNav
           theme={tenant.theme}
+        tenantName={tenant.name}
           locale={locale}
           profileName={profile?.full_name ?? user.email ?? ""}
           role={role}

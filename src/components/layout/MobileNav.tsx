@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { usePathname } from "@/i18n/routing";
-import { NestMark } from "@/components/icons/NestMark";
+import { BrandLockup } from "@/components/icons/Brand";
 import { NavList } from "@/components/layout/NavList";
 import { RolePreview } from "@/components/layout/RolePreview";
 import { SignOutButton } from "@/components/layout/SignOutButton";
@@ -28,6 +28,7 @@ import type { Theme } from "@/lib/theme";
  */
 export function MobileNav({
   theme,
+  tenantName,
   locale,
   profileName,
   role,
@@ -38,6 +39,7 @@ export function MobileNav({
   socialScreens,
 }: {
   theme: Theme;
+  tenantName: string;
   locale: string;
   profileName: string;
   role: AppRole;
@@ -96,10 +98,11 @@ export function MobileNav({
         </button>
 
         <span className="flex items-center gap-2">
-          <NestMark className="h-5 w-5 text-brand-soft" />
-          <span className="font-display text-xl lowercase tracking-tight text-brand-soft">
-            {theme === "afm" ? "AFM" : "nest"}
-          </span>
+          <BrandLockup
+            theme={theme}
+            className="h-5 w-auto text-brand-soft"
+            aria-label={tenantName}
+          />
         </span>
 
         <span className="ml-auto flex items-center gap-1">
@@ -123,10 +126,11 @@ export function MobileNav({
           <div className="absolute inset-y-0 left-0 flex w-72 max-w-[85vw] flex-col bg-sidebar text-sidebar-foreground shadow-xl">
             <div className="flex items-center justify-between px-4 py-4">
               <span className="flex items-center gap-2">
-                <NestMark className="h-5 w-5 text-brand-soft" />
-                <span className="font-display text-xl lowercase tracking-tight text-brand-soft">
-                  {theme === "afm" ? "AFM" : "nest"}
-                </span>
+                <BrandLockup
+                  theme={theme}
+                  className="h-5 w-auto text-brand-soft"
+                  aria-label={tenantName}
+                />
               </span>
               <button
                 type="button"

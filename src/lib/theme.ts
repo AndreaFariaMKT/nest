@@ -9,3 +9,12 @@
  */
 const THEMES = ["nest", "afm"] as const;
 export type Theme = (typeof THEMES)[number];
+
+/**
+ * The theme now arrives from `tenants.theme` rather than a constant, so it is
+ * a string from the database and has to be checked before it selects a
+ * stylesheet and a logo.
+ */
+export function isTheme(v: string | null | undefined): v is Theme {
+  return v === "nest" || v === "afm";
+}
