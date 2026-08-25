@@ -99,11 +99,34 @@ together, and leaves you on the same system with the same problem next time.
 - Verified: `/api/health` returned `db.ok: true` on `6012ed2` (the service
   key), and `/clients` listed data after a real login (the publishable key —
   `/api/health` never touches it, so it proves only half).
-- **Open:** disabling the legacy keys in the Supabase dashboard. Until that
-  click the leaked `service_role` is still valid. Nothing else depends on it.
+- Legacy `anon` / `service_role` keys **disabled** in the Supabase dashboard.
+  That is the click that invalidates the key leaked in May; the project no
+  longer accepts it. `/clients` still listed data afterwards, which is what
+  proves the app was fully off them before they were turned off.
 
-**Anthropic.** Still unverified. Lower severity — cost exposure, not data.
-Rotate at console.anthropic.com and record it here.
+**Anthropic.** Rotated. The key pasted into chat on 2026-05-04 no longer
+applies.
+
+Both halves of the May incident are closed.
+
+### Known open — the `meta` group, 2026-08-25
+
+`/api/health` on production reports `inactiveOptional: ["meta", "linkedin",
+"tiktok", "sentry"]`. `META_LONG_LIVED_TOKEN` and
+`INSTAGRAM_BUSINESS_ACCOUNT_ID` are not set in Vercel.
+
+This does **not** block publishing — that reads per-client tokens out of
+`client_social_accounts`, which is a different path entirely. It blocks
+**metrics collection**, so the monthly report goes out with no reach,
+impressions or saves.
+
+Getting the token needs the Meta developer console plus `npm run meta:exchange`
+with `META_APP_ID` / `META_APP_SECRET` loaded locally. Handed to whoever owns
+the Meta account. Worth having before the September close, i.e. the first week
+of October.
+
+`INSTAGRAM_BUSINESS_ACCOUNT_ID` is the Instagram Business account id, not the
+Facebook page id. Confusing the two is the usual mistake.
 
 ### Second exposure, found 2026-08-25
 
