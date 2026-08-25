@@ -85,7 +85,38 @@ Durante a sessão, Andrea colou no chat (em vez de na UI da Vercel):
 1. **Supabase service_role key** (`sb_secret_*`) — orientado a rotacionar via Dashboard → Settings → API Keys → Roll
 2. **Anthropic API key** (`sk-ant-*`) — orientado a Disable + criar nova `nest-prod`
 
-**Verificar na próxima sessão:** se as chaves foram efetivamente rotacionadas (caso contrário, ainda há risco de uso indevido).
+### Resolution — 2026-08-25
+
+Left unverified for three and a half months. Closed as follows.
+
+**Supabase.** The project moved OFF the legacy JWT keys entirely, rather than
+rolling the JWT secret — rolling it invalidates `anon` and `service_role`
+together, and leaves you on the same system with the same problem next time.
+
+- New secret key `nest-prod-2026-08` created in the publishable/secret system.
+- `SUPABASE_SERVICE_ROLE_KEY` and `NEXT_PUBLIC_SUPABASE_ANON_KEY` swapped
+  together in Vercel, and redeployed.
+- Verified: `/api/health` returned `db.ok: true` on `6012ed2` (the service
+  key), and `/clients` listed data after a real login (the publishable key —
+  `/api/health` never touches it, so it proves only half).
+- **Open:** disabling the legacy keys in the Supabase dashboard. Until that
+  click the leaked `service_role` is still valid. Nothing else depends on it.
+
+**Anthropic.** Still unverified. Lower severity — cost exposure, not data.
+Rotate at console.anthropic.com and record it here.
+
+### Second exposure, found 2026-08-25
+
+`ROADMAP.md` carried three logins in plaintext, in a tracked file on a public
+remote, since commit `4a7a658`. Removed in `bf6e751` — which does not remove
+them from the history.
+
+Closed by deletion: all three accounts (`afm@`, `nest@`, `client@`) had already
+been removed from the project, so the passwords open nothing. No history
+rewrite was warranted for strings with no account behind them.
+
+The mechanism is the lesson, not the accounts: a `<Name>-<hex>` password in a
+versioned file. No credential belongs in this repository, in any document.
 
 ---
 
