@@ -7,6 +7,8 @@
  */
 
 import { createClient } from "@/lib/supabase/server";
+import { log } from "@/lib/log";
+import { env } from "@/lib/env";
 import {
   aggregateKpis,
   type AggregatedKpis,
@@ -23,7 +25,23 @@ import {
   type ReportNarrative,
 } from "@/lib/social-report";
 
+/**
+ * What the report knows about its own numbers.
+ *
+ * `ok` — snapshots were read for this period.
+ * `none` — the read succeeded and there is nothing to show: no post tracked
+ *   yet, or the collector has not run for these posts.
+ * `unavailable` — the read failed, or the metrics integration is not
+ *   connected at all, so no collection can have happened.
+ *
+ * The distinction is the whole point. Collapsing all three into zeros is how
+ * a client came to be shown a month that "reached 0 people".
+ */
+export type MetricsStatus = "ok" | "none" | "unavailable";
+
 export interface MonthReport {
+  /** Whether the headline numbers mean anything. */
+  metrics: MetricsStatus;
   month: ReportMonth;
   kpis: AggregatedKpis;
   /** Each headline number against the same number last month. */
@@ -49,8 +67,10 @@ const keepsOf = (k: AggregatedKpis) => k.saves + k.shares;
 async function kpisFor(
   clientIds: string[],
   month: ReportMonth,
-): Promise<AggregatedKpis> {
-  if (clientIds.length === 0) return aggregateKpis([]);
+): Promise<{ kpis: AggregatedKpis; status: MetricsStatus }> {
+  if (clientIds.length === 0) {
+    return { kpis: aggregateKpis([]), status: "none" as const };
+  }
 
   // One row per post, picked by DISTINCT ON in migration 027 — not one row per
   // post per day reduced here. The old shape asked for `.limit(2000)`, which
@@ -63,7 +83,14 @@ async function kpisFor(
     from_ts: month.fromIso,
     to_ts: month.toIso,
   });
-  if (error) return aggregateKpis([]);
+  // A failed RPC used to return aggregateKpis([]) — zeros, indistinguishable
+  // from a real month that reached nobody. The report then rendered them as
+  // five confident tiles with delta arrows, and the portal showed them to the
+  // paying client under the line "the numbers above are live either way".
+  if (error) {
+    log.error("social.report", "kpi_rpc_failed", { code: error.code ?? "unknown" });
+    return { kpis: aggregateKpis([]), status: "unavailable" as const };
+  }
 
   const latest: MetricSnapshot[] = (data ?? []).map((r) => ({
     publishedPostId: r.published_post_id,
@@ -75,7 +102,12 @@ async function kpisFor(
     saves: r.saves,
     shares: r.shares,
   }));
-  return aggregateKpis(latest);
+  // No snapshots is not zero reach. It means nothing was collected for this
+  // period — no posts tracked yet, or the collector never ran.
+  return {
+    kpis: aggregateKpis(latest),
+    status: latest.length ? ("ok" as const) : ("none" as const),
+  };
 }
 
 /** The pieces that actually went live inside the month. */
@@ -105,6 +137,7 @@ export async function loadMonthReport(
   if (!clientIds.length) {
     const empty = aggregateKpis([]);
     return {
+      metrics: "none",
       month,
       kpis: empty,
       deltas: {
@@ -139,18 +172,26 @@ export async function loadMonthReport(
         .limit(2),
     ]);
 
+  // Unavailable beats none: if the integration is not configured, the
+  // collector returns 503 and writes nothing, so an empty result is explained
+  // by that rather than by a quiet month.
+  const metrics: MetricsStatus = !env.meta.ok
+    ? "unavailable"
+    : kpis.status;
+
   const rows = reportRows ?? [];
   const narrative =
     rows.length === 1 ? readNarrative(rows[0].content) : null;
 
   return {
+    metrics,
     month,
-    kpis,
+    kpis: kpis.kpis,
     deltas: {
-      impressions: delta(kpis.impressions, prevKpis.impressions),
-      reach: delta(kpis.reach, prevKpis.reach),
-      interactions: delta(interactionsOf(kpis), interactionsOf(prevKpis)),
-      keeps: delta(keepsOf(kpis), keepsOf(prevKpis)),
+      impressions: delta(kpis.kpis.impressions, prevKpis.kpis.impressions),
+      reach: delta(kpis.kpis.reach, prevKpis.kpis.reach),
+      interactions: delta(interactionsOf(kpis.kpis), interactionsOf(prevKpis.kpis)),
+      keeps: delta(keepsOf(kpis.kpis), keepsOf(prevKpis.kpis)),
       published: delta(pieces.length, prevPieces.length),
     },
     axes: axisDistribution(pieces),

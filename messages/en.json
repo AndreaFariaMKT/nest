@@ -761,7 +761,7 @@
   },
   "reports": {
     "title": "Reports",
-    "subtitle": "Claude-written monthly recaps per client. Metrics charts land once Meta integration ships.",
+    "subtitle": "Monthly recaps written by Claude, per client. Metrics charts are on the KPI tab.",
     "listEmpty": "No reports yet. Generate one from a client's detail page.",
     "monthlyTitle": "Recap · {period}",
     "generatedAt": "Generated {when}",
@@ -805,7 +805,8 @@
       },
       "sparkline": "Daily reach over period",
       "noData": "No metrics in the selected period. Wait for the next cron run.",
-      "truncated": "This period holds more snapshots than one screen can total. The numbers below are partial — narrow the date range."
+      "truncated": "This period holds more snapshots than one screen can total. The numbers below are partial — narrow the date range.",
+      "notConnected": "No numbers here yet, and none are being collected: the Instagram connection is not active. Nothing will appear until it is."
     }
   },
   "team": {
@@ -1397,7 +1398,12 @@
       "highlights": "Highlights",
       "lessons": "What we learned",
       "noNarrative": "No written reading for this month yet. The numbers above are live either way.",
-      "narrativePerClient": "The written reading is per client — pick one above to see it."
+      "narrativePerClient": "The written reading is per client — pick one above to see it.",
+      "metrics": {
+        "none": "No numbers for this month yet. Reach, impressions and saves appear once the pieces published in it have been measured.",
+        "unavailable": "Numbers are not being collected right now — the Instagram connection is not active. Everything else on this page is real; these four are simply not known."
+      },
+      "noNarrativeNoMetrics": "No written reading for this month yet."
     },
     "waitingOn": {
       "direction": "Waiting on direction",

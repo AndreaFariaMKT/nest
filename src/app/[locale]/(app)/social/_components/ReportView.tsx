@@ -56,11 +56,25 @@ export function ReportView({
         </div>
       </div>
 
+      {/* The four metric tiles render only when there are metrics behind them.
+          They used to render unconditionally, so a failed RPC and a month with
+          no snapshots both came out as five confident zeros with delta arrows
+          — on the client's own portal, under a line saying the numbers were
+          live either way. "Published" stays: it is counted from the pieces,
+          not from Instagram, and it is true whatever the collector did. */}
       <div className="mb-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
-        <Kpi label={t("kpi.impressions")} value={kpis.impressions} d={deltas.impressions} />
-        <Kpi label={t("kpi.reach")} value={kpis.reach} d={deltas.reach} />
-        <Kpi label={t("kpi.interactions")} value={deltas.interactions.current} d={deltas.interactions} />
-        <Kpi label={t("kpi.keeps")} value={deltas.keeps.current} d={deltas.keeps} />
+        {report.metrics === "ok" ? (
+          <>
+            <Kpi label={t("kpi.impressions")} value={kpis.impressions} d={deltas.impressions} />
+            <Kpi label={t("kpi.reach")} value={kpis.reach} d={deltas.reach} />
+            <Kpi label={t("kpi.interactions")} value={deltas.interactions.current} d={deltas.interactions} />
+            <Kpi label={t("kpi.keeps")} value={deltas.keeps.current} d={deltas.keeps} />
+          </>
+        ) : (
+          <div className="rounded-2xl border border-dashed border-border bg-card p-5 text-sm leading-relaxed text-muted-foreground sm:col-span-2 lg:col-span-4">
+            {t(`metrics.${report.metrics}`)}
+          </div>
+        )}
         <Kpi label={t("kpi.published")} value={report.published} d={deltas.published} />
       </div>
 
@@ -118,8 +132,14 @@ export function ReportView({
             </div>
           ) : (
             <p className="py-6 text-sm leading-relaxed text-muted-foreground">
+              {/* The old copy vouched for the tiles above — "the numbers
+                  above are live either way" — which was exactly wrong when
+                  those numbers were the zero-fill of a failed read. It only
+                  says that now when there is something to vouch for. */}
               {report.awaitingNarrative
-                ? t("noNarrative")
+                ? report.metrics === "ok"
+                  ? t("noNarrative")
+                  : t("noNarrativeNoMetrics")
                 : t("narrativePerClient")}
             </p>
           )}

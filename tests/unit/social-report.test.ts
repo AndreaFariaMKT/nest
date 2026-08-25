@@ -1,5 +1,9 @@
 import { describe, it, expect } from "vitest";
 
+import en from "../../messages/en.json";
+import ptBR from "../../messages/pt-BR.json";
+import type { MetricsStatus } from "@/app/[locale]/(app)/social/_report";
+
 import {
   axisDistribution,
   delta,
@@ -159,5 +163,37 @@ describe("the stored narrative", () => {
     expect(readNarrative("a string")).toBeNull();
     expect(readNarrative({})).toBeNull();
     expect(readNarrative({ summary: "", highlights: [] })).toBeNull();
+  });
+});
+
+describe("metrics status", () => {
+  /**
+   * The report used to answer a failed RPC with aggregateKpis([]) — zeros,
+   * indistinguishable from a month that genuinely reached nobody — and the
+   * view rendered them as five confident tiles with delta arrows, on the
+   * client's own portal, under a line saying the numbers were live either way.
+   *
+   * These assert the vocabulary exists and means three different things. The
+   * loader itself needs a database, so it is covered by the type rather than
+   * exercised here.
+   */
+  it("distinguishes measured, unmeasured and unavailable", () => {
+    const statuses: MetricsStatus[] = ["ok", "none", "unavailable"];
+    expect(new Set(statuses).size).toBe(3);
+  });
+
+  it("names each status in both dictionaries", () => {
+    for (const [name, dict] of [
+      ["en", en],
+      ["pt-BR", ptBR],
+    ] as const) {
+      const copy = (
+        dict.social as { report: { metrics: Record<string, string> } }
+      ).report.metrics;
+      for (const status of ["none", "unavailable"] as const) {
+        expect(copy[status], `${name} · social.report.metrics.${status}`)
+          .toBeTruthy();
+      }
+    }
   });
 });

@@ -1,3 +1,4 @@
+import { env } from "@/lib/env";
 import { setRequestLocale, getTranslations } from "next-intl/server";
 import { createClient } from "@/lib/supabase/server";
 import { currentTenantId } from "@/lib/tenant-server";
@@ -207,7 +208,12 @@ export default async function KpiPage({
       </form>
 
       {totals.postsCovered === 0 ? (
-        <p className="text-sm text-muted-foreground">{t("noData")}</p>
+        <p className="text-sm text-muted-foreground">
+          {/* "Wait for the next collector run" is bad advice when the
+              collector answers 503 and writes nothing, which is what it does
+              with no Instagram connection. */}
+          {env.meta.ok ? t("noData") : t("notConnected")}
+        </p>
       ) : (
         <>
           <div className="grid grid-cols-2 gap-3 md:grid-cols-4">

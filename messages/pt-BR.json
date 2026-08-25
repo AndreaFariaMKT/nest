@@ -761,7 +761,7 @@
   },
   "reports": {
     "title": "Relatórios",
-    "subtitle": "Recaps mensais escritos pelo Claude, por cliente. Gráficos de métricas entram quando o Meta sincronizar.",
+    "subtitle": "Recaps mensais escritos pelo Claude, por cliente. Os gráficos de métricas estão na aba KPI.",
     "listEmpty": "Nenhum relatório ainda. Gere um pela página de detalhe do cliente.",
     "monthlyTitle": "Recap · {period}",
     "generatedAt": "Gerado em {when}",
@@ -805,7 +805,8 @@
       },
       "sparkline": "Reach diário no período",
       "noData": "Sem métricas no período selecionado. Aguarde o próximo run do cron de coleta.",
-      "truncated": "Este período tem mais registros do que uma tela consegue somar. Os números abaixo são parciais — reduza o intervalo de datas."
+      "truncated": "Este período tem mais registros do que uma tela consegue somar. Os números abaixo são parciais — reduza o intervalo de datas.",
+      "notConnected": "Ainda sem números aqui, e nenhum está sendo coletado: a conexão com o Instagram não está ativa. Nada vai aparecer enquanto ela não estiver."
     }
   },
   "team": {
@@ -1397,7 +1398,12 @@
       "highlights": "Destaques",
       "lessons": "O que aprendemos",
       "noNarrative": "Ainda sem leitura escrita para este mês. Os números acima valem de qualquer forma.",
-      "narrativePerClient": "A leitura escrita é por cliente — escolha um acima para vê-la."
+      "narrativePerClient": "A leitura escrita é por cliente — escolha um acima para vê-la.",
+      "metrics": {
+        "none": "Ainda sem números deste mês. Alcance, impressões e salvamentos aparecem quando as peças publicadas nele forem medidas.",
+        "unavailable": "Os números não estão sendo coletados no momento — a conexão com o Instagram não está ativa. Todo o resto desta página é real; esses quatro apenas não são conhecidos."
+      },
+      "noNarrativeNoMetrics": "Ainda sem leitura escrita para este mês."
     },
     "waitingOn": {
       "direction": "Aguardando a direção",
