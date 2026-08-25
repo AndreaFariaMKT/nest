@@ -122,3 +122,36 @@ describe("scheduled_posts cleanup", () => {
     expect(source).toContain('.in("status", ["pending", "failed"])');
   });
 });
+
+describe("a scheduled piece's instant", () => {
+  const source = readFileSync(
+    `${process.cwd()}/src/app/[locale]/(app)/social/actions.ts`,
+    "utf8",
+  );
+
+  /**
+   * `scheduled_posts.scheduled_for` is written only by enqueueForPublish.
+   * savePieceAction writes publish_on / publish_time, so moving the date on a
+   * piece already scheduled changed every screen and left the queue pointing
+   * at the old day — and nothing could put it right, because canRun("queue")
+   * and buildOrderAction both accept only `approved`.
+   */
+  it("re-queues when the date moves under a scheduled piece", () => {
+    const save = source.slice(source.indexOf("export async function savePieceAction"));
+    expect(save).toContain('piece.status === "scheduled"');
+    expect(save).toContain("enqueueForPublish(supabase, tenantId, [id])");
+  });
+
+  /**
+   * The clear has to happen before the "nothing to queue" return, or a piece
+   * that just lost its artwork keeps its old row and the cron publishes what
+   * the studio took away.
+   */
+  it("clears the queue before deciding there is nothing to add", () => {
+    const fn = source.slice(source.indexOf("async function enqueueForPublish"));
+    const clear = fn.indexOf('.in("status", ["pending", "failed"])');
+    const bail = fn.indexOf("if (!queued.length) return;");
+    expect(clear).toBeGreaterThan(-1);
+    expect(bail).toBeGreaterThan(clear);
+  });
+});

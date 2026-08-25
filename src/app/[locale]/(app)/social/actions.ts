@@ -465,7 +465,7 @@ export async function savePieceAction(
 ): Promise<Result> {
   const id = str(formData, "id");
   const locale = str(formData, "locale") || "pt-BR";
-  const { supabase, role } = await ctx();
+  const { supabase, tenantId, role } = await ctx();
 
   const piece = await loadPiece(id);
   if (!piece) return fail("notFound");
@@ -506,6 +506,22 @@ export async function savePieceAction(
     await supabase.from("content_drafts").update(patch).eq("id", id).select("id"),
   );
   if (!written.ok) return written;
+
+  // A scheduled piece carries a queued row holding the instant it publishes
+  // at, and that row is written ONLY by enqueueForPublish. Moving the date
+  // here used to change every screen — the calendar, the publishing order, the
+  // client's own portal — and leave the queue pointing at the old day, so the
+  // cron published on a date nobody could still see.
+  //
+  // There was no way back, either: canRun("queue") accepts only `approved`,
+  // and buildOrderAction selects only `approved`, so nothing could re-enter
+  // the order for a piece already `scheduled`.
+  const instantMoved =
+    ("publish_on" in patch && patch.publish_on !== piece.publish_on) ||
+    "publish_time" in patch;
+  if (piece.status === "scheduled" && instantMoved) {
+    await enqueueForPublish(supabase, tenantId, [id]);
+  }
 
   revalidateModule(locale);
   revalidatePath(`/${locale}/social/pieces/${id}`);
@@ -631,8 +647,11 @@ async function enqueueForPublish(
       });
     }
   }
-  if (!queued.length) return;
-
+  // Clear BEFORE deciding there is nothing to queue, not after. A piece that
+  // has become ineligible — artwork removed, date cleared — produces no rows
+  // to insert, and returning early left its old instant queued: the cron would
+  // publish artwork the studio had just taken away.
+  //
   // Clear first: re-entering the order after a date change must not leave the
   // old instant queued alongside the new one, which would publish twice.
   //
@@ -646,6 +665,8 @@ async function enqueueForPublish(
     .delete()
     .in("draft_id", pieceIds)
     .in("status", ["pending", "failed"]);
+
+  if (!queued.length) return;
 
   const { error } = await supabase.from("scheduled_posts").insert(queued);
   if (error) {
