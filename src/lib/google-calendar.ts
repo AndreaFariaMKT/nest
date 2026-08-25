@@ -250,32 +250,9 @@ async function callCalendar<T>(
   return body as T;
 }
 
-export type ListEventsParams = {
-  timeMin: string; // RFC3339
-  timeMax: string;
-  maxResults?: number;
-};
-
-export async function listEvents(
-  accessToken: string,
-  params: ListEventsParams,
-): Promise<ParsedCalendarEvent[]> {
-  const body = await callCalendar<{ items?: CalendarEventResponse[] }>(
-    accessToken,
-    `/calendars/${encodeURIComponent(CALENDAR_ID)}/events`,
-    {
-      method: "GET",
-      searchParams: {
-        timeMin: params.timeMin,
-        timeMax: params.timeMax,
-        singleEvents: "true",
-        orderBy: "startTime",
-        maxResults: String(params.maxResults ?? 50),
-      },
-    },
-  );
-  return (body.items ?? []).map(parseEventResponse);
-}
+// listEvents() and ListEventsParams lived here — an unused wrapper around the
+// events endpoint. The mirror only ever writes; nothing in the app reads the
+// studio's Google calendar back.
 
 export async function createEvent(
   accessToken: string,

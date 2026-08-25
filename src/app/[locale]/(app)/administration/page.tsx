@@ -3,6 +3,8 @@ import { setRequestLocale, getTranslations } from "next-intl/server";
 import { createClient } from "@/lib/supabase/server";
 import { currentTenantId } from "@/lib/tenant-server";
 import { PageHeader } from "@/components/ui/PageHeader";
+import { Link } from "@/i18n/routing";
+import type { Route } from "next";
 
 export const dynamic = "force-dynamic";
 
@@ -18,9 +20,14 @@ export default async function AdministrationPage({
   const tenantId = await currentTenantId();
   const [{ data: contracts }, { data: clients }] = await Promise.all([
     supabase.from("contracts").select("id, title, document_url, client_id, starts_on").eq("tenant_id", tenantId).not("document_url", "is", null).order("starts_on", { ascending: false }),
-    supabase.from("clients").select("id, name").eq("tenant_id", tenantId),
+    supabase.from("clients").select("id, name, slug").eq("tenant_id", tenantId),
   ]);
-  const clientName = new Map((clients ?? []).map((c) => [c.id, c.name]));
+  // The slug too: this screen lists contracts that need attention and then
+  // printed both the contract and its client as dead text, so acting on one
+  // meant finding it by hand from the client list.
+  const clientOf = new Map(
+    (clients ?? []).map((c) => [c.id, { name: c.name, slug: c.slug }]),
+  );
   const rows = contracts ?? [];
   return (
     <>
@@ -29,9 +36,25 @@ export default async function AdministrationPage({
         <ul className="divide-y divide-border">
           {rows.map((c) => (
             <li key={c.id} className="flex items-center justify-between px-4 py-3 text-sm">
-              <div>
-                <span className="font-medium text-foreground">{c.title}</span>
-                <span className="ml-2 text-xs text-muted-foreground">{clientName.get(c.client_id) ?? "—"}</span>
+              <div className="min-w-0">
+                {(() => {
+                  const client = clientOf.get(c.client_id);
+                  return client ? (
+                    <Link
+                      href={
+                        `/clients/${client.slug}/contracts/${c.id}/edit` as Route
+                      }
+                      className="font-medium text-foreground hover:text-brand hover:underline"
+                    >
+                      {c.title}
+                    </Link>
+                  ) : (
+                    <span className="font-medium text-foreground">{c.title}</span>
+                  );
+                })()}
+                <span className="ml-2 text-xs text-muted-foreground">
+                  {clientOf.get(c.client_id)?.name ?? "—"}
+                </span>
               </div>
               {c.document_url ? <a href={c.document_url} target="_blank" className="text-xs text-brand">{t("open")} →</a> : null}
             </li>

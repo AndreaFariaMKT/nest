@@ -3,6 +3,8 @@ import { setRequestLocale, getTranslations } from "next-intl/server";
 import { createClient } from "@/lib/supabase/server";
 import { currentTenantId } from "@/lib/tenant-server";
 import { PageHeader } from "@/components/ui/PageHeader";
+import { Link } from "@/i18n/routing";
+import type { Route } from "next";
 import { formatCentsAsBrl, sumCents } from "@/lib/money";
 
 export const dynamic = "force-dynamic";
@@ -38,11 +40,13 @@ export default async function FinancePage({
       )
       .eq("tenant_id", tenantId)
       .order("starts_on", { ascending: false }),
-    supabase.from("clients").select("id, name").eq("tenant_id", tenantId),
+    supabase.from("clients").select("id, name, slug").eq("tenant_id", tenantId),
   ]);
 
   const contracts = (contractsData ?? []) as Row[];
-  const clientName = new Map((clientsData ?? []).map((c) => [c.id, c.name]));
+  const clientOf = new Map(
+    (clientsData ?? []).map((c) => [c.id, { name: c.name, slug: c.slug }]),
+  );
 
   const isActive = (c: Row) =>
     c.starts_on <= today && (c.ends_on === null || c.ends_on >= today);
@@ -81,7 +85,19 @@ export default async function FinancePage({
             {contracts.map((c) => (
               <tr key={c.id} className={isActive(c) ? "" : "opacity-55"}>
                 <td className="px-4 py-3 text-sm font-medium text-foreground">
-                  {clientName.get(c.client_id) ?? "—"}
+                  {/* The contract row named its client and stopped there, so
+                      chasing anything on this screen meant going back to the
+                      client list and searching. */}
+                  {clientOf.has(c.client_id) ? (
+                    <Link
+                      href={`/clients/${clientOf.get(c.client_id)!.slug}` as Route}
+                      className="hover:text-brand hover:underline"
+                    >
+                      {clientOf.get(c.client_id)!.name}
+                    </Link>
+                  ) : (
+                    "—"
+                  )}
                 </td>
                 <td className="px-4 py-3 text-sm text-foreground">
                   {c.title}

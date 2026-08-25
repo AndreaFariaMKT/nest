@@ -31,10 +31,11 @@ export const TENANTS: Record<TenantSlug, Tenant> = {
 
 export const TENANT_LIST: Tenant[] = [TENANTS.afm, TENANTS.nest];
 
-export const TENANT_COOKIE = "nest-tenant";
 /** Existing data belongs to AFM, so that's the default context. */
 export const DEFAULT_TENANT: TenantSlug = "afm";
 
-export function isTenantSlug(v: string | undefined): v is TenantSlug {
-  return v === "afm" || v === "nest";
-}
+// TENANT_COOKIE and isTenantSlug lived here, for the cookie-based tenant
+// switcher this module's header still describes. There is no switcher: the
+// tenant comes from tenant_members, resolved in tenant-server.ts. The comment
+// above is left as-is because the hardcoded ids are still true and still the
+// reason this module can be imported anywhere.

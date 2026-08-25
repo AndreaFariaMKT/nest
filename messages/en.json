@@ -1156,7 +1156,8 @@
     "calendar": {
       "title": "Calendar",
       "subtitle": "{month} · {n} publications",
-      "today": "Today"
+      "today": "Today",
+      "emptyMonth": "Nothing on the calendar this month."
     },
     "media": {
       "title": "Media library",

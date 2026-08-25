@@ -3,6 +3,8 @@ import { setRequestLocale, getTranslations } from "next-intl/server";
 import { createClient } from "@/lib/supabase/server";
 import { currentTenantId } from "@/lib/tenant-server";
 import { PageHeader } from "@/components/ui/PageHeader";
+import { Link } from "@/i18n/routing";
+import type { Route } from "next";
 
 export const dynamic = "force-dynamic";
 
@@ -25,7 +27,13 @@ export default async function WebsiteBuildsPage({
         <ul className="divide-y divide-border">
           {rows.map((c) => (
             <li key={c.id} className="flex items-center justify-between px-4 py-3 text-sm">
-              <span className="font-medium text-foreground">{c.name}</span>
+              {/* The slug was already in the select, unused. */}
+              <Link
+                href={`/clients/${c.slug}` as Route}
+                className="font-medium text-foreground hover:text-brand hover:underline"
+              >
+                {c.name}
+              </Link>
               <a href={c.website ?? "#"} target="_blank" className="truncate text-xs text-brand">{(c.website ?? "").replace(/^https?:\/\//, "")}</a>
             </li>
           ))}

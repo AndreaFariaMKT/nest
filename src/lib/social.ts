@@ -462,7 +462,6 @@ export interface SocialPiece {
   client_comment: string | null;
   publish_on: string | null;
   publish_time: string;
-  direction_ok: boolean;
   post_type: string | null;
   slide_count: number | null;
   channels: SocialChannel[];

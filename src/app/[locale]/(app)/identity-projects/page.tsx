@@ -3,6 +3,8 @@ import { setRequestLocale, getTranslations } from "next-intl/server";
 import { createClient } from "@/lib/supabase/server";
 import { currentTenantId } from "@/lib/tenant-server";
 import { PageHeader } from "@/components/ui/PageHeader";
+import { Link } from "@/i18n/routing";
+import type { Route } from "next";
 import type { BrandColor } from "@/types/database";
 
 export const dynamic = "force-dynamic";
@@ -19,9 +21,13 @@ export default async function IdentityProjectsPage({
   const tenantId = await currentTenantId();
   const [{ data: kits }, { data: clients }] = await Promise.all([
     supabase.from("brand_kits").select("id, name, palette, guidelines_url, client_id").eq("tenant_id", tenantId).order("updated_at", { ascending: false }),
-    supabase.from("clients").select("id, name").eq("tenant_id", tenantId),
+    supabase.from("clients").select("id, name, slug").eq("tenant_id", tenantId),
   ]);
-  const clientName = new Map((clients ?? []).map((c) => [c.id, c.name]));
+  // The orphaned /brand-kits screen linked these correctly; this one, which is
+  // the one in the sidebar, printed the client as text.
+  const clientOf = new Map(
+    (clients ?? []).map((c) => [c.id, { name: c.name, slug: c.slug }]),
+  );
   const rows = kits ?? [];
   return (
     <>
@@ -34,8 +40,21 @@ export default async function IdentityProjectsPage({
             const palette = (Array.isArray(k.palette) ? k.palette : []) as unknown as BrandColor[];
             return (
               <div key={k.id} className="rounded-2xl border border-border bg-card p-5">
-                <p className="text-xs text-muted-foreground">{clientName.get(k.client_id) ?? "—"}</p>
-                <h3 className="mt-0.5 font-medium text-foreground">{k.name}</h3>
+                <p className="text-xs text-muted-foreground">
+                  {clientOf.get(k.client_id)?.name ?? "—"}
+                </p>
+                {clientOf.has(k.client_id) ? (
+                  <Link
+                    href={
+                      `/clients/${clientOf.get(k.client_id)!.slug}/brand-kit` as Route
+                    }
+                    className="mt-0.5 block font-medium text-foreground hover:text-brand hover:underline"
+                  >
+                    {k.name}
+                  </Link>
+                ) : (
+                  <h3 className="mt-0.5 font-medium text-foreground">{k.name}</h3>
+                )}
                 <div className="mt-3 flex flex-wrap gap-1.5">
                   {palette.slice(0, 8).map((c, i) => (
                     <span key={i} className="h-6 w-6 rounded-md border border-border" style={{ backgroundColor: c.hex }} title={c.name} />

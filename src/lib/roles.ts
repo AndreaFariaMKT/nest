@@ -174,11 +174,7 @@ export const NAV_BY_ROLE: Record<AppRole, NavGroup[]> = {
   ],
 };
 
-/** Flat set of hrefs a role may reach (for guards). */
-export function allowedHrefsForRole(role: AppRole): Set<string> {
-  const hrefs = new Set<string>();
-  for (const g of NAV_BY_ROLE[role]) {
-    for (const k of g.keys) hrefs.add(NAV[k].href);
-  }
-  return hrefs;
-}
+// allowedHrefsForRole() lived here: a second, unused permission mechanism
+// built for a guard job that guard.ts does instead. A dead access-control
+// helper is worse than no helper — the next person to find it reasonably
+// assumes it is what protects the app.

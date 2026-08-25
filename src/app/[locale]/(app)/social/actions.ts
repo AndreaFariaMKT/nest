@@ -304,15 +304,19 @@ export async function runTransitionAction(
       break;
     case "send_text_up":
       patch.sent_up_at = now;
-      patch.direction_ok = false;
+      // Clearing the approval, not just flagging it. `direction_ok` used to
+      // carry this and nothing read it, while `approved_internal_at` — which
+      // the production screen DOES show — was left holding the date of an
+      // approval that no longer applies. A piece sent back up after a
+      // rejection would have displayed "text approved" beside its old date.
+      patch.approved_internal_at = null;
       break;
     case "direction_approve":
-      patch.direction_ok = true;
       patch.approved_internal_at = now;
       patch.design_state = "todo";
       break;
     case "direction_reject":
-      patch.direction_ok = false;
+      patch.approved_internal_at = null;
       patch.design_feedback = comment;
       break;
     case "send_to_client":
@@ -347,7 +351,8 @@ export async function runTransitionAction(
       patch.design_state = "todo";
       patch.material_url = null;
       patch.publish_on = null;
-      patch.direction_ok = false;
+      patch.approved_internal_at = null;
+      patch.sent_up_at = null;
       patch.client_comment = null;
       // Back on the shelf as an unworked theme: the dates of the run that
       // ended belong to that run, not to the next one.

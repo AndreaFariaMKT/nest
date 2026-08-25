@@ -39,7 +39,7 @@ export interface SocialClient {
 export const PIECE_COLUMNS =
   "id, client_id, title, status, design_state, pillar, caption, why_now, " +
   "material_url, note_design, note_publish, design_feedback, client_comment, " +
-  "return_reason, publish_on, publish_time, direction_ok, post_type, " +
+  "return_reason, publish_on, publish_time, post_type, " +
   "slide_count, channels, origin, backlog_added_on, window_note, source_ref, " +
   "sent_up_at, approved_internal_at, sent_to_client_at, client_approved_at, " +
   "published_at, updated_at";
@@ -54,7 +54,7 @@ export const PIECE_COLUMNS =
  */
 export const PORTAL_PIECE_COLUMNS =
   "id, client_id, title, status, design_state, pillar, caption, why_now, " +
-  "client_comment, publish_on, publish_time, direction_ok, post_type, " +
+  "client_comment, publish_on, publish_time, post_type, " +
   "slide_count, channels, origin, material_url, backlog_added_on, " +
   "sent_to_client_at, published_at, updated_at";
 

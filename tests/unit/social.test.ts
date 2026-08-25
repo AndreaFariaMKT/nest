@@ -47,7 +47,6 @@ const piece = (over: Partial<SocialPiece> = {}): SocialPiece => ({
   client_comment: null,
   publish_on: null,
   publish_time: "08:00",
-  direction_ok: false,
   post_type: "carousel",
   slide_count: 5,
   channels: ["instagram"],

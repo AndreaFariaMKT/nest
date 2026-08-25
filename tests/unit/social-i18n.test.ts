@@ -127,7 +127,6 @@ describe("every move the domain can offer is renderable", () => {
       client_comment: null,
       publish_on: "2026-09-11",
       publish_time: "08:00",
-      direction_ok: false,
       post_type: "carousel",
       slide_count: 5,
       channels: ["instagram"],
