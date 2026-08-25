@@ -1282,7 +1282,8 @@
         "production": "Produção",
         "publishing": "Publicação",
         "calendar": "Calendário"
-      }
+      },
+      "noApprovalLink": "Links de aprovação são do content engine, não de peças de social. Um link nunca move a peça — o cliente aprovaria e ela continuaria esperando, sendo aprovada por silêncio como se ele não tivesse respondido. Envie esta peça ao cliente por aqui; ele aprova no portal dele."
     },
     "blocked": {
       "notOnShelf": "Esta peça já saiu da prateleira. Atualize a página para ver onde ela está.",

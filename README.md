@@ -2,7 +2,9 @@
 
 Operational platform for **Studio Andréa Faria** — clients, projects, team, AI content engine, multi-platform publishing.
 
-Full product context in [HANDOFF.md](../Downloads/HANDOFF.md).
+Operating the system: **[docs/usage/](docs/usage/README.md)**.
+Technical docs: [docs/](docs/) — carrying a staleness notice each, audited
+2026-08-25.
 
 ---
 
@@ -12,7 +14,7 @@ Full product context in [HANDOFF.md](../Downloads/HANDOFF.md).
 - **Supabase** — Postgres, Auth, Storage (local via CLI)
 - **next-intl** — i18n with `pt-BR` (default) + `en`
 - **Anthropic Claude API** — content generation + creative refinement
-- **Playwright** — HTML→PNG rendering for slide creatives
+- **puppeteer-core + @sparticuz/chromium** — HTML→PNG for slide creatives and HTML→PDF for reports. Playwright is a dev dependency for E2E tests only; local dev borrows the Chromium it already downloaded.
 - **Vercel Cron** — scheduled publishing
 
 ---
@@ -56,7 +58,10 @@ App runs at [http://localhost:3000](http://localhost:3000). You'll be redirected
 | `npm run dev` | Dev server with HMR |
 | `npm run build` | Production build |
 | `npm run start` | Run the built app |
-| `npm run lint` | ESLint |
+| `npm run test` | Vitest, unit |
+| `npm run test:e2e` | Playwright, end to end |
+| `npm run types:gen` | Regenerate database types — run after every migration |
+| `npm run types:check` | Fail if the committed types have drifted from the database |
 | `npm run typecheck` | TypeScript no-emit check |
 
 ---
@@ -121,7 +126,7 @@ nest/
 
 ## Roadmap
 
-See [HANDOFF.md §8](../Downloads/HANDOFF.md) for the full 12-week sprint plan.
+The sprint plan lived in a HANDOFF.md that was never committed; ROADMAP.md §3 is what survives of it.
 
 | Sprint | Focus |
 |---|---|

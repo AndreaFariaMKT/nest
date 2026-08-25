@@ -1,5 +1,11 @@
 # Nest · RLS architecture
 
+> **Staleness notice.** Audited 2026-08-25 against the code. Corrections marked
+> **[corrected]** are applied; the rest of the text has aged and was not
+> rewritten. Where this file and the code disagree, the code wins. To *operate*
+> the system rather than develop it, see [docs/usage/](usage/README.md).
+
+
 Row-Level Security is Nest's primary authorization layer. Server actions and route handlers rely on it — the anon / authenticated Supabase client is trusted only as far as the policies let it go. Bypass it only via the service-role client, and only when you've documented why.
 
 Last reviewed: 2026-04-24.
@@ -8,7 +14,15 @@ Last reviewed: 2026-04-24.
 
 ## 1. Actors
 
-Three logical roles, backed by `profiles.role text`:
+**[corrected 2026-08-25]** — there are **eight** roles, in
+`tenant_members.role` (`src/lib/app-roles.ts`). `profiles.role` is the legacy
+enum and **nothing in the app writes it**; migration 038 exists precisely
+because `is_owner()` depended on it. This section describes the April schema
+and has not been rewritten. Multi-tenancy is missing from it entirely:
+`is_tenant_member()` and the restrictive floors from migrations 014, 022 and
+025.
+
+Original text, kept for context — three roles, in `profiles.role text`:
 
 | Role | What they do |
 |---|---|

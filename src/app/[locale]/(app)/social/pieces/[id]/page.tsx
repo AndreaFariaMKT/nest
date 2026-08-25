@@ -113,6 +113,10 @@ export default async function PiecePage({
     // role may open — a designer bounced straight back out of the record they
     // had just closed. `waiting` is the one screen all five capabilities hold.
     : "waiting";
+  // Landed here from a refused approval link — see
+  // generateApprovalLinkAction. Explained rather than silently redirected.
+  const fromApprovalLink =
+    (Array.isArray(sp.link) ? sp.link[0] : sp.link) === "social";
   const backClient = (Array.isArray(sp.client) ? sp.client[0] : sp.client) ?? "";
   const backHref =
     (backKey === "overview" ? "/social" : `/social/${backKey}`) +
@@ -133,6 +137,15 @@ export default async function PiecePage({
       >
         ← {t(`piece.backTo.${backKey}`)}
       </Link>
+
+      {fromApprovalLink ? (
+        <p
+          role="status"
+          className="mb-4 rounded-xl border border-amber-500/40 bg-amber-500/10 px-4 py-3 text-sm leading-relaxed text-amber-700 dark:text-amber-300"
+        >
+          {t("piece.noApprovalLink")}
+        </p>
+      ) : null}
 
       <header className="mb-6">
         <p className="mb-1.5 text-[10px] font-medium uppercase tracking-widest text-brand">

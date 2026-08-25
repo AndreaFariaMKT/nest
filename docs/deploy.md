@@ -1,5 +1,11 @@
 # Nest · Deploy Runbook
 
+> **Staleness notice.** Audited 2026-08-25 against the code. Corrections marked
+> **[corrected]** are applied; the rest of the text has aged and was not
+> rewritten. Where this file and the code disagree, the code wins. To *operate*
+> the system rather than develop it, see [docs/usage/](usage/README.md).
+
+
 Zero-to-production checklist. Every step is either idempotent or explicitly marked otherwise. Partner doc: [`ops.md`](./ops.md) for day-2 operations.
 
 Last reviewed: 2026-04-24.
@@ -56,7 +62,7 @@ Without #1 and #2 this runbook can't finish.
    ⚠ Change the dev email/password before first login. Or skip the seed
    entirely and create the first owner manually via Supabase Auth.
 5. Create storage buckets by rerunning these migrations (they're idempotent):
-   - `003_fix_brand_assets_rls.sql`
+   - `002_brand_assets_storage.sql` **[corrected]** — 003 only replaces policies; the `brand-assets` bucket is created by 002
    - `005_creatives_storage.sql`
    - `011_reel_videos_storage.sql`
 6. Validate RLS with a spot check:

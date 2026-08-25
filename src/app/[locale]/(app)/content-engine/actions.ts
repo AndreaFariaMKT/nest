@@ -1456,10 +1456,30 @@ export async function generateApprovalLinkAction(
 
   const { data: draft } = await supabase
     .from("content_drafts")
-    .select("id, transcript_id")
+    .select("id, transcript_id, engine")
     .eq("id", draftId)
     .maybeSingle();
   if (!draft) return;
+
+  // Content-engine drafts only, and this is a rule about which flow the studio
+  // runs on rather than a technical constraint.
+  //
+  // An approval link writes to `approvals` and NOTHING else — it never moves
+  // the piece. So a client who approved a social piece through one left it
+  // sitting in client_review, and five working days later approve_on_silence
+  // ran it as scheduled, as if they had never answered. Their approval was
+  // recorded in a table no social screen reads.
+  //
+  // The social module is the flow. Its client approval lives on the piece, in
+  // the portal, and moves the stage.
+  if (draft.engine === "social") {
+    log.error("content-engine.approval-link", "refused_social_piece", {
+      draftId,
+    });
+    redirect(
+      localePath(locale, `/social/pieces/${draftId}?back=waiting&link=social`),
+    );
+  }
 
   const token = generateToken();
   const expiresAt = new Date(Date.now() + 14 * 24 * 60 * 60 * 1000); // 14 days

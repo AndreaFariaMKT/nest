@@ -1,5 +1,11 @@
 # Nest · Ops Runbook
 
+> **Staleness notice.** Audited 2026-08-25 against the code. Corrections marked
+> **[corrected]** are applied; the rest of the text has aged and was not
+> rewritten. Where this file and the code disagree, the code wins. To *operate*
+> the system rather than develop it, see [docs/usage/](usage/README.md).
+
+
 Operational procedures for running and recovering the Nest stack. Keep this doc boring, specific, and up to date.
 
 Last reviewed: 2026-04-23 (local dev; production runbook finalizes at Sprint 11-12 deploy).
@@ -147,7 +153,14 @@ All three are public-read because Instagram Graph API needs public URLs for cont
 
 ### Meta (Instagram Graph)
 - Long-lived page token expires every 60 days.
-- `/api/cron/meta-refresh` runs daily at `0 4 * * *`. Graph API → `oauth/access_token?grant_type=fb_exchange_token` exchanges the current token for a fresh one. On success, the full new token is written to the server log (`vercel logs` — search for `full_access_token`), NOT returned in the JSON response. Operator must copy it from logs into Vercel env + redeploy.
+- `/api/cron/meta-refresh` runs daily at `0 4 * * *`. Graph API → `oauth/access_token?grant_type=fb_exchange_token` exchanges the current token for a fresh one. On success the token comes back in the **response**, field `accessToken`.
+  Copy it into `META_LONG_LIVED_TOKEN` in Vercel and redeploy.
+  **[corrected 2026-08-25]** — this used to say the token was written to the
+  server log and searchable as `full_access_token`. It never was:
+  `src/lib/log.ts` redacts any key containing "token" by substring, so that
+  field always came out `[redacted]`. The documented recovery path had never
+  worked, and would have been discovered at the next 60-day expiry with
+  publishing already down.
 - Automated persistence is not implemented (Vercel envs aren't writable from a running route). Manual step stays — frequency: ~every 50 days, well before expiry.
 - **Generating a new token from scratch** (e.g., after a rotation or initial setup): generate a short-lived User Access Token in the [Graph API Explorer](https://developers.facebook.com/tools/explorer/), then exchange it for a long-lived one:
   ```bash

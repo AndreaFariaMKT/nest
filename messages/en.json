@@ -1282,7 +1282,8 @@
         "production": "Production",
         "publishing": "Publishing",
         "calendar": "Calendar"
-      }
+      },
+      "noApprovalLink": "Approval links are for the content engine, not for social pieces. One never moves a piece, so a client who used it would leave this piece waiting and it would be approved on silence as if they had not answered. Send this piece to the client from here — they approve it in their portal."
     },
     "blocked": {
       "notOnShelf": "This piece has already left the shelf. Refresh to see where it is now.",

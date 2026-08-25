@@ -1,5 +1,12 @@
 # Credentials & rollout status
 
+> **Staleness notice.** Audited 2026-08-25 against the code. Corrections marked
+> **[corrected]** are applied; the rest of the text has aged and was not
+> rewritten. Where this file and the code disagree, the code wins. To *operate*
+> the system rather than develop it, see [docs/usage/](usage/README.md).
+
+
+
 Last updated: 2026-05-04 · Source of truth for which integrations are live, which are pending external review, and what's left to wire up before production.
 
 The code for every integration listed here has already shipped — see ROADMAP §3. This document tracks **operator actions** (account creation, API key generation, review wait) that gate activation.
