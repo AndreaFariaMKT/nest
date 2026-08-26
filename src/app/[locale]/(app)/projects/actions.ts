@@ -1,5 +1,6 @@
 "use server";
 
+import { log } from "@/lib/log";
 import { dbError } from "@/lib/db-error";
 import { revalidatePath } from "next/cache";
 
@@ -224,13 +225,17 @@ export async function deleteTaskAction(formData: FormData): Promise<void> {
   revalidatePath(`/${locale}/projects`);
 }
 
+export type TaskStatusResult = { ok: boolean; error?: string };
+
 export async function updateTaskStatusAction(
   formData: FormData,
-): Promise<void> {
+): Promise<TaskStatusResult> {
   const id = (formData.get("id") ?? "").toString();
   const rawStatus = (formData.get("status") ?? "").toString();
   const locale = (formData.get("locale") ?? "pt-BR").toString();
-  if (!id || !(TASK_STATUSES as string[]).includes(rawStatus)) return;
+  if (!id || !(TASK_STATUSES as string[]).includes(rawStatus)) {
+    return { ok: false, error: "dbMissingField" };
+  }
   const status = rawStatus as TaskStatus;
 
   const supabase = await createSupabaseClient();
@@ -239,7 +244,7 @@ export async function updateTaskStatusAction(
     .select("status, completed_at")
     .eq("id", id)
     .maybeSingle();
-  if (!existing) return;
+  if (!existing) return { ok: false, error: "dbBadReference" };
 
   let completedAt = existing.completed_at;
   if (status === "done" && existing.status !== "done") {
@@ -248,10 +253,26 @@ export async function updateTaskStatusAction(
     completedAt = null;
   }
 
-  await supabase
+  const { data, error } = await supabase
     .from("tasks")
     .update({ status, completed_at: completedAt })
-    .eq("id", id);
+    .eq("id", id)
+    .select("id");
+
+  // The board moves the card optimistically before this runs. Discarding the
+  // error meant a refused write left the card sitting in its new column until
+  // something happened to refresh the page, and then it silently jumped back.
+  if (error) {
+    log.error("projects.status", "update_failed", {
+      code: error.code ?? "unknown",
+    });
+    return { ok: false, error: dbError(error) };
+  }
+  // PostgREST answers an UPDATE that matched no row with no error at all, so
+  // an RLS refusal is indistinguishable from success without this.
+  if (!data?.length) return { ok: false, error: "dbDenied" };
 
   revalidatePath(`/${locale}/projects`);
+  revalidatePath("/projects");
+  return { ok: true };
 }

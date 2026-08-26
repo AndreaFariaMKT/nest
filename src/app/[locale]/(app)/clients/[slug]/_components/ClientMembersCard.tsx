@@ -1,6 +1,7 @@
 "use client";
 
-import { useTransition } from "react";
+import { FormError } from "@/components/ui/FormError";
+import { useState, useTransition } from "react";
 import { useTranslations } from "next-intl";
 import {
   attachClientMemberAction,
@@ -33,6 +34,9 @@ export function ClientMembersCard({
 }) {
   const t = useTranslations("clients");
   const [isPending, startTransition] = useTransition();
+  // Both writes used to discard their error, so a refusal looked exactly
+  // like a success: the row just never appeared.
+  const [error, setError] = useState<string | null>(null);
 
   const assignedIds = new Set(members.map((m) => m.userId));
   const available = candidates.filter((c) => !assignedIds.has(c.id));
@@ -44,7 +48,10 @@ export function ClientMembersCard({
     fd.set("clientSlug", clientSlug);
     fd.set("locale", locale);
     (event.currentTarget as HTMLFormElement).reset();
-    startTransition(() => attachClientMemberAction(fd));
+    startTransition(async () => {
+      const result = await attachClientMemberAction(fd);
+      setError(result.ok ? null : (result.error ?? "dbFailed"));
+    });
   }
 
   function onDetach(userId: string) {
@@ -53,11 +60,15 @@ export function ClientMembersCard({
     fd.set("clientSlug", clientSlug);
     fd.set("userId", userId);
     fd.set("locale", locale);
-    startTransition(() => detachClientMemberAction(fd));
+    startTransition(async () => {
+      const result = await detachClientMemberAction(fd);
+      setError(result.ok ? null : (result.error ?? "dbFailed"));
+    });
   }
 
   return (
     <div className="space-y-3">
+      <FormError error={error} />
       {members.length === 0 ? (
         <p className="text-sm text-muted-foreground">
           {t("sections.membersEmpty")}

@@ -1,6 +1,7 @@
 "use client";
 
-import { useTransition } from "react";
+import { FormError } from "@/components/ui/FormError";
+import { useState, useTransition } from "react";
 import { useTranslations } from "next-intl";
 import { Pill } from "@/components/ui/Pill";
 import { formatCentsAsBrl } from "@/lib/money";
@@ -38,6 +39,9 @@ export function ClientServicesCard({
 }) {
   const t = useTranslations("clients");
   const [isPending, startTransition] = useTransition();
+  // Both writes used to discard their error, so a refusal looked exactly
+  // like a success: the row just never appeared.
+  const [error, setError] = useState<string | null>(null);
 
   const assignedIds = new Set(active.map((a) => a.serviceId));
   const available = catalog.filter((s) => !assignedIds.has(s.id));
@@ -49,7 +53,10 @@ export function ClientServicesCard({
     fd.set("clientSlug", clientSlug);
     fd.set("locale", locale);
     (event.currentTarget as HTMLFormElement).reset();
-    startTransition(() => attachClientServiceAction(fd));
+    startTransition(async () => {
+      const result = await attachClientServiceAction(fd);
+      setError(result.ok ? null : (result.error ?? "dbFailed"));
+    });
   }
 
   function onDetach(serviceId: string, startedOn: string) {
@@ -59,11 +66,15 @@ export function ClientServicesCard({
     fd.set("serviceId", serviceId);
     fd.set("startedOn", startedOn);
     fd.set("locale", locale);
-    startTransition(() => detachClientServiceAction(fd));
+    startTransition(async () => {
+      const result = await detachClientServiceAction(fd);
+      setError(result.ok ? null : (result.error ?? "dbFailed"));
+    });
   }
 
   return (
     <div className="space-y-3">
+      <FormError error={error} />
       {active.length === 0 ? (
         <p className="text-sm text-muted-foreground">
           {t("sections.servicesEmpty")}

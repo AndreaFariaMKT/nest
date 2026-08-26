@@ -44,3 +44,36 @@ describe("form refusals", () => {
     }
   });
 });
+
+const SILENT_WRITES = [
+  "clients/[slug]/services-actions.ts",
+  "clients/[slug]/members-actions.ts",
+];
+
+/**
+ * These were `Promise<void>` with the write's error discarded. Under RLS a
+ * refusal is indistinguishable from a success — the row simply does not
+ * appear — and the Kanban board made it worse by moving the card first, so a
+ * refused drag looked like it worked until the next refresh put it back.
+ */
+describe("writes that used to fail silently", () => {
+  it("returns a result instead of void", () => {
+    for (const file of SILENT_WRITES) {
+      const source = readFileSync(
+        `${process.cwd()}/src/app/[locale]/(app)/${file}`,
+        "utf8",
+      );
+      expect(source, file).not.toContain("): Promise<void> {");
+      expect(source, file).toContain("dbError(");
+    }
+  });
+
+  it("the board reports a refused drag", () => {
+    const board = readFileSync(
+      `${process.cwd()}/src/app/[locale]/(app)/projects/_components/KanbanBoard.tsx`,
+      "utf8",
+    );
+    expect(board).toContain("const result = await updateTaskStatusAction(fd)");
+    expect(board).toContain("<FormError error={error} />");
+  });
+});

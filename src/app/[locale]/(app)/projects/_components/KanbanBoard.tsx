@@ -2,11 +2,14 @@
 
 import {
   useOptimistic,
+  useState,
   useTransition,
   type DragEvent,
   startTransition as startTransitionBase,
 } from "react";
 import { useTranslations } from "next-intl";
+
+import { FormError } from "@/components/ui/FormError";
 import { useRouter, usePathname } from "@/i18n/routing";
 import { Link } from "@/i18n/routing";
 import { Pill } from "@/components/ui/Pill";
@@ -60,6 +63,8 @@ export function KanbanBoard({
     state.map((task) => (task.id === id ? { ...task, status } : task)),
   );
 
+  const [error, setError] = useState<string | null>(null);
+
   function onDropStatus(taskId: string, newStatus: TaskStatus) {
     const current = optimistic.find((t) => t.id === taskId);
     if (!current || current.status === newStatus) return;
@@ -69,7 +74,11 @@ export function KanbanBoard({
       fd.set("id", taskId);
       fd.set("status", newStatus);
       fd.set("locale", locale);
-      await updateTaskStatusAction(fd);
+      const result = await updateTaskStatusAction(fd);
+      // The card has already moved. A refused write used to leave it in its
+      // new column until something happened to refresh the page, and then it
+      // jumped back with nothing said.
+      setError(result.ok ? null : (result.error ?? "dbFailed"));
     });
   }
 
@@ -90,6 +99,7 @@ export function KanbanBoard({
 
   return (
     <div className="space-y-5">
+      <FormError error={error} />
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="flex flex-wrap items-center gap-3">
           <FilterSelect
