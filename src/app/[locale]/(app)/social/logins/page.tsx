@@ -95,6 +95,8 @@ export default async function LoginsPage({
         locale={locale}
         today={scope.today}
         canEdit={canEdit}
+        clients={scope.clients.map((c) => ({ id: c.id, name: c.name }))}
+        secretsReady={keyReady}
       />
 
       <ModuleNote>

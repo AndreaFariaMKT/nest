@@ -1197,7 +1197,9 @@
       "capturedOn": "Date it was made",
       "description": "What it is",
       "descriptionPlaceholder": "What is in it, what it is good for, and anything that limits its use.",
-      "submit": "Add"
+      "submit": "Add",
+      "edit": "Correct this item",
+      "save": "Save changes"
     },
     "logins": {
       "title": "Shared logins",
@@ -1245,7 +1247,10 @@
       "whoIsOnIt": "Who is on it",
       "note": "Note",
       "notePlaceholder": "Anything the next person needs to know before logging in.",
-      "submit": "Save login"
+      "submit": "Save login",
+      "edit": "Correct this login",
+      "save": "Save changes",
+      "passwordHintEdit": "Leave blank to keep the stored password. Type a new one only if it changed — and set the date beside it when you do."
     },
     "piece": {
       "back": "Back to the fortnight",

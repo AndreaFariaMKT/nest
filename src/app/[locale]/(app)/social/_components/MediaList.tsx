@@ -4,6 +4,7 @@ import { Pill } from "@/components/ui/Pill";
 import { EmptyState, useDateLabel } from "./Shared";
 import { ConfirmDeleteButton } from "./ConfirmDeleteButton";
 import { deleteMediaAction } from "../actions";
+import { MediaForm } from "./MediaForm";
 
 export interface MediaRow {
   id: string;
@@ -24,6 +25,7 @@ export function MediaList({
   clientName,
   locale,
   canEdit,
+  clients,
   showClient = true,
   emptyKey,
 }: {
@@ -31,6 +33,11 @@ export function MediaList({
   clientName: (id: string) => string;
   locale: string;
   canEdit: boolean;
+  /**
+   * Needed only to render the edit form; the portal passes none, which is
+   * also why the edit disclosure never appears there.
+   */
+  clients?: { id: string; name: string }[];
   showClient?: boolean;
   /**
    * Which empty message to show. The default says "nothing for this filter" —
@@ -99,14 +106,27 @@ export function MediaList({
           ) : null}
 
           {canEdit ? (
-            <div className="mt-3 flex justify-end">
-              <ConfirmDeleteButton
-                id={m.id}
-                locale={locale}
-                label={t("delete")}
-                confirmLabel={t("deleteConfirm")}
-                action={deleteMediaAction}
-              />
+            <div className="mt-3 border-t border-border pt-3">
+              {/* Correcting a row used to mean deleting it and retyping all
+                  six fields — and the client's own media screen kept showing
+                  the typo until someone did. */}
+              {clients ? (
+                <MediaForm
+                  locale={locale}
+                  clients={clients}
+                  today={m.captured_on}
+                  initial={m}
+                />
+              ) : null}
+              <div className="flex justify-end">
+                <ConfirmDeleteButton
+                  id={m.id}
+                  locale={locale}
+                  label={t("delete")}
+                  confirmLabel={t("deleteConfirm")}
+                  action={deleteMediaAction}
+                />
+              </div>
             </div>
           ) : null}
         </article>

@@ -56,6 +56,7 @@ export default async function MediaPage({
         clientName={scope.clientName}
         locale={locale}
         canEdit={scope.caps.includes("coordinate")}
+        clients={scope.clients.map((c) => ({ id: c.id, name: c.name }))}
       />
 
       <ModuleNote>

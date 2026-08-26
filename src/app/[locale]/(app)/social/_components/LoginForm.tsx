@@ -1,6 +1,9 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { useId } from "react";
+
+import type { LoginRow } from "./LoginList";
 import { useTranslations } from "next-intl";
 
 
@@ -28,32 +31,39 @@ export function LoginForm({
   defaultClient,
   today,
   secretsReady,
+  initial,
 }: {
   locale: string;
   clients: { id: string; name: string }[];
   defaultClient?: string;
   today: string;
   secretsReady: boolean;
+  /** Present when correcting an existing login. */
+  initial?: LoginRow;
 }) {
   const t = useTranslations("social.loginForm");
   const roleLabel = useTranslations("social.roleShort");
+  const uid = useId();
+  const editing = Boolean(initial);
   return (
     <DisclosureForm
       action={saveLoginAction}
-      openLabel={t("open")}
-      submitLabel={t("submit")}
+      openLabel={editing ? t("edit") : t("open")}
+      submitLabel={editing ? t("save") : t("submit")}
     >
       <input type="hidden" name="locale" value={locale} />
+      {initial ? <input type="hidden" name="id" value={initial.id} /> : null}
 
         <div className="grid gap-4 sm:grid-cols-2">
           <div>
-            <FieldLabel htmlFor="login-client">
+            <FieldLabel htmlFor={`${uid}-client`}>
   {t("client")}
   </FieldLabel>
             <select
-              id="login-client"
+              id={`${uid}-client`}
               name="client_id"
-              defaultValue={defaultClient}
+              defaultValue={initial?.client_id ?? defaultClient}
+              disabled={editing}
               className={field}
             >
               {clients.map((c) => (
@@ -64,12 +74,13 @@ export function LoginForm({
             </select>
           </div>
           <div>
-            <FieldLabel htmlFor="login-platform">
+            <FieldLabel htmlFor={`${uid}-platform`}>
   {t("account")}
   </FieldLabel>
             <input
-              id="login-platform"
+              id={`${uid}-platform`}
               name="platform"
+              defaultValue={initial?.platform ?? ""}
               className={field}
               placeholder="Instagram"
             />
@@ -78,23 +89,25 @@ export function LoginForm({
 
         <div className="grid gap-4 sm:grid-cols-2">
           <div>
-            <FieldLabel htmlFor="login-site">
+            <FieldLabel htmlFor={`${uid}-site`}>
   {t("site")}
   </FieldLabel>
             <input
-              id="login-site"
+              id={`${uid}-site`}
               name="site"
+              defaultValue={initial?.site ?? ""}
               className={field}
               placeholder="instagram.com"
             />
           </div>
           <div>
-            <FieldLabel htmlFor="login-user">
+            <FieldLabel htmlFor={`${uid}-user`}>
   {t("username")}
   </FieldLabel>
             <input
-              id="login-user"
+              id={`${uid}-user`}
               name="username"
+              defaultValue={initial?.username ?? ""}
               className={field}
               placeholder="social@client.com"
             />
@@ -102,11 +115,11 @@ export function LoginForm({
         </div>
 
         <div>
-          <FieldLabel htmlFor="login-secret">
+          <FieldLabel htmlFor={`${uid}-secret`}>
   {t("password")}
   </FieldLabel>
           <input
-            id="login-secret"
+            id={`${uid}-secret`}
             name="secret"
             type="password"
             autoComplete="new-password"
@@ -114,42 +127,51 @@ export function LoginForm({
             disabled={!secretsReady}
           />
           <p className="mt-1 text-xs text-muted-foreground">
-            {secretsReady ? t("passwordHint") : t("noKeyHint")}
+            {!secretsReady
+              ? t("noKeyHint")
+              : editing
+                ? // saveLoginAction has always treated a blank secret on an
+                  // edit as "keep the stored one" — logic written for a form
+                  // that did not exist. Say so, or the field reads as though
+                  // leaving it empty erases the password.
+                  t("passwordHintEdit")
+                : t("passwordHint")}
           </p>
         </div>
 
         <div className="grid gap-4 sm:grid-cols-3">
           <div>
-            <FieldLabel htmlFor="login-holder">
+            <FieldLabel htmlFor={`${uid}-holder`}>
   {t("holder")}
   </FieldLabel>
             <input
-              id="login-holder"
+              id={`${uid}-holder`}
               name="holder"
-              defaultValue="client"
+              defaultValue={initial?.holder ?? "client"}
               className={field}
             />
           </div>
           <div>
-            <FieldLabel htmlFor="login-mfa">
+            <FieldLabel htmlFor={`${uid}-mfa`}>
   {t("mfa")}
   </FieldLabel>
             <input
-              id="login-mfa"
+              id={`${uid}-mfa`}
               name="mfa"
+              defaultValue={initial?.mfa ?? ""}
               className={field}
               placeholder={t("mfaPlaceholder")}
             />
           </div>
           <div>
-            <FieldLabel htmlFor="login-rotated">
+            <FieldLabel htmlFor={`${uid}-rotated`}>
   {t("rotatedOn")}
   </FieldLabel>
             <input
-              id="login-rotated"
+              id={`${uid}-rotated`}
               name="rotated_on"
               type="date"
-              defaultValue={today}
+              defaultValue={initial?.rotated_on ?? today}
               className={field}
             />
           </div>
@@ -164,6 +186,7 @@ export function LoginForm({
                   type="checkbox"
                   name="access_roles"
                   value={r}
+                  defaultChecked={initial?.access_roles?.includes(r)}
                   className="h-4 w-4 rounded border-input"
                 />
                 {roleLabel(r)}
@@ -173,12 +196,13 @@ export function LoginForm({
         </fieldset>
 
         <div>
-          <FieldLabel htmlFor="login-note">
+          <FieldLabel htmlFor={`${uid}-note`}>
   {t("note")}
   </FieldLabel>
           <textarea
-            id="login-note"
+            id={`${uid}-note`}
             name="note"
+            defaultValue={initial?.note ?? ""}
             className={`${field} min-h-[64px]`}
             placeholder={t("notePlaceholder")}
           />

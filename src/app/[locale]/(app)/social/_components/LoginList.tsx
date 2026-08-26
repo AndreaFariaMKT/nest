@@ -5,7 +5,7 @@ import { cn } from "@/lib/utils";
 import { daysBetween } from "@/lib/social";
 import { isAppRole } from "@/lib/roles";
 import { EmptyState, useDateLabel } from "./Shared";
-import { RevealSecret } from "./LoginForm";
+import { LoginForm, RevealSecret } from "./LoginForm";
 import { ConfirmDeleteButton } from "./ConfirmDeleteButton";
 import { deleteLoginAction } from "../actions";
 
@@ -32,6 +32,8 @@ export function LoginList({
   locale,
   today,
   canEdit,
+  clients,
+  secretsReady = false,
   showClient = true,
   emptyKey,
 }: {
@@ -40,6 +42,9 @@ export function LoginList({
   locale: string;
   today: string;
   canEdit: boolean;
+  /** Only the studio screen passes these, and only it renders the edit form. */
+  clients?: { id: string; name: string }[];
+  secretsReady?: boolean;
   /**
    * Which empty message to show. The default says "nothing for this filter" —
    * true on the studio screen, which has a client picker, and false in the
@@ -153,6 +158,23 @@ export function LoginList({
               <p className="mt-3 border-t border-border pt-3 text-sm leading-relaxed text-muted-foreground">
                 {a.note}
               </p>
+            ) : null}
+
+            {/* The amber "over 30 days" pill above asks for a rotation. Until
+                now the only way to record one was to delete the login and
+                retype platform, site, username, holder, MFA, access roles and
+                note — so the nudge asked for something the screen could not
+                do. */}
+            {canEdit && clients ? (
+              <div className="mt-3 border-t border-border pt-3">
+                <LoginForm
+                  locale={locale}
+                  clients={clients}
+                  today={today}
+                  secretsReady={secretsReady}
+                  initial={a}
+                />
+              </div>
             ) : null}
           </article>
         );

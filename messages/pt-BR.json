@@ -1197,7 +1197,9 @@
       "capturedOn": "Data em que foi feito",
       "description": "O que é",
       "descriptionPlaceholder": "O que tem dentro, para que serve e o que limita o uso.",
-      "submit": "Adicionar"
+      "submit": "Adicionar",
+      "edit": "Corrigir este material",
+      "save": "Salvar alterações"
     },
     "logins": {
       "title": "Acessos compartilhados",
@@ -1245,7 +1247,10 @@
       "whoIsOnIt": "Quem está no acesso",
       "note": "Observação",
       "notePlaceholder": "O que a próxima pessoa precisa saber antes de entrar.",
-      "submit": "Salvar acesso"
+      "submit": "Salvar acesso",
+      "edit": "Corrigir este acesso",
+      "save": "Salvar alterações",
+      "passwordHintEdit": "Deixe em branco para manter a senha guardada. Digite uma nova só se ela mudou — e, quando mudar, ajuste a data ao lado."
     },
     "piece": {
       "back": "Voltar para a quinzena",
