@@ -296,7 +296,7 @@ export async function generateMonthlyReportAction(
   };
 
   const tenantId = await currentTenantId();
-  const { data: upserted } = await supabase
+  const { data: upserted, error: upsertError } = await supabase
     .from("monthly_reports")
     .upsert(
       {
@@ -313,9 +313,19 @@ export async function generateMonthlyReportAction(
     .select("id")
     .single();
 
-  if (slug) revalidatePath(`/${locale}/clients/${slug}`);
-  if (upserted?.id) {
-    redirect(localePath(locale, `/reports/${upserted.id}`));
+  // The last step, and the only one that did not say when it failed. This
+  // function redirects with ?report=failed everywhere else precisely so an
+  // Opus call that did not work cannot look like one that did — and then
+  // landed on the plain client page here, which is byte-identical to "it
+  // worked". The studio believed the report was written; it was not, and the
+  // tokens were spent.
+  if (upsertError || !upserted?.id) {
+    log.error("reports.monthly", "save_failed", {
+      code: upsertError?.code ?? "no_row",
+    });
+    redirect(localePath(locale, `/clients/${slug}?report=failed`));
   }
-  redirect(localePath(locale, `/clients/${slug}`));
+
+  if (slug) revalidatePath(`/${locale}/clients/${slug}`);
+  redirect(localePath(locale, `/reports/${upserted.id}`));
 }

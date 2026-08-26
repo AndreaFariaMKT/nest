@@ -321,7 +321,12 @@ async function handler(request: NextRequest) {
     })();
 
     if (outcome.ok) {
-      const { data: published } = await admin
+      // The post is already public at this point. Everything below is
+      // bookkeeping, and it used to discard every error it made — so a
+      // failure here left the row saying `pending` while the carousel was
+      // live, and the next morning's run published it again. Daily, until
+      // someone noticed.
+      const { data: published, error: publishedError } = await admin
         .from("published_posts")
         .insert({
           draft_id: draft.id,
@@ -332,7 +337,28 @@ async function handler(request: NextRequest) {
         .select("id")
         .single();
 
-      await admin
+      if (publishedError) {
+        // `(platform, external_id)` is unique, so a retry after a timeout
+        // lands here with the post already recorded. Not fatal — but without
+        // the link, stale_metrics_posts never sees it and that post collects
+        // no metrics, ever, silently.
+        log.error("cron.publish", "published_post_insert_failed", {
+          scheduledId: row.id,
+          draftId: draft.id,
+          code: publishedError.code ?? "unknown",
+        });
+        await recordError({
+          source: "cron",
+          area: "cron.publish",
+          scope: "published_post_insert_failed",
+          severity: "warn",
+          err: publishedError,
+          tenantId: row.tenant_id,
+          context: { scheduledId: row.id, draftId: draft.id },
+        });
+      }
+
+      const { error: markError } = await admin
         .from("scheduled_posts")
         .update({
           status: "published",
@@ -340,6 +366,28 @@ async function handler(request: NextRequest) {
           last_error: null,
         })
         .eq("id", row.id);
+
+      // This one IS fatal to get wrong. A row left `pending` after a
+      // successful publish is republished on the next run.
+      if (markError) {
+        log.error("cron.publish", "mark_published_failed", {
+          scheduledId: row.id,
+          code: markError.code ?? "unknown",
+        });
+        await recordError({
+          source: "cron",
+          area: "cron.publish",
+          scope: "mark_published_failed",
+          severity: "fatal",
+          err: markError,
+          tenantId: row.tenant_id,
+          context: {
+            scheduledId: row.id,
+            draftId: draft.id,
+            note: "post is live but the queue row still reads pending — it will publish again",
+          },
+        });
+      }
       await admin
         .from("content_drafts")
         // published_at, not just the status. The monthly report counts a

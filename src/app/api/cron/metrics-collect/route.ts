@@ -85,11 +85,30 @@ async function handler(request: NextRequest) {
   // publishing four times a week reaches it in three months — every post past
   // the batch stopped accumulating metrics for good, and the report measured a
   // sample that shrank as the studio published more.
-  const { data: posts } = await admin.rpc("stale_metrics_posts", {
-    platform_name: "instagram",
-    lookback_ts: lookbackIso,
-    batch: BATCH_SIZE,
-  });
+  const { data: posts, error: rpcError } = await admin.rpc(
+    "stale_metrics_posts",
+    {
+      platform_name: "instagram",
+      lookback_ts: lookbackIso,
+      batch: BATCH_SIZE,
+    },
+  );
+
+  // A failed RPC used to leave `posts` null, which read as "nothing to
+  // collect" — and the route answered 200 {ok:true, candidates:0}. This
+  // signals failure everywhere else (503 on missing creds, per-post
+  // counters), so a healthy quiet day and a permanently broken collector
+  // looked identical in the cron log, while the report kept showing numbers
+  // from a frozen dataset.
+  if (rpcError) {
+    log.error("cron.metrics", "stale_posts_rpc_failed", {
+      code: rpcError.code ?? "unknown",
+    });
+    return NextResponse.json(
+      { ok: false, error: "stale_posts_unavailable" },
+      { status: 500 },
+    );
+  }
 
   const summary = {
     candidates: posts?.length ?? 0,

@@ -77,3 +77,39 @@ describe("writes that used to fail silently", () => {
     expect(board).toContain("<FormError error={error} />");
   });
 });
+
+/**
+ * Four writes and reads that reported success, or nothing, when they failed.
+ * Each has a different consequence and all four were invisible.
+ */
+describe("failures that used to be silent", () => {
+  const read = (p: string) =>
+    readFileSync(`${process.cwd()}/${p}`, "utf8");
+
+  it("the publish cron notices when it cannot record its own post", () => {
+    // The carousel is already public here. A row left `pending` after a
+    // successful publish is republished the next morning, daily.
+    const source = read("src/app/api/cron/publish/route.ts");
+    expect(source).toContain("mark_published_failed");
+    expect(source).toContain("published_post_insert_failed");
+  });
+
+  it("a monthly report that did not save says so", () => {
+    // Every other failure path in that action redirects with ?report=failed
+    // precisely so a spent Opus call cannot look like a success. The last
+    // step landed on the plain client page instead.
+    const source = read("src/app/[locale]/(app)/reports/actions.ts");
+    expect(source).toContain('if (upsertError || !upserted?.id)');
+  });
+
+  it("a broken metrics collector reports failure, not an empty day", () => {
+    const source = read("src/app/api/cron/metrics-collect/route.ts");
+    expect(source).toContain("stale_posts_unavailable");
+  });
+
+  it("a failed piece read does not render as an empty shelf", () => {
+    const source = read("src/app/[locale]/(app)/social/_data.ts");
+    expect(source).toContain("throw new Error(`listPieces failed on page");
+    expect(source).not.toContain("if (error) break;");
+  });
+});

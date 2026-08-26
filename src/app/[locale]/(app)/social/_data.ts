@@ -7,6 +7,7 @@
  * in src/lib/social.ts.
  */
 
+import { log } from "@/lib/log";
 import { cache } from "react";
 
 import { createClient } from "@/lib/supabase/server";
@@ -130,7 +131,23 @@ export const listPieces = cache(async (): Promise<SocialPieceRow[]> => {
       // is how a paged read silently drops one row and repeats another.
       .order("id", { ascending: true })
       .range(page * PAGE, page * PAGE + PAGE - 1);
-    if (error) break;
+    // Throw rather than break. A failed read used to return the pages that
+    // had worked — or nothing at all, if the first one failed — and the module
+    // has no way to tell that apart from a genuinely empty shelf: /social/backlog
+    // empties, backlogStock reports `critical`, and every client dot on the
+    // overview turns red, with nothing anywhere saying why. That is the same
+    // outcome the paging above exists to prevent; only the cause differs.
+    //
+    // The error boundary is the honest answer here: this is read by eleven
+    // screens, and a partial fortnight shown as the whole one is worse than a
+    // page that says something broke.
+    if (error) {
+      log.error("social.read", "list_pieces_failed", {
+        page,
+        code: error.code ?? "unknown",
+      });
+      throw new Error(`listPieces failed on page ${page}: ${error.code ?? "unknown"}`);
+    }
     const batch = (data ?? []) as unknown as SocialPieceRow[];
     rows.push(...batch);
     if (batch.length < PAGE) break;
