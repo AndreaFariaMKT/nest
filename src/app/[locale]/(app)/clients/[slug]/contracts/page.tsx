@@ -1,3 +1,9 @@
+// todayIso(): the studio's calendar day. `new Date().toISOString()`
+// gives UTC's, which after 21:00 in São Paulo is already tomorrow — so a
+// contract ending on the 31st dropped out of MRR three hours before the
+// 31st was over, and a service attached in the evening was dated to the
+// next day.
+import { todayIso } from "@/lib/social";
 import { setRequestLocale, getTranslations } from "next-intl/server";
 import { notFound } from "next/navigation";
 import { Link } from "@/i18n/routing";
@@ -43,7 +49,7 @@ export default async function ClientContractsPage({
     .order("starts_on", { ascending: false });
   const contracts = (contractData ?? []) as Contract[];
 
-  const today = new Date().toISOString().slice(0, 10);
+  const today = todayIso();
   const mrr = sumCents(
     contracts
       .filter((c) => c.starts_on <= today && (!c.ends_on || c.ends_on >= today))

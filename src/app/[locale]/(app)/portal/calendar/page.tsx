@@ -18,6 +18,7 @@ import {
 import {
   CLIENT_VISIBLE_STAGES,
   STAGE_TONE,
+  dayOf,
   todayIso,
   type SocialStage,
 } from "@/lib/social";
@@ -101,8 +102,11 @@ export default async function PortalCalendar({
   const meetings = (meetingData ?? []).map((m) => ({
     id: m.id,
     title: m.title,
-    // Meetings are timestamps; the calendar is days.
-    day: m.starts_at.slice(0, 10),
+    // Meetings are timestamps; the calendar is days — in São Paulo, not UTC.
+    // A 22:00 meeting on 30 September is 01:00Z on 1 October, so slicing the
+    // string dropped it out of September's query entirely and drew it on the
+    // 1st. dayOf() exists for exactly this.
+    day: dayOf(m.starts_at) ?? m.starts_at.slice(0, 10),
   }));
 
   const events: CalendarEvent[] = [

@@ -23,6 +23,7 @@ import {
   fortnightOf,
   isBlockedReason,
   isReplyOverdue,
+  movesFor,
   recentMonths,
   replyDueBy,
   socialCaps,
@@ -785,5 +786,68 @@ describe("studioInstant", () => {
     expect(studioInstant("")).toBeNull();
     expect(studioInstant(null)).toBeNull();
     expect(studioInstant("tomorrow")).toBeNull();
+  });
+});
+
+describe("movesFor and canRun agree", () => {
+  /**
+   * The file's header says deriving the board and the record from one place
+   * makes drift impossible. For `send_to_client` it did not: the move was
+   * offered on sign-off alone while canRun also requires the folder link, and
+   * coordination can clear that link after sign-off. The button answered "add
+   * the folder link first" when pressed.
+   */
+  it("never offers a move canRun would refuse", () => {
+    const base = {
+      status: "creative_review" as const,
+      design_state: "signed_off" as const,
+      caption: "text",
+      publish_on: "2026-09-10",
+    };
+    const caps: SocialCap[] = ["coordinate"];
+
+    const withLink = movesFor({ ...base, material_url: "drive.com/x" }, caps);
+    expect(withLink.moves.map((m) => m.action)).toContain("send_to_client");
+
+    const withoutLink = movesFor({ ...base, material_url: null }, caps);
+    expect(withoutLink.moves.map((m) => m.action)).not.toContain(
+      "send_to_client",
+    );
+
+    // And every move it does offer must actually run.
+    for (const piece of [
+      { ...base, material_url: "drive.com/x" },
+      { ...base, material_url: null },
+    ]) {
+      for (const move of movesFor(piece, caps).moves) {
+        expect(canRun(move.action, piece, caps, "comment").ok, move.action).toBe(
+          true,
+        );
+      }
+    }
+  });
+});
+
+describe("clientHealth precedence", () => {
+  /**
+   * "Worst-first: a passed reply date outranks a thin shelf" — the comment
+   * said that and the code did the opposite, because sequential assignment is
+   * last-write-wins and stockCritical was last. A client with an empty shelf
+   * and two replies past their date was told to restock, and the thing with a
+   * deadline vanished from the card.
+   */
+  it("reports the overdue replies, not the empty shelf", () => {
+    const pieces = [
+      {
+        status: "client_review" as const,
+        publish_on: "2026-08-01",
+        design_state: "signed_off" as const,
+        caption: "x",
+        material_url: "y",
+      },
+    ];
+    const health = clientHealth(pieces as never, 2, "2026-08-25");
+    expect(health.reason).toBe("replyOverdue");
+    expect(health.level).toBe("bad");
   });
 });

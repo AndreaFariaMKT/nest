@@ -839,7 +839,18 @@ export function movesFor(
       };
 
     case "creative_review":
-      if (has("coordinate") && piece.design_state === "signed_off") {
+      // The folder link is checked here as well as in canRun. Sign-off can
+      // happen and the link be cleared afterwards — savePieceAction lets
+      // coordination blank it, and canRun says so at its own door — so
+      // offering the button on sign-off alone put up a control that answered
+      // "add the folder link first" when pressed. This file's own header
+      // claims deriving both from one place makes that drift impossible; for
+      // this branch it did not.
+      if (
+        has("coordinate") &&
+        piece.design_state === "signed_off" &&
+        piece.material_url?.trim()
+      ) {
         return one("send_to_client");
       }
       return { moves: [], waitingOn: "design" };
@@ -997,7 +1008,14 @@ export function clientHealth(
     };
   }
 
-  // Worst-first: a passed reply date outranks a thin shelf.
+  // Worst-first, and written as a chain rather than as a run of `if`s.
+  //
+  // The comment said "a passed reply date outranks a thin shelf" and the code
+  // said the opposite: sequential assignments meant last-write-wins, and
+  // `stockCritical` was last. A client with an empty shelf AND two replies
+  // past their date was told to restock, and the overdue replies — the thing
+  // with a deadline attached — vanished from the card. The order below now
+  // reads in the order it decides.
   let level: HealthLevel = "ok";
   let reason: HealthReason = "onRhythm";
   let count = 0;
@@ -1010,6 +1028,11 @@ export function clientHealth(
     reason = "unwritten";
     count = unwritten;
   }
+  if (stock.critical) {
+    level = "bad";
+    reason = "stockCritical";
+    count = 0;
+  }
   if (returned) {
     level = "bad";
     reason = "returned";
@@ -1019,11 +1042,6 @@ export function clientHealth(
     level = "bad";
     reason = "replyOverdue";
     count = overdue;
-  }
-  if (stock.critical) {
-    level = "bad";
-    reason = "stockCritical";
-    count = 0;
   }
 
   return { level, reason, count, stock, withClient, live, returned, overdue };

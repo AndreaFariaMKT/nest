@@ -1,3 +1,4 @@
+import { STUDIO_TIMEZONE, todayIso } from "@/lib/social";
 import { setRequestLocale, getTranslations } from "next-intl/server";
 import { Link } from "@/i18n/routing";
 import type { Route } from "next";
@@ -73,17 +74,21 @@ export default async function TodayPage({
   const profile = await getCurrentProfile();
   const firstName = (profile?.full_name ?? "").split(" ")[0] || "";
 
+  // The studio's day, not the server's. Rendered server-side with no
+  // timeZone, this read "terça, 26 de agosto" from half past nine on the
+  // 25th — the greeting on the first screen of the day, wrong about the day.
   const dateLabel = new Intl.DateTimeFormat(locale, {
     weekday: "long",
     day: "numeric",
     month: "long",
+    timeZone: STUDIO_TIMEZONE,
   }).format(new Date());
 
   const supabase = await createClient();
   const tenantId = await currentTenantId();
 
   const ownerView = (await getCurrentRole()) === "founder";
-  const today = new Date().toISOString().slice(0, 10);
+  const today = todayIso();
   const nowIso = new Date().toISOString();
 
   // One wave, not five. These five reads are independent — none consumes

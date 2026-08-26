@@ -1,5 +1,11 @@
 "use server";
 
+// todayIso(): the studio's calendar day. `new Date().toISOString()`
+// gives UTC's, which after 21:00 in São Paulo is already tomorrow — so a
+// contract ending on the 31st dropped out of MRR three hours before the
+// 31st was over, and a service attached in the evening was dated to the
+// next day.
+import { todayIso } from "@/lib/social";
 import { revalidatePath } from "next/cache";
 import { createClient as createSupabaseClient } from "@/lib/supabase/server";
 import { currentTenantId } from "@/lib/tenant-server";
@@ -25,7 +31,7 @@ export async function attachClientServiceAction(
 
   const supabase = await createSupabaseClient();
   const tenantId = await currentTenantId();
-  const today = new Date().toISOString().slice(0, 10);
+  const today = todayIso();
 
   // The primary key is (client_id, service_id, started_on), so detaching a
   // service and attaching it again the same day collided with the row just
@@ -80,7 +86,7 @@ export async function detachClientServiceAction(
   }
 
   const supabase = await createSupabaseClient();
-  const today = new Date().toISOString().slice(0, 10);
+  const today = todayIso();
   const { data, error } = await supabase
     .from("client_services")
     .update({ ended_on: today })

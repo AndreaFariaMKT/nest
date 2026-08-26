@@ -31,7 +31,7 @@ import {
   type MemberChoice,
 } from "./_components/ClientMembersCard";
 import { SocialModuleCard } from "./_components/SocialModuleCard";
-import { recentMonths } from "@/lib/social";
+import { recentMonths, todayIso } from "@/lib/social";
 import { PortalLoginForm } from "./_components/PortalLoginForm";
 import { createAdminClient } from "@/lib/supabase/admin";
 
@@ -110,7 +110,7 @@ export default async function ClientDetailPage({
   const ownerView = await isOwner();
 
   const nowIsoForClient = new Date().toISOString();
-  const todayIsoForClient = new Date().toISOString().slice(0, 10);
+  const todayIsoForClient = todayIso();
   const { year: cycleYear, month: cycleMonth } = currentYearMonth();
 
   // One wave, not nine. Every read below is keyed on `client.id` and none

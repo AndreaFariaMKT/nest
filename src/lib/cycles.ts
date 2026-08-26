@@ -1,4 +1,11 @@
 // Pure helpers for monthly cycles. I/O-free.
+//
+// The `today` defaults are the studio's calendar day, not UTC's. They used to
+// be `new Date().toISOString().slice(0, 10)`, which after 21:00 in São Paulo
+// is already tomorrow — so a cycle ending on the 31st read as over, and the
+// days remaining were off by one, for the last three hours of every day.
+
+import { todayIso } from "@/lib/social";
 
 export type CycleBounds = {
   year: number;
@@ -37,14 +44,14 @@ export function cycleBounds(year: number, month: number): CycleBounds {
 
 export function isCycleActive(
   bounds: Pick<CycleBounds, "startsOn" | "endsOn">,
-  today: string = new Date().toISOString().slice(0, 10),
+  today: string = todayIso(),
 ): boolean {
   return today >= bounds.startsOn && today <= bounds.endsOn;
 }
 
 export function daysRemainingInCycle(
   bounds: Pick<CycleBounds, "endsOn">,
-  today: string = new Date().toISOString().slice(0, 10),
+  today: string = todayIso(),
 ): number {
   const msPerDay = 1000 * 60 * 60 * 24;
   const end = Date.parse(`${bounds.endsOn}T00:00:00Z`);
