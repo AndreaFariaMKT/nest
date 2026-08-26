@@ -1,5 +1,6 @@
 "use server";
 
+import { studioInstant } from "@/lib/social";
 import { log } from "@/lib/log";
 import { dbError } from "@/lib/db-error";
 import { revalidatePath } from "next/cache";
@@ -38,7 +39,9 @@ function readForm(formData: FormData) {
     ? (rawPriority as TaskPriority)
     : "medium";
   const rawDue = (formData.get("due_at") ?? "").toString().trim();
-  const dueAt = rawDue ? new Date(rawDue).toISOString() : null;
+  // Same reason as meetings: a naive datetime-local was read in the
+  // server's zone, so a due time landed three hours off.
+  const dueAt = studioInstant(rawDue);
   const assigneeId =
     (formData.get("assignee_id") ?? "").toString().trim() || null;
   const clientId =

@@ -1,3 +1,4 @@
+import { dayOf, todayIso } from "@/lib/social";
 import { setRequestLocale, getTranslations } from "next-intl/server";
 import { Link } from "@/i18n/routing";
 import { createClient } from "@/lib/supabase/server";
@@ -49,13 +50,14 @@ export default async function CalendarPage({
   const meetings = (meetingsData ?? []) as Meeting[];
 
   // Pre-compute dateKey for each meeting so the client component doesn't
-  // have to re-bucket; also keeps the server as the source of truth for
-  // time-zone normalization.
+  // have to re-bucket.
+  //
+  // dayOf(), not getFullYear/getMonth/getDate. Those read the SERVER's zone,
+  // which is UTC on Vercel — so a meeting at 21:00 São Paulo landed in the
+  // next day's cell, and after 21:00 the "today" highlight moved to tomorrow.
   const calendarMeetings: CalendarMeeting[] = meetings.map((m) => {
-    const d = new Date(m.starts_at);
-    const y = d.getFullYear();
-    const mm = String(d.getMonth() + 1).padStart(2, "0");
-    const dd = String(d.getDate()).padStart(2, "0");
+    const key = dayOf(m.starts_at) ?? m.starts_at.slice(0, 10);
+    const [y, mm, dd] = key.split("-");
     return {
       id: m.id,
       title: m.title,
@@ -73,7 +75,9 @@ export default async function CalendarPage({
   const prev = formatMonthKey(addMonths(key, -1));
   const next = formatMonthKey(addMonths(key, 1));
   const todayISO = new Date();
-  const todayKey = `${todayISO.getFullYear()}-${String(todayISO.getMonth() + 1).padStart(2, "0")}-${String(todayISO.getDate()).padStart(2, "0")}`;
+  // The studio's day, not the server's: after 21:00 São Paulo the "today"
+  // highlight used to move to tomorrow's cell.
+  const todayKey = todayIso();
 
   // Build localized weekday labels (Mon-first).
   const weekdayFmt = new Intl.DateTimeFormat(locale, { weekday: "short" });

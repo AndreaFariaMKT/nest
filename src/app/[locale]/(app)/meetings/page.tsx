@@ -1,3 +1,4 @@
+import { STUDIO_TIMEZONE } from "@/lib/social";
 import { setRequestLocale, getTranslations } from "next-intl/server";
 import { Link } from "@/i18n/routing";
 import { Pill } from "@/components/ui/Pill";
@@ -66,6 +67,7 @@ export default async function MeetingsPage({
   past.reverse();
 
   const dtf = new Intl.DateTimeFormat(locale, {
+    timeZone: STUDIO_TIMEZONE,
     dateStyle: "medium",
     timeStyle: "short",
   });

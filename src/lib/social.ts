@@ -248,6 +248,35 @@ export const STUDIO_UTC_OFFSET = "-03:00";
  * scheduled for anything, and inventing an instant for it would be worse than
  * refusing.
  */
+/**
+ * A `datetime-local` value, as the instant the studio meant.
+ *
+ * `new Date("2026-09-15T14:00")` has no offset, so ECMAScript parses it in the
+ * SERVER's zone — and Vercel's Node runs UTC. Typing 14:00 into a meeting form
+ * therefore stored 14:00Z, which is 11:00 in São Paulo: every meeting three
+ * hours early, and every Google Calendar invite with it.
+ *
+ * The social module got this right from the start with publishInstant(); this
+ * is the same idea for a combined field. Same constant, so the two cannot
+ * drift.
+ */
+export function studioInstant(
+  datetimeLocal: string | null | undefined,
+): string | null {
+  const raw = (datetimeLocal ?? "").trim();
+  if (!raw) return null;
+  // Already carries a zone (a stored timestamptz round-tripping through a
+  // form) — leave it alone rather than shifting it a second time.
+  if (/(Z|[+-]\d{2}:?\d{2})$/.test(raw)) {
+    const asIs = new Date(raw);
+    return Number.isNaN(asIs.getTime()) ? null : asIs.toISOString();
+  }
+  const m = /^(\d{4}-\d{2}-\d{2})T(\d{2}):(\d{2})/.exec(raw);
+  if (!m) return null;
+  const at = new Date(`${m[1]}T${m[2]}:${m[3]}:00${STUDIO_UTC_OFFSET}`);
+  return Number.isNaN(at.getTime()) ? null : at.toISOString();
+}
+
 export function publishInstant(
   publishOn: string | null | undefined,
   publishTime: string | null | undefined,

@@ -118,11 +118,22 @@ export async function generateMonthlyReportAction(
         )
         .gte("created_at", bounds.startISO)
         .lt("created_at", bounds.endISO),
+      // From content_drafts, not published_posts.
+      //
+      // `published_posts` gets a row only from the publish cron and the
+      // Instagram route. Marking a piece live BY HAND — which is how every
+      // piece goes out today, since the Meta connection is not active — writes
+      // `published_at` on the draft and no row there at all. So this counted
+      // zero, and the prompt in monthly-report.ts instructs Claude to "say so
+      // honestly if the input shows 0 published posts". The recap sent to the
+      // client's own CEO asserted that nothing was published in a month of
+      // work — while /social/report, counting from the drafts, showed the true
+      // number for the same month.
       supabase
-        .from("published_posts")
-        .select(
-          "id, published_at, draft:content_drafts!inner(client_id)",
-        )
+        .from("content_drafts")
+        .select("id, published_at, client_id")
+        .eq("engine", "social")
+        .eq("status", "published")
         .gte("published_at", bounds.startISO)
         .lt("published_at", bounds.endISO),
       // The social module's own approvals. It does not write to `approvals` —
@@ -169,13 +180,9 @@ export async function generateMonthlyReportAction(
     (a) => pickOne(a.draft)?.client_id === clientId,
   );
 
-  type PublishedJoin = {
-    id: string;
-    published_at: string;
-    draft: { client_id: string } | Array<{ client_id: string }> | null;
-  };
-  const publishedPosts = ((publishedRes.data ?? []) as unknown as PublishedJoin[]).filter(
-    (p) => pickOne(p.draft)?.client_id === clientId,
+  // Filtered in SQL now, so the shape is flat and this is a straight count.
+  const publishedPosts = (publishedRes.data ?? []).filter(
+    (p) => p.client_id === clientId,
   );
 
   // Counted per column, not per row: one piece can be sent, refused and

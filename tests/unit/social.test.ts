@@ -27,6 +27,7 @@ import {
   replyDueBy,
   socialCaps,
   socialScreensFor,
+  studioInstant,
   todayIso,
   type SocialPiece,
   type SocialStage,
@@ -752,5 +753,37 @@ describe("recentMonths", () => {
     const offered = recentMonths(12, "2026-08-31");
     expect(offered).not.toContainEqual({ year: 2026, month: 8 });
     expect(offered[0]).toEqual({ year: 2026, month: 7 });
+  });
+});
+
+describe("studioInstant", () => {
+  /**
+   * A `datetime-local` value carries no offset, so ECMAScript parses it in the
+   * SERVER's zone — UTC on Vercel. Typing 14:00 into a meeting form stored
+   * 14:00Z, which is 11:00 in São Paulo: every meeting three hours early, and
+   * every Google Calendar invite with it, on the client's own calendar.
+   */
+  it("reads a naive local value as the studio's clock", () => {
+    expect(studioInstant("2026-09-15T14:00")).toBe("2026-09-15T17:00:00.000Z");
+    expect(studioInstant("2026-09-15T14:00:00")).toBe(
+      "2026-09-15T17:00:00.000Z",
+    );
+  });
+
+  it("leaves a value that already carries a zone alone", () => {
+    // A stored timestamptz round-tripping through a form must not be shifted
+    // a second time.
+    expect(studioInstant("2026-09-15T17:00:00Z")).toBe(
+      "2026-09-15T17:00:00.000Z",
+    );
+    expect(studioInstant("2026-09-15T14:00:00-03:00")).toBe(
+      "2026-09-15T17:00:00.000Z",
+    );
+  });
+
+  it("refuses what it cannot read, rather than inventing an instant", () => {
+    expect(studioInstant("")).toBeNull();
+    expect(studioInstant(null)).toBeNull();
+    expect(studioInstant("tomorrow")).toBeNull();
   });
 });

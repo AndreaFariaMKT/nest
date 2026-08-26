@@ -1,5 +1,6 @@
 "use server";
 
+import { studioInstant } from "@/lib/social";
 import { dbError } from "@/lib/db-error";
 import { revalidatePath } from "next/cache";
 
@@ -34,9 +35,13 @@ function readForm(formData: FormData) {
     ? (rawStatus as MeetingStatus)
     : "scheduled";
   const rawStarts = (formData.get("starts_at") ?? "").toString().trim();
-  const startsAt = rawStarts ? new Date(rawStarts).toISOString() : null;
+  // studioInstant, not new Date(): a datetime-local carries no offset, so
+  // ECMAScript parses it in the SERVER's zone — UTC on Vercel. Typing 14:00
+  // stored 14:00Z, which is 11:00 in São Paulo, and the Google Calendar
+  // invite went out three hours early on the client's own calendar.
+  const startsAt = studioInstant(rawStarts);
   const rawEnds = (formData.get("ends_at") ?? "").toString().trim();
-  const endsAt = rawEnds ? new Date(rawEnds).toISOString() : null;
+  const endsAt = studioInstant(rawEnds);
   const clientId =
     (formData.get("client_id") ?? "").toString().trim() || null;
   const googleMeetUrl =

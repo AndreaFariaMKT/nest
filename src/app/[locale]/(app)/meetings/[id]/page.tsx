@@ -1,3 +1,4 @@
+import { STUDIO_TIMEZONE } from "@/lib/social";
 import { notFound } from "next/navigation";
 import { setRequestLocale, getTranslations } from "next-intl/server";
 import { Link } from "@/i18n/routing";
@@ -62,6 +63,7 @@ export default async function MeetingDetailPage({
   const transcripts = (transcriptsData ?? []) as Transcript[];
 
   const dtf = new Intl.DateTimeFormat(locale, {
+    timeZone: STUDIO_TIMEZONE,
     dateStyle: "full",
     timeStyle: "short",
   });
@@ -208,6 +210,7 @@ export default async function MeetingDetailPage({
                 <div className="flex items-center justify-between gap-3 text-xs text-muted-foreground">
                   <span>
                     {new Intl.DateTimeFormat(locale, {
+    timeZone: STUDIO_TIMEZONE,
                       dateStyle: "medium",
                       timeStyle: "short",
                     }).format(new Date(tr.created_at))}

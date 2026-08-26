@@ -10,7 +10,7 @@ import { currentTenantId } from "@/lib/tenant-server";
 import { log } from "@/lib/log";
 import { pseudonymiseSpeakers } from "@/lib/sanitize";
 import { getCurrentRole } from "@/lib/roles-server";
-import { canUseSocial } from "@/lib/social";
+import { canUseSocial, studioInstant } from "@/lib/social";
 import {
   isEditableContentStatus,
   EDITABLE_CONTENT_STATUSES,
@@ -1540,8 +1540,10 @@ export async function scheduleDraftAction(
   const platform = (formData.get("platform") ?? "instagram").toString();
   if (!draftId || !scheduledForRaw) return;
 
-  const scheduledFor = new Date(scheduledForRaw);
-  if (Number.isNaN(scheduledFor.getTime())) return;
+  // The studio's clock, not the server's — the social module's queue uses
+  // publishInstant() for exactly this and the content engine never did.
+  const scheduledForIso = studioInstant(scheduledForRaw);
+  if (!scheduledForIso) return;
 
   const supabase = await createSupabaseClient();
   const { data: draft } = await supabase
@@ -1556,7 +1558,7 @@ export async function scheduleDraftAction(
     draft_id: draftId,
     platform: platform as "instagram" | "linkedin" | "tiktok",
     post_type: "carousel",
-    scheduled_for: scheduledFor.toISOString(),
+    scheduled_for: scheduledForIso,
     status: "pending",
   });
   if (error) return;
