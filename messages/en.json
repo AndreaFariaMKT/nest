@@ -889,7 +889,15 @@
     "openMenu": "Open menu",
     "closeMenu": "Close menu",
     "toggleSidebar": "Collapse or expand the sidebar",
-    "viewAs": "View as"
+    "viewAs": "View as",
+    "db": {
+      "dbDenied": "You do not have permission for that change. Nothing was changed. If you should have, talk to coordination.",
+      "dbDuplicate": "That already exists — nothing was created. Check the list before adding it again.",
+      "dbMissingField": "A field is blank, or holds a value that is not accepted here. Check the form and save again.",
+      "dbBadReference": "One of the things this is linked to no longer exists. Refresh the page — if it keeps happening, tell coordination.",
+      "dbTooLong": "That text is over the field's limit. Shorten it and save again.",
+      "dbFailed": "That could not be saved and nothing changed. Try again — if it repeats, tell coordination; the error is already logged on our side."
+    }
   },
   "social": {
     "screens": {

@@ -1,5 +1,6 @@
 "use server";
 
+import { dbError } from "@/lib/db-error";
 import { revalidatePath } from "next/cache";
 
 import type { Database } from "@/types/database.gen";
@@ -118,7 +119,7 @@ export async function createTaskAction(
     .select("id")
     .single();
 
-  if (error) return { error: error.message };
+  if (error) return { error: dbError(error) };
 
   // Notify the assignee (skip for self-assign and templates).
   if (
@@ -189,7 +190,7 @@ export async function updateTaskAction(
   if (cycleId !== undefined) update.cycle_id = form.isTemplate ? null : cycleId;
 
   const { error } = await supabase.from("tasks").update(update).eq("id", id);
-  if (error) return { error: error.message };
+  if (error) return { error: dbError(error) };
 
   const tenantId = await currentTenantId();
 

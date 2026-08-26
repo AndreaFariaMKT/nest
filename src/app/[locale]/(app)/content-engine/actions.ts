@@ -1,5 +1,6 @@
 "use server";
 
+import { dbError } from "@/lib/db-error";
 import { revalidatePath } from "next/cache";
 import { Constants, type Database } from "@/types/database.gen";
 import { redirect } from "next/navigation";
@@ -182,7 +183,7 @@ export async function createTranscriptAction(
     .select("id")
     .single();
 
-  if (error) return { error: error.message };
+  if (error) return { error: dbError(error) };
 
   revalidatePath(`/${locale}/content-engine`);
   redirect(localePath(locale, `/content-engine`));
@@ -1763,7 +1764,7 @@ export async function updateDraftAction(
           body: slide.body,
         })
         .eq("id", current.id);
-      if (error) return { error: error.message };
+      if (error) return { error: dbError(error) };
     } else {
       const { error } = await supabase.from("slides").insert({
         draft_id: draftId,
@@ -1771,7 +1772,7 @@ export async function updateDraftAction(
         headline: slide.headline,
         body: slide.body,
       });
-      if (error) return { error: error.message };
+      if (error) return { error: dbError(error) };
     }
   }
 
@@ -1780,7 +1781,7 @@ export async function updateDraftAction(
   const removed = existing.slice(slides.length).map((r) => r.id);
   if (removed.length > 0) {
     const { error } = await supabase.from("slides").delete().in("id", removed);
-    if (error) return { error: error.message };
+    if (error) return { error: dbError(error) };
   }
 
   revalidatePath(`/${locale}/content-engine`);

@@ -1,5 +1,6 @@
 "use client";
 
+import { FormError } from "@/components/ui/FormError";
 import { useActionState } from "react";
 import { useTranslations } from "next-intl";
 import type { MeetingFormState } from "../actions";
@@ -249,7 +250,7 @@ export function MeetingForm({
       </div>
 
       {state.error ? (
-        <p className="text-sm text-destructive">{state.error}</p>
+        <FormError error={state.error} />
       ) : null}
 
       <div className="flex items-center justify-end">

@@ -1,5 +1,6 @@
 "use server";
 
+import { dbError } from "@/lib/db-error";
 import { revalidatePath } from "next/cache";
 import { log } from "@/lib/log";
 import { redirect } from "next/navigation";
@@ -73,7 +74,7 @@ export async function createClientAction(
     status: "active",
   });
 
-  if (error) return { error: error.message };
+  if (error) return { error: dbError(error) };
 
   revalidatePath(`/${locale}/clients`);
   redirect(localePath(locale, `/clients/${slug}`));
@@ -136,7 +137,7 @@ export async function updateClientAction(
     })
     .eq("id", id);
 
-  if (error) return { error: error.message };
+  if (error) return { error: dbError(error) };
 
   revalidatePath(`/${locale}/clients`);
   revalidatePath(`/${locale}/clients/${slug}`);

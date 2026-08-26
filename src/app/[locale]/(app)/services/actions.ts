@@ -1,5 +1,6 @@
 "use server";
 
+import { dbError } from "@/lib/db-error";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import type { Route } from "next";
@@ -75,7 +76,7 @@ export async function createServiceAction(
     description: form.description,
     default_monthly_cents: monthly as number | null,
   });
-  if (error) return { error: error.message };
+  if (error) return { error: dbError(error) };
 
   revalidatePath(`/${form.locale}/services`);
   redirect(localePath(form.locale, "/services"));
@@ -118,7 +119,7 @@ export async function updateServiceAction(
       default_monthly_cents: monthly as number | null,
     })
     .eq("id", id);
-  if (error) return { error: error.message };
+  if (error) return { error: dbError(error) };
 
   revalidatePath(`/${form.locale}/services`);
   redirect(localePath(form.locale, "/services"));

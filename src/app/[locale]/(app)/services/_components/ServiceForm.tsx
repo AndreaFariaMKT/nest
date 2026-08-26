@@ -1,5 +1,6 @@
 "use client";
 
+import { FormError } from "@/components/ui/FormError";
 import { useActionState } from "react";
 import { useTranslations } from "next-intl";
 import { Link } from "@/i18n/routing";
@@ -88,7 +89,7 @@ export function ServiceForm({
       </div>
 
       {state.error ? (
-        <p className="text-sm text-destructive">{state.error}</p>
+        <FormError error={state.error} />
       ) : null}
 
       <div className="flex items-center justify-end gap-2 pt-2">

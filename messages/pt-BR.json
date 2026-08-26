@@ -889,7 +889,15 @@
     "openMenu": "Abrir menu",
     "closeMenu": "Fechar menu",
     "toggleSidebar": "Recolher ou expandir a barra lateral",
-    "viewAs": "Ver como"
+    "viewAs": "Ver como",
+    "db": {
+      "dbDenied": "Você não tem permissão para essa alteração. Nada mudou. Se deveria ter, fale com a coordenação.",
+      "dbDuplicate": "Isso já existe — nada foi criado. Confira a lista antes de cadastrar de novo.",
+      "dbMissingField": "Algum campo ficou em branco ou com um valor que não vale aqui. Revise o formulário e salve de novo.",
+      "dbBadReference": "Um dos itens ligados a isso não existe mais. Atualize a página — se continuar, avise a coordenação.",
+      "dbTooLong": "O texto passou do limite deste campo. Encurte um pouco e salve de novo.",
+      "dbFailed": "Não deu para salvar e nada mudou. Tente de novo — se repetir, avise a coordenação; o erro já está registrado do nosso lado."
+    }
   },
   "social": {
     "screens": {

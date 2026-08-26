@@ -1,5 +1,6 @@
 "use server";
 
+import { dbError } from "@/lib/db-error";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import type { Route } from "next";
@@ -112,7 +113,7 @@ export async function upsertBrandKitAction(
     { onConflict: "client_id" },
   );
 
-  if (error) return { error: error.message };
+  if (error) return { error: dbError(error) };
 
   revalidatePath(`/${locale}/clients/${clientSlug}`);
   revalidatePath(`/${locale}/clients/${clientSlug}/brand-kit`);

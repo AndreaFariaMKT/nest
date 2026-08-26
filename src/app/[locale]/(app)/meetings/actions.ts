@@ -1,5 +1,6 @@
 "use server";
 
+import { dbError } from "@/lib/db-error";
 import { revalidatePath } from "next/cache";
 
 import type { Database } from "@/types/database.gen";
@@ -104,7 +105,7 @@ export async function createMeetingAction(
     .select("id")
     .single();
 
-  if (error) return { error: error.message };
+  if (error) return { error: dbError(error) };
 
   // Best-effort Google Calendar mirror — silent no-op when the user hasn't
   // connected Google or env creds are missing. Failures are logged.
@@ -160,7 +161,7 @@ export async function updateMeetingAction(
     })
     .eq("id", meetingId);
 
-  if (error) return { error: error.message };
+  if (error) return { error: dbError(error) };
 
   // Best-effort Google Calendar mirror — patch existing event if one was
   // created earlier; otherwise skip (we don't backfill on edit because the
@@ -258,7 +259,7 @@ export async function rescheduleMeetingAction(
     .from("meetings")
     .update(patch)
     .eq("id", meetingId);
-  if (error) return { ok: false, error: error.message };
+  if (error) return { ok: false, error: dbError(error) };
 
   revalidatePath(`/${locale}/calendar`);
   revalidatePath(`/${locale}/meetings`);

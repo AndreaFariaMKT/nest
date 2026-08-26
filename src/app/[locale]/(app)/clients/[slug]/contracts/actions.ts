@@ -1,5 +1,6 @@
 "use server";
 
+import { dbError } from "@/lib/db-error";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import type { Route } from "next";
@@ -102,7 +103,7 @@ export async function createContractAction(
     notes: form.notes,
   });
 
-  if (error) return { error: error.message };
+  if (error) return { error: dbError(error) };
 
   revalidatePath(`/${form.locale}/clients/${form.clientSlug}`);
   revalidatePath(`/${form.locale}/clients/${form.clientSlug}/contracts`);
@@ -135,7 +136,7 @@ export async function updateContractAction(
     })
     .eq("id", id);
 
-  if (error) return { error: error.message };
+  if (error) return { error: dbError(error) };
 
   revalidatePath(`/${form.locale}/clients/${form.clientSlug}`);
   revalidatePath(`/${form.locale}/clients/${form.clientSlug}/contracts`);
