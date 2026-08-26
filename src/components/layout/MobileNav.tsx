@@ -3,7 +3,7 @@
 import { useTranslations } from "next-intl";
 import { useEffect, useState } from "react";
 import { usePathname } from "@/i18n/routing";
-import { BrandLockup } from "@/components/icons/Brand";
+import { BrandMark } from "@/components/icons/Brand";
 import { NavList } from "@/components/layout/NavList";
 import { RolePreview } from "@/components/layout/RolePreview";
 import { SignOutButton } from "@/components/layout/SignOutButton";
@@ -100,7 +100,7 @@ export function MobileNav({
         </button>
 
         <span className="flex items-center gap-2">
-          <BrandLockup
+          <BrandMark
             theme={theme}
             className="h-5 w-auto text-brand-soft"
             aria-label={tenantName}
@@ -128,7 +128,7 @@ export function MobileNav({
           <div className="absolute inset-y-0 left-0 flex w-72 max-w-[85vw] flex-col bg-sidebar text-sidebar-foreground shadow-xl">
             <div className="flex items-center justify-between px-4 py-4">
               <span className="flex items-center gap-2">
-                <BrandLockup
+                <BrandMark
                   theme={theme}
                   className="h-5 w-auto text-brand-soft"
                   aria-label={tenantName}

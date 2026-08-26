@@ -3,7 +3,7 @@
 import { useTranslations } from "next-intl";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { BrandLockup, BrandMark } from "@/components/icons/Brand";
+import { BrandMark } from "@/components/icons/Brand";
 import { RolePreview } from "@/components/layout/RolePreview";
 import { SignOutButton } from "@/components/layout/SignOutButton";
 import { LanguageSwitcher } from "@/components/ui/LanguageSwitcher";
@@ -88,19 +88,18 @@ export function Sidebar({
           collapsed ? "flex-col gap-3" : "justify-between pl-5"
         }`}
       >
-        {collapsed ? (
-          <BrandMark
-            theme={theme}
-            className="h-4 w-auto max-w-9 text-brand-soft"
-            aria-label={tenantName}
-          />
-        ) : (
-          <BrandLockup
-            theme={theme}
-            className="h-6 w-auto text-brand-soft"
-            aria-label={tenantName}
-          />
-        )}
+        {/* The mark alone at both widths. It carries the tenant's name as its
+            accessible name, so the wordmark's absence costs a screen reader
+            nothing. */}
+        <BrandMark
+          theme={theme}
+          className={
+            collapsed
+              ? "h-4 w-auto max-w-9 text-brand-soft"
+              : "h-5 w-auto max-w-32 text-brand-soft"
+          }
+          aria-label={tenantName}
+        />
         <button
           onClick={toggle}
           aria-label={tCommon("toggleSidebar")}
