@@ -171,7 +171,11 @@ export function LoginForm({
               id={`${uid}-rotated`}
               name="rotated_on"
               type="date"
-              defaultValue={initial?.rotated_on ?? today}
+              // Blank when the login has never been rotated, rather than
+              // today: any unrelated edit — a note, the MFA field — would
+              // otherwise stamp a rotation that did not happen and reset the
+              // 30-day pill.
+              defaultValue={editing ? (initial?.rotated_on ?? "") : today}
               className={field}
             />
           </div>
@@ -179,6 +183,11 @@ export function LoginForm({
 
         <fieldset>
           <legend className="mb-1.5 block text-[10px] font-medium uppercase tracking-widest text-muted-foreground">{t("whoIsOnIt")}</legend>
+          {/* Unchecked boxes submit nothing, so unticking the last one looked
+              to the action exactly like never sending the field — and it kept
+              the old list, leaving that role able to reveal the password. This
+              empty value always submits; the action's role filter drops it. */}
+          <input type="hidden" name="access_roles" value="" />
           <div className="flex flex-wrap gap-x-4 gap-y-2">
             {CANDIDATE_ROLES.map((r) => (
               <label key={r} className="flex items-center gap-2 text-sm">

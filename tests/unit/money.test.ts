@@ -59,3 +59,35 @@ describe("sumCents", () => {
     expect(sumCents([])).toBe(0);
   });
 });
+
+describe("a dot with no comma", () => {
+  /**
+   * The dot used to be read as a decimal point always. In Brazil it is the
+   * thousands separator, so a R$ 12.000 retainer typed the way the founder
+   * writes it stored R$ 12,00 — every MRR figure on /finance, /today and the
+   * client page wrong by a factor of a thousand, silently, in the direction
+   * that still looks like money.
+   */
+  it("reads groups of three as thousands", () => {
+    expect(parseBrlToCents("12.000")).toBe(1_200_000);
+    expect(parseBrlToCents("1.500")).toBe(150_000);
+    expect(parseBrlToCents("1.234.567")).toBe(123_456_700);
+  });
+
+  /**
+   * And only then. Someone typing on a habit from another locale still gets
+   * what they meant, because a decimal point is never followed by exactly
+   * three digits in a price.
+   */
+  it("still reads anything else as a decimal point", () => {
+    expect(parseBrlToCents("4500.50")).toBe(450_050);
+    expect(parseBrlToCents("0.5")).toBe(50);
+    expect(parseBrlToCents("1.50")).toBe(150);
+  });
+
+  it("leaves the unambiguous forms alone", () => {
+    expect(parseBrlToCents("4.500,50")).toBe(450_050);
+    expect(parseBrlToCents("4500,50")).toBe(450_050);
+    expect(parseBrlToCents("4500")).toBe(450_000);
+  });
+});

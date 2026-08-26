@@ -13,8 +13,21 @@ export function parseBrlToCents(input: string): number | null {
   } else if (hasComma) {
     // "4500,50" → comma is decimal.
     s = s.replace(",", ".");
+  } else if (hasDot) {
+    // A lone dot is ambiguous, and this used to read it as a decimal point
+    // always. In Brazil it is the thousands separator — so a R$ 12.000
+    // retainer typed exactly as the founder writes it was stored as R$ 12,00,
+    // and every MRR figure on /finance, /today and the client page was wrong
+    // by a factor of a thousand, silently, in the direction that looks
+    // plausible.
+    //
+    // Groups of exactly three digits after every dot is what a thousands
+    // separator looks like and what a decimal never does: "12.000",
+    // "1.234.567". Anything else — "4500.50", "0.5" — stays a decimal point,
+    // so a keyboard habit from another locale still works.
+    const thousands = /^\d{1,3}(\.\d{3})+$/.test(s);
+    if (thousands) s = s.replace(/\./g, "");
   }
-  // Only a dot (or no separator) → treated as decimal / plain integer.
 
   const n = Number(s);
   if (!Number.isFinite(n) || n < 0) return null;

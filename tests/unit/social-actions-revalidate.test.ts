@@ -155,3 +155,38 @@ describe("a scheduled piece's instant", () => {
     expect(bail).toBeGreaterThan(clear);
   });
 });
+
+describe("the edit forms reach their update branch", () => {
+  const source = readFileSync(
+    `${process.cwd()}/src/app/[locale]/(app)/social/actions.ts`,
+    "utf8",
+  );
+
+  /**
+   * The edit forms disable the client select, because the value is ignored on
+   * an update. A disabled control submits nothing — so a `!client_id` check
+   * sitting above the insert/update branch refused every edit with "choose a
+   * client", beside a select that was visibly filled in. The feature shipped
+   * non-functional and neither action had a test that ran it.
+   */
+  it("requires a client on the insert path only", () => {
+    for (const guard of [
+      'if (!id && !client_id) return fail("needsClient")',
+      'if (!id && !clientId) return fail("needsClient")',
+    ]) {
+      expect(source).toContain(guard);
+    }
+  });
+
+  /**
+   * `publish_time` was compared with `in patch` alone, because loadPiece did
+   * not select the column. The coordination panel always submits it, so every
+   * save counted as a date change and re-armed the publish queue.
+   */
+  it("compares both halves of the publish instant", () => {
+    expect(source).toContain(
+      '("publish_time" in patch && patch.publish_time !== piece.publish_time)',
+    );
+    expect(source).toContain("publish_on, publish_time, client_comment");
+  });
+});

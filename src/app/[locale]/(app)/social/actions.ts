@@ -142,7 +142,7 @@ async function loadPiece(id: string) {
   const { data } = await supabase
     .from("content_drafts")
     .select(
-      "id, client_id, status, design_state, caption, material_url, publish_on, client_comment, title",
+      "id, client_id, status, design_state, caption, material_url, publish_on, publish_time, client_comment, title",
     )
     .eq("tenant_id", tenantId)
     .eq("id", id)
@@ -516,9 +516,16 @@ export async function savePieceAction(
   // There was no way back, either: canRun("queue") accepts only `approved`,
   // and buildOrderAction selects only `approved`, so nothing could re-enter
   // the order for a piece already `scheduled`.
+  // Both halves compare. `publish_time` used to be tested with `in patch`
+  // alone — because loadPiece did not select the column, so there was nothing
+  // to compare against — and the coordination panel always submits it. So
+  // EVERY save of that panel counted as a date change: editing an internal
+  // note on a piece whose publish had already failed deleted the failed row
+  // (with its last_error, the only record of what went wrong) and re-armed the
+  // cron on an instant now in the past.
   const instantMoved =
     ("publish_on" in patch && patch.publish_on !== piece.publish_on) ||
-    "publish_time" in patch;
+    ("publish_time" in patch && patch.publish_time !== piece.publish_time);
   if (piece.status === "scheduled" && instantMoved) {
     await enqueueForPublish(supabase, tenantId, [id]);
   }
@@ -752,11 +759,15 @@ export async function saveMediaAction(
     description: optional(formData, "description"),
     captured_on: capturedOn,
   };
-  if (!row.client_id) return fail("needsClient");
-
   // `client_id` is only ever set on creation: an update that carried it could
   // move someone else's material under a different client.
   const { client_id, ...editable } = row;
+
+  // Required on the insert only. The edit form disables the client select
+  // because the value is ignored on an update — and a disabled control submits
+  // nothing, so this check, sitting above the branch, refused every edit with
+  // "choose a client" beside a select that was visibly filled in.
+  if (!id && !client_id) return fail("needsClient");
   const written = id
     ? wrote(
         await supabase
@@ -820,7 +831,10 @@ export async function saveLoginAction(
   const locale = str(formData, "locale") || "pt-BR";
   const clientId = str(formData, "client_id");
 
-  if (!clientId) return fail("needsClient");
+  // Required on the insert only — see saveMediaAction. The edit form disables
+  // the client select because the value is ignored on an update, and a
+  // disabled control submits nothing, so this refused every edit.
+  if (!id && !clientId) return fail("needsClient");
   if (!platform || !username) return fail("needsAccountAndUser");
 
   const row: LoginRow = {
@@ -833,6 +847,13 @@ export async function saveLoginAction(
     // Only touched when the form actually submitted the field. FormData.getAll
     // returns [] for an absent key, so writing it unconditionally would let a
     // crafted POST blank the list — which the reveal gate reads as "everyone".
+    //
+    // Unchecked boxes submit nothing, so a form that ticked none looks exactly
+    // like a crafted POST. The edit form sends an empty sentinel under the
+    // same name, which the role filter drops — so "I unticked them all" and "I
+    // never sent the field" are finally different things. Without it,
+    // untick-the-last-box reported success and left the role holding the
+    // password.
     ...(formData.has("access_roles")
       ? {
           access_roles: formData
