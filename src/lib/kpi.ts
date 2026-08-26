@@ -142,9 +142,15 @@ export type Period = { fromIso: string; toIso: string };
 const DAY_MS = 24 * 60 * 60 * 1000;
 
 /**
- * Parses ?from=&to= search params with safe defaults (last 30d). Both bounds
- * normalised to UTC midnight to avoid timezone footguns. `to` is exclusive
- * upper bound (so day-aligned filtering doesn't drop "today").
+ * Parses ?from=&to= search params with safe defaults (last 30 days).
+ *
+ * `toIso` is an EXCLUSIVE upper bound set to the end of the chosen day, so a
+ * `.lt()` filter includes that whole day. The old docstring claimed both
+ * bounds were "normalised to UTC midnight … so day-aligned filtering doesn't
+ * drop today" — midnight-of-the-day is precisely what dropped it.
+ *
+ * `toDay()` gives back the day the person actually picked, for re-filling the
+ * form; reading `toIso` for that shows them the day after.
  */
 export function parsePeriod(
   fromRaw: string | null | undefined,
@@ -154,13 +160,26 @@ export function parsePeriod(
   const fromDate = isYyyyMmDd(fromRaw)
     ? new Date(`${fromRaw}T00:00:00.000Z`)
     : new Date(now.getTime() - 30 * DAY_MS);
+  // The END of the chosen day, not its start. The filter is `.lt(captured_at,
+  // toIso)`, so midnight-of-the-day excluded the day the person picked:
+  // choosing 1–25 August returned the 1st through the 24th. Worse, the form
+  // pre-fills `to` with this same value, so submitting it unchanged shrank the
+  // range by a day, every time.
   const toDate = isYyyyMmDd(toRaw)
     ? new Date(`${toRaw}T00:00:00.000Z`)
     : now;
+  if (isYyyyMmDd(toRaw)) toDate.setUTCDate(toDate.getUTCDate() + 1);
   return {
     fromIso: fromDate.toISOString(),
     toIso: toDate.toISOString(),
   };
+}
+
+/** The inclusive last day of a period, for showing back in a date input. */
+export function toDay(period: Period): string {
+  const d = new Date(period.toIso);
+  d.setUTCDate(d.getUTCDate() - 1);
+  return d.toISOString().slice(0, 10);
 }
 
 function isYyyyMmDd(s: string | null | undefined): s is string {

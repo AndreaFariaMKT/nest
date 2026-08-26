@@ -11,6 +11,7 @@ import {
   dailyReachSeries,
   latestPerPost,
   parsePeriod,
+  toDay,
   type MetricSnapshot,
 } from "@/lib/kpi";
 
@@ -195,7 +196,10 @@ export default async function KpiPage({
             id="to"
             name="to"
             type="date"
-            defaultValue={to ?? period.toIso.slice(0, 10)}
+            // toDay(), not toIso: the bound is exclusive and sits on the
+            // day after, so slicing it showed the person a date they did
+            // not choose — and submitting it walked the range forward.
+            defaultValue={to ?? toDay(period)}
             className="h-9 rounded-md border border-border bg-background px-2 text-sm"
           />
         </div>

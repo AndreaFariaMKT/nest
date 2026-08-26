@@ -38,7 +38,12 @@ export default async function PortalOverview({
         .eq("client_id", client.id)
         // Social pieces only — the portal dashboard counters, which must agree with the list they link to.
         .eq("engine", "social")
-        .eq("status", "client_review"),
+        // Both stages, because both are waiting on the client. This counted
+        // `client_review` alone while /portal/content and /portal/waiting
+        // count either — so a client with one in review and two in changes
+        // read "1 waiting" here and "3 waiting" one click later. The comment
+        // above says these must agree; they did not.
+        .in("status", ["client_review", "changes_requested"]),
       supabase
         .from("content_drafts")
         .select("id", { count: "exact", head: true })

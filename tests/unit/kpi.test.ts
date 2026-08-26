@@ -5,6 +5,7 @@ import {
   dailyReachSeries,
   latestPerPost,
   parsePeriod,
+  toDay,
   type MetricSnapshot,
 } from "@/lib/kpi";
 
@@ -139,10 +140,13 @@ describe("parsePeriod", () => {
     expect(fromIso).toBe("2026-04-15T12:34:56.000Z");
   });
 
-  it("parses a YYYY-MM-DD pair into UTC midnight", () => {
+  it("opens on the first day and closes after the last", () => {
+    // `to` is an exclusive bound past the END of the chosen day. This used to
+    // assert midnight OF that day, which is what silently dropped it from
+    // every range the dashboard reported.
     const { fromIso, toIso } = parsePeriod("2026-01-01", "2026-02-01", now);
     expect(fromIso).toBe("2026-01-01T00:00:00.000Z");
-    expect(toIso).toBe("2026-02-01T00:00:00.000Z");
+    expect(toIso).toBe("2026-02-02T00:00:00.000Z");
   });
 
   it("ignores malformed strings", () => {
@@ -155,5 +159,30 @@ describe("parsePeriod", () => {
     const { fromIso, toIso } = parsePeriod("2026-04-01", null, now);
     expect(fromIso).toBe("2026-04-01T00:00:00.000Z");
     expect(toIso).toBe("2026-05-15T12:34:56.000Z");
+  });
+});
+
+describe("period bounds", () => {
+  /**
+   * The filter is `.lt(captured_at, toIso)`, and `toIso` used to be midnight
+   * OF the chosen day — so picking 1–25 August returned the 1st through the
+   * 24th. The form pre-filled `to` with that same value, so submitting it
+   * unchanged shrank the range by another day each time.
+   */
+  it("includes the whole of the last day chosen", () => {
+    const p = parsePeriod("2026-08-01", "2026-08-25");
+    expect(p.fromIso).toBe("2026-08-01T00:00:00.000Z");
+    expect(p.toIso).toBe("2026-08-26T00:00:00.000Z");
+  });
+
+  it("gives back the day the person picked, not the bound", () => {
+    const p = parsePeriod("2026-08-01", "2026-08-25");
+    expect(toDay(p)).toBe("2026-08-25");
+  });
+
+  it("round-trips without walking the range forward", () => {
+    let p = parsePeriod("2026-08-01", "2026-08-25");
+    for (let i = 0; i < 3; i++) p = parsePeriod("2026-08-01", toDay(p));
+    expect(toDay(p)).toBe("2026-08-25");
   });
 });

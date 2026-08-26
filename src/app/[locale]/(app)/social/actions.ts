@@ -620,10 +620,27 @@ async function enqueueForPublish(
 ): Promise<void> {
   if (!pieceIds.length) return;
 
-  const { data: rows } = await supabase
+  const { data: rows, error: readError } = await supabase
     .from("content_drafts")
     .select("id, channels, post_type, publish_on, publish_time, slides(id)")
     .in("id", pieceIds);
+
+  // Bail before touching the queue if we could not read the pieces.
+  //
+  // This error used to be discarded, which was harmless while the clear came
+  // after the "nothing to queue" return. Moving the clear ahead of it — so a
+  // piece that lost its artwork does not keep a live row — made a failed read
+  // indistinguishable from "none of these should publish": the existing rows
+  // were deleted and nothing was inserted. The piece stays `scheduled`, every
+  // screen says it is going out, and nothing ever sends it. There is no way
+  // back through the UI either, because only `approved` pieces can re-enter
+  // the order.
+  if (readError) {
+    log.error("social.enqueue", "read_failed", {
+      code: readError.code ?? "unknown",
+    });
+    return;
+  }
 
   type Row = {
     id: string;
