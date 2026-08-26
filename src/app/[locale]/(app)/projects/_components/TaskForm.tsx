@@ -146,6 +146,17 @@ export function TaskForm({
             className="flex h-10 w-full rounded-md border border-input bg-background px-3 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
           >
             <option value="">{t("fields.unassigned")}</option>
+            {/* The current assignee, even when they are no longer offered —
+                someone who left the tenant, or a portal client assigned back
+                when the picker still listed them. Without this no option
+                matched, the browser fell back to the first, and editing the
+                task's TITLE silently cleared its owner. */}
+            {initial?.assignee_id &&
+            !assignees.some((a) => a.id === initial.assignee_id) ? (
+              <option value={initial.assignee_id}>
+                {t("fields.formerAssignee")}
+              </option>
+            ) : null}
             {assignees.map((a) => (
               <option key={a.id} value={a.id}>
                 {a.label}

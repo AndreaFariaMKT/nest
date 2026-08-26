@@ -123,17 +123,35 @@ describe("parseReportPayload", () => {
 });
 
 describe("monthBounds", () => {
-  it("spans Apr 1 → May 1 UTC", () => {
+  /**
+   * The studio's month, not UTC's. These bounds go against `timestamptz`
+   * columns, and midnight UTC on the 1st is 21:00 on the last day of the month
+   * before — so a piece marked live at 21:30 on the 31st counted in the NEXT
+   * month, and the reported month lost its final evening. The social module's
+   * own monthOf() always did it this way; the AI recap did not, and the two
+   * disagreed about the same client's same month.
+   */
+  it("opens and closes at midnight in São Paulo", () => {
     expect(monthBounds(2026, 4)).toEqual({
-      startISO: "2026-04-01T00:00:00.000Z",
-      endISO: "2026-05-01T00:00:00.000Z",
+      startISO: "2026-04-01T03:00:00.000Z",
+      endISO: "2026-05-01T03:00:00.000Z",
     });
   });
 
   it("rolls year forward on December", () => {
     expect(monthBounds(2026, 12)).toEqual({
-      startISO: "2026-12-01T00:00:00.000Z",
-      endISO: "2027-01-01T00:00:00.000Z",
+      startISO: "2026-12-01T03:00:00.000Z",
+      endISO: "2027-01-01T03:00:00.000Z",
     });
+  });
+
+  it("agrees with the social report's own month", async () => {
+    // The two are separate functions used by two screens that show the same
+    // client the same month. Holding them together here is the point.
+    const { monthOf } = await import("@/lib/social-report");
+    const mine = monthBounds(2026, 8);
+    const theirs = monthOf(2026, 8);
+    expect(mine.startISO).toBe(theirs.fromIso);
+    expect(mine.endISO).toBe(theirs.toIso);
   });
 });

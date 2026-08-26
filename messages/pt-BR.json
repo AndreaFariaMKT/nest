@@ -416,7 +416,8 @@
       "client": "Cliente",
       "internal": "Interno",
       "isTemplate": "Template",
-      "isTemplateHint": "(clonado em cada novo ciclo)"
+      "isTemplateHint": "(clonado em cada novo ciclo)",
+      "formerAssignee": "Responsável atual (não está mais na equipe)"
     },
     "status": {
       "todo": "A fazer",

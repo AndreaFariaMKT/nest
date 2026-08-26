@@ -1,3 +1,4 @@
+import { listAssignablePeople } from "@/lib/people";
 import { setRequestLocale, getTranslations } from "next-intl/server";
 import { notFound } from "next/navigation";
 import { Link } from "@/i18n/routing";
@@ -172,13 +173,11 @@ export default async function ClientDetailPage({
           .select("user_id, profiles!inner(full_name, email)")
           .eq("client_id", client.id)
       : null,
-    ownerView
-      ? supabase
-          .from("profiles")
-          .select("id, full_name, email")
-          .eq("role", "staff")
-          .order("full_name", { ascending: true })
-      : null,
+    // The last picker still reading `profiles`. Its `.eq("role","staff")`
+    // filter matched every account ever created, because nothing writes that
+    // column — so a client invited to their own portal appeared in "add a
+    // person to this client", and so did other tenants'.
+    ownerView ? listAssignablePeople() : null,
     supabase
       .from("cycles")
       .select("year, month, starts_on, ends_on")
@@ -264,10 +263,8 @@ export default async function ClientDetailPage({
     })
     .filter((x): x is AssignedMember => x !== null);
 
-  const memberCandidates: MemberChoice[] = (staffRes?.data ?? []).map((p) => ({
-    id: p.id,
-    label: p.full_name ?? p.email,
-  }));
+  // listAssignablePeople already returns {id, label}, resolved and sorted.
+  const memberCandidates: MemberChoice[] = staffRes ?? [];
 
   // Current cycle (created by the monthly cron; fall back to computed bounds
   // if the cron hasn't run yet for this month)

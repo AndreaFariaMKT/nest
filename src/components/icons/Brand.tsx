@@ -14,7 +14,10 @@ import type { Theme } from "@/lib/theme";
  * is its symbol; Nest's is the `n` from its wordmark, since Nest has no
  * separate symbol.
  *
- * It takes `currentColor`, so the sidebar tints it like everything else.
+ * It takes `currentColor`, so the sidebar tints it like everything else, and
+ * carries role="img" — without it an aria-label on a bare <svg> is not
+ * reliably exposed, and removing the visible wordmark was justified on the
+ * claim that the mark carries the tenant's name for a screen reader.
  * The viewBoxes are cropped to the artwork — the source files are 800×800
  * with the mark somewhere in the middle, and using them as-is would render a
  * logo a fifth of its box surrounded by air.
@@ -34,13 +37,13 @@ export function BrandMark({
 }: SVGProps<SVGSVGElement> & { theme: Theme }) {
   if (theme === "afm") {
     return (
-      <svg viewBox="125 295 530 190" fill="currentColor" {...props}>
+      <svg viewBox="125 295 530 190" fill="currentColor" role="img" {...props}>
         <path d={AFM_SYMBOL} />
       </svg>
     );
   }
   return (
-    <svg viewBox="69 108 56 52" fill="currentColor" {...props}>
+    <svg viewBox="69 108 56 52" fill="currentColor" role="img" {...props}>
       <path d={NEST_N} />
     </svg>
   );

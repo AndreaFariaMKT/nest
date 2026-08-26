@@ -1,3 +1,5 @@
+import { STUDIO_UTC_OFFSET } from "@/lib/social";
+
 // Pure helpers for the monthly report generator.
 //
 // We hand Claude an aggregate view of a client's month — drafts produced,
@@ -190,10 +192,26 @@ export function monthBounds(year: number, month: number): {
   startISO: string;
   endISO: string;
 } {
-  // UTC-bounded to match Postgres `timestamptz` comparison.
-  const startISO = `${year}-${String(month).padStart(2, "0")}-01T00:00:00.000Z`;
+  // The studio's month, not UTC's.
+  //
+  // These bounds go against `timestamptz` columns, and at UTC
+  // `2026-08-01T00:00:00Z` is 2026-07-31 21:00 in São Paulo. So this window
+  // ran from nine in the evening of the last day of the previous month to
+  // nine in the evening of the last day of this one: a piece marked live at
+  // 21:30 on the 31st counted in the NEXT month, and the reported month lost
+  // its final evening.
+  //
+  // social-report.ts's monthOf() already did it this way, with a comment
+  // saying exactly this — so the AI recap and /social/report disagreed about
+  // the same client's same month, by three hours at each end.
+  const pad = (n: number) => String(n).padStart(2, "0");
   const next = month === 12 ? { y: year + 1, m: 1 } : { y: year, m: month + 1 };
-  const endISO = `${next.y}-${String(next.m).padStart(2, "0")}-01T00:00:00.000Z`;
+  const startISO = new Date(
+    `${year}-${pad(month)}-01T00:00:00${STUDIO_UTC_OFFSET}`,
+  ).toISOString();
+  const endISO = new Date(
+    `${next.y}-${pad(next.m)}-01T00:00:00${STUDIO_UTC_OFFSET}`,
+  ).toISOString();
   return { startISO, endISO };
 }
 

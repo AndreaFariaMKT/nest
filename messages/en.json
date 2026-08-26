@@ -416,7 +416,8 @@
       "client": "Client",
       "internal": "Internal",
       "isTemplate": "Template",
-      "isTemplateHint": "(cloned into each new cycle)"
+      "isTemplateHint": "(cloned into each new cycle)",
+      "formerAssignee": "Current owner (no longer on the team)"
     },
     "status": {
       "todo": "To do",
