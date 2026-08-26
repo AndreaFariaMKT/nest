@@ -54,15 +54,41 @@ export default async function PublishingPage({
   //
   // Bounded by the piece count instead — the shape enqueueForPublish uses.
   const ids = [...approved, ...order].map((p) => p.id);
+
+  // One wave, not three. These three reads answer three independent questions
+  // about the same set of pieces — does it have artwork, is its account
+  // connected, did the queue already give up on it — and none consumes
+  // another's result. They ran strictly one after another, which on this
+  // deployment is three crossings of the Atlantic rather than one.
+  const [{ data: withArt }, { data: accountRows }, { data: queueRows }] =
+    await Promise.all([
+      ids.length
+        ? supabase.from("content_drafts").select("id, slides(id)").in("id", ids)
+        : Promise.resolve({ data: [] }),
+      scope.clients.length
+        ? supabase
+            .from("client_social_accounts")
+            .select("client_id, platform, enabled, secret_enc, account_ref")
+            // Scoped by the client list rather than by tenant: the scope holds
+            // the clients this reader may see, and the table's RLS is
+            // has_client_access, so asking per-client matches the permission
+            // model.
+            .in(
+              "client_id",
+              scope.clients.map((c) => c.id),
+            )
+        : Promise.resolve({ data: [] }),
+      ids.length
+        ? supabase
+            .from("scheduled_posts")
+            .select("draft_id, status, last_error")
+            .in("draft_id", ids)
+        : Promise.resolve({ data: [] }),
+    ]);
+
   const automatic = new Set<string>();
-  if (ids.length) {
-    const { data: withArt } = await supabase
-      .from("content_drafts")
-      .select("id, slides(id)")
-      .in("id", ids);
-    for (const row of withArt ?? []) {
-      if ((row.slides as unknown[] | null)?.length) automatic.add(row.id);
-    }
+  for (const row of withArt ?? []) {
+    if ((row.slides as unknown[] | null)?.length) automatic.add(row.id);
   }
   // Artwork is necessary and was treated as sufficient. It is not: the cron
   // also needs an enabled account with a stored secret for every channel the
@@ -70,18 +96,6 @@ export default async function PublishingPage({
   // to `failed`. So a piece with ten images and no connected Instagram read
   // "will publish on its own" on the one screen built to make that difference
   // visible. Presence only — nothing is decrypted here.
-  const { data: accountRows } = scope.clients.length
-    ? await supabase
-        .from("client_social_accounts")
-        .select("client_id, platform, enabled, secret_enc, account_ref")
-        // Scoped by the client list rather than by tenant: the scope holds the
-        // clients this reader may see, and the table's RLS is
-        // has_client_access, so asking per-client matches the permission model.
-        .in(
-          "client_id",
-          scope.clients.map((c) => c.id),
-        )
-    : { data: [] };
   const connected = new Set(
     (accountRows ?? [])
       .filter((a) => a.enabled && a.secret_enc && a.account_ref)
@@ -96,12 +110,6 @@ export default async function PublishingPage({
   // content_drafts — so a piece that failed three times still rendered the
   // brand-coloured "will publish on its own" pill on the screen whose entire
   // job is to make that difference visible.
-  const { data: queueRows } = ids.length
-    ? await supabase
-        .from("scheduled_posts")
-        .select("draft_id, status, last_error")
-        .in("draft_id", ids)
-    : { data: [] };
   const queueTrouble = new Map<string, string | null>();
   for (const row of queueRows ?? []) {
     if (row.status === "failed") queueTrouble.set(row.draft_id, row.last_error);
