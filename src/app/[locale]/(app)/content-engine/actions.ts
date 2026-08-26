@@ -287,19 +287,33 @@ export async function generateCarouselsAction(
   const systemText = buildSystem(brand, trow.language);
   const user = buildUser(trow.content, recent, trow.language);
 
-  const result = await generate({
-    kind: "content",
-    system: [
-      {
-        type: "text",
-        text: systemText,
-        cache_control: { type: "ephemeral" },
-      },
-    ],
-    messages: [{ role: "user", content: user }],
-    maxTokens: 64_000,
-    stream: true,
-  });
+  // Wrapped, like its five siblings. Without this a missing or expired
+  // ANTHROPIC_API_KEY throws out of the action into the error boundary — the
+  // whole screen replaced by "something went wrong" — rather than putting the
+  // person back on the transcript with a sentence.
+  let result;
+  try {
+    result = await generate({
+      kind: "content",
+      system: [
+        {
+          type: "text",
+          text: systemText,
+          cache_control: { type: "ephemeral" },
+        },
+      ],
+      messages: [{ role: "user", content: user }],
+      maxTokens: 64_000,
+      stream: true,
+    });
+  } catch (err) {
+    log.error("content-engine.generate-carousels", "generate_failed", {
+      reason: err instanceof Error ? err.message : "unknown",
+    });
+    redirect(
+      localePath(locale, `/content-engine/transcripts/${transcriptId}?ai=carousels`),
+    );
+  }
 
   let payload;
   try {
@@ -311,7 +325,13 @@ export async function generateCarouselsAction(
       stopReason: result.stopReason,
       textLength: result.text.length,
     });
-    return;
+    // This was a bare `return`, so the page came back byte-identical after a
+    // 64k-token streaming call: no drafts, no error, no sign it had run. The
+    // five sibling actions were each given this redirect and this one was
+    // missed.
+    redirect(
+      localePath(locale, `/content-engine/transcripts/${transcriptId}?ai=carousels`),
+    );
   }
 
   const {

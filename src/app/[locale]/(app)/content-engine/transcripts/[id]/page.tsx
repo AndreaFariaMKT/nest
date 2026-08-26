@@ -14,12 +14,19 @@ type Draft = Database["public"]["Tables"]["content_drafts"]["Row"] & {
 
 export default async function TranscriptDetailPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ locale: string; id: string }>;
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
 }) {
-  const { locale, id } = await params;
+  const [{ locale, id }, sp] = await Promise.all([params, searchParams]);
   setRequestLocale(locale);
   const t = await getTranslations("contentEngine");
+
+  // "Generate carousels" was the one AI action with no way to report failure:
+  // it returned bare, so after a 64k-token streaming call the page came back
+  // byte-identical — no drafts, no error, no sign it had run.
+  const aiFailed = (Array.isArray(sp.ai) ? sp.ai[0] : sp.ai) === "carousels";
 
   const supabase = await createClient();
 
@@ -39,6 +46,15 @@ export default async function TranscriptDetailPage({
 
   return (
     <div className="">
+      {aiFailed ? (
+        <p
+          role="alert"
+          className="mb-6 rounded-xl border border-destructive/40 bg-destructive/10 px-4 py-3 text-sm text-destructive"
+          data-testid="ai-failed"
+        >
+          {t("aiFailed.carousels")}
+        </p>
+      ) : null}
       <div className="mb-8">
         <Link
           href="/content-engine"

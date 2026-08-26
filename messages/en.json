@@ -646,7 +646,8 @@
       "compliance": "The compliance check did not run. Try again — if it keeps failing, the AI key may be missing or expired.",
       "adapt": "The adaptation did not run. Nothing was created. Try again — if it keeps failing, the AI key may be missing or expired.",
       "stories": "The stories were not generated. Try again — if it keeps failing, the AI key may be missing or expired.",
-      "reelScript": "The reel script did not run. Try again — if it keeps failing, the AI key may be missing or expired."
+      "reelScript": "The reel script did not run. Try again — if it keeps failing, the AI key may be missing or expired.",
+      "carousels": "The carousels were not generated. Nothing was created. Try again — if it keeps failing, the AI key may be missing or expired."
     }
   },
   "services": {

@@ -646,7 +646,8 @@
       "compliance": "A checagem não rodou. Tente de novo — se continuar falhando, a chave da IA pode estar faltando ou vencida.",
       "adapt": "A adaptação não rodou. Nada foi criado. Tente de novo — se continuar falhando, a chave da IA pode estar faltando ou vencida.",
       "stories": "Os stories não foram gerados. Tente de novo — se continuar falhando, a chave da IA pode estar faltando ou vencida.",
-      "reelScript": "O roteiro do reels não rodou. Tente de novo — se continuar falhando, a chave da IA pode estar faltando ou vencida."
+      "reelScript": "O roteiro do reels não rodou. Tente de novo — se continuar falhando, a chave da IA pode estar faltando ou vencida.",
+      "carousels": "Os carrosséis não foram gerados. Nada foi criado. Tente de novo — se continuar falhando, a chave da IA pode estar faltando ou vencida."
     }
   },
   "services": {

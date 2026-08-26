@@ -49,10 +49,20 @@ const manier = localFont({
   display: "swap",
 });
 
-export const metadata: Metadata = {
-  title: "Nest",
-  description: "Operational platform for Studio Andréa Faria.",
-};
+/**
+ * Per tenant, because the tab is the one place both houses are seen side by
+ * side — and because there was no icon at all: every tab showed Next's default
+ * glyph, including the /p and /a pages the studio sends to its clients, and
+ * every tab in the app was titled "Nest" whichever house you were in.
+ */
+export async function generateMetadata(): Promise<Metadata> {
+  const tenant = await getCurrentTenant();
+  return {
+    title: { default: tenant.name, template: `%s · ${tenant.name}` },
+    description: "Operational platform for Studio Andréa Faria.",
+    icons: { icon: `/icon-${tenant.theme}.svg` },
+  };
+}
 
 export default async function RootLayout({
   children,
