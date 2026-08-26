@@ -79,7 +79,7 @@ export function MobileNav({
 
   return (
     <>
-      <header className="flex items-center gap-2 border-b border-border bg-sidebar px-3 py-2.5 text-sidebar-foreground md:hidden">
+      <header className="relative flex items-center gap-2 border-b border-border bg-sidebar px-3 py-2.5 text-sidebar-foreground md:hidden">
         <button
           type="button"
           onClick={() => setOpen(true)}
@@ -99,7 +99,9 @@ export function MobileNav({
           </svg>
         </button>
 
-        <span className="flex items-center gap-2">
+        {/* Centred on the bar, not on the gap between the menu button and
+            the icons — those two sides are different widths. */}
+        <span className="pointer-events-none absolute left-1/2 flex -translate-x-1/2 items-center">
           <BrandMark
             theme={theme}
             className="h-5 w-auto text-brand-soft"

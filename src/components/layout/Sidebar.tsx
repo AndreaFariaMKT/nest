@@ -82,10 +82,13 @@ export function Sidebar({
         collapsed ? "w-16" : "w-64"
       }`}
     >
-      {/* Header: wordmark + collapse toggle */}
+      {/* Header: mark, centred, with the collapse toggle beside it.
+          The toggle is taken out of the flow rather than sharing a
+          justify-between row, so the mark centres on the sidebar itself
+          instead of on the space the button leaves over. */}
       <div
-        className={`flex items-center px-3 py-5 ${
-          collapsed ? "flex-col gap-3" : "justify-between pl-5"
+        className={`relative flex items-center justify-center px-3 py-5 ${
+          collapsed ? "flex-col gap-3" : ""
         }`}
       >
         {/* The mark alone at both widths. It carries the tenant's name as its
@@ -103,7 +106,9 @@ export function Sidebar({
         <button
           onClick={toggle}
           aria-label={tCommon("toggleSidebar")}
-          className="grid h-7 w-7 place-items-center rounded-lg text-sidebar-foreground/60 hover:bg-white/5 hover:text-sidebar-foreground"
+          className={`grid h-7 w-7 place-items-center rounded-lg text-sidebar-foreground/60 hover:bg-white/5 hover:text-sidebar-foreground ${
+            collapsed ? "" : "absolute right-3 top-1/2 -translate-y-1/2"
+          }`}
         >
           <Chevron dir={collapsed ? "right" : "left"} />
         </button>
