@@ -4,7 +4,9 @@ import { createClient } from "@/lib/supabase/server";
 import { currentTenantId } from "@/lib/tenant-server";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { Pager } from "@/components/ui/Pager";
+import { RescheduleCell } from "./RescheduleCell";
 import { pageMeta, parsePage } from "@/lib/pagination";
+import { STUDIO_TIMEZONE } from "@/lib/social";
 
 export const dynamic = "force-dynamic";
 
@@ -30,6 +32,26 @@ const TONE: Record<string, string> = {
 };
 
 const PAGE_SIZE = 50;
+
+/**
+ * The stored instant as a `datetime-local` value in the studio's clock, so the
+ * picker opens on the slot the table just showed. Built from the formatter's
+ * own parts rather than `toISOString().slice(...)`, which would hand the field
+ * UTC and move every date three hours.
+ */
+function localInput(iso: string): string {
+  const parts = new Intl.DateTimeFormat("en-CA", {
+    timeZone: STUDIO_TIMEZONE,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+  }).formatToParts(new Date(iso));
+  const get = (t: string) => parts.find((p) => p.type === t)?.value ?? "00";
+  return `${get("year")}-${get("month")}-${get("day")}T${get("hour")}:${get("minute")}`;
+}
 
 export default async function SchedulingPage({
   params,
@@ -74,7 +96,12 @@ export default async function SchedulingPage({
 
   const failed = rows.filter((r) => r.status === "failed").length;
 
+  // timeZone was missing. Rendered on Vercel this formatted every slot in
+  // UTC, so the publishing queue — the one screen whose entire content is
+  // times — showed each of them three hours off. Same family as the meetings
+  // and report fixes; the constant is shared so they cannot drift.
   const fmt = new Intl.DateTimeFormat(locale, {
+    timeZone: STUDIO_TIMEZONE,
     day: "2-digit",
     month: "short",
     hour: "2-digit",
@@ -114,7 +141,13 @@ export default async function SchedulingPage({
               return (
                 <tr key={r.id}>
                   <td className="whitespace-nowrap px-4 py-3 text-sm text-foreground">
-                    {fmt.format(new Date(r.scheduled_for))}
+                    <RescheduleCell
+                      id={r.id}
+                      status={r.status}
+                      label={fmt.format(new Date(r.scheduled_for))}
+                      value={localInput(r.scheduled_for)}
+                      locale={locale}
+                    />
                   </td>
                   <td className="px-4 py-3 text-sm text-foreground">
                     {draftTitle(r.draft) ?? "—"}

@@ -125,6 +125,22 @@
       "review": "Client review",
       "approved": "Approved",
       "published": "Published"
+    },
+    "board": {
+      "moveTo": "Move to",
+      "dropHere": "Drop here",
+      "moving": "Moving…",
+      "refusal": {
+        "unknownBucket": "That is not a column on this board.",
+        "notOnBoard": "That piece is not on this board.",
+        "sameBucket": "It is already there.",
+        "cronOwnsPublished": "Published is set when the post actually goes live — schedule it instead.",
+        "alreadyLive": "That post is already live.",
+        "unscheduleFirst": "It has a date in the publishing queue. Remove that first.",
+        "notFound": "That piece is no longer available.",
+        "notAllowed": "You do not have permission to move this piece.",
+        "failed": "That did not save. Try again."
+      }
     }
   },
   "scheduling": {
@@ -158,6 +174,21 @@
       "reel": "Reel",
       "story": "Story",
       "text": "Text only"
+    },
+    "move": {
+      "reschedule": "Reschedule",
+      "save": "Move",
+      "cancel": "Cancel",
+      "refusal": {
+        "inFlight": "That post is being sent right now. Moving the date will not recall it.",
+        "alreadyPublished": "That post is already out.",
+        "unknownStatus": "That post is in a state this screen cannot move.",
+        "badDate": "That date could not be read.",
+        "inThePast": "The queue takes everything already due, so a past slot goes out on the next run. Pick a future one.",
+        "tooFar": "That is more than a year out — check the year.",
+        "notFound": "That post is no longer in the queue.",
+        "failed": "That did not save. Try again."
+      }
     }
   },
   "marketing": {

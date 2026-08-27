@@ -225,7 +225,23 @@ The last three items, plus the optional half of the readability review. Needs
      `src/lib/portal-approval.ts`, incluindo a recusa de gravar decisão enquanto
      a founder está em "view as client".
    - [ ] Business plan / Administration → editable (needs tables) instead of static/derived.
-   - [ ] Content calendar / Scheduling → create + drag to reschedule.
+   - [x] Content calendar / Scheduling → create + drag to reschedule.
+     — as duas telas eram só leitura. **Content calendar** é um quadro de *status*
+     (não de datas), então arrastar ali move de coluna: regras em
+     `src/lib/content-board.ts`. Duas não são cosméticas — `published` **não** é
+     destino de drop (quem escreve esse status é o cron de publicação, e um card
+     solto ali afirmaria que um post está no ar; o relatório mensal conta posts
+     publicados), e um draft `scheduled` não volta pra trás sem tirar a data da
+     fila antes, senão o cron publica assim mesmo.
+     **Scheduling** é tabela: reagendar usa campo de data, não drag — não há eixo
+     espacial numa tabela, e "dia 4 às 09:00" é o que a pessoa quer dizer. Só
+     `pending` e `failed` movem; `publishing` já está em voo. A escrita filtra por
+     status para pegar a corrida com o cron entre a leitura e o update.
+     Drag é *enhancement*: todo card tem também um `<select>` que chama a mesma
+     action, porque quadro que só funciona arrastando é quadro que metade do
+     estúdio não usa (teclado, leitor de tela, celular).
+     No caminho: o formatter da tabela de scheduling não tinha `timeZone`, então
+     na Vercel a tela cujo conteúdo inteiro são horários mostrava todos 3h fora.
    - [x] Commercial → move a prospect through stages; convert to active client.
      — a tela era só leitura: listava prospects e linkava pro cliente. Não havia
      estágio nenhum no schema (`clients.status` responde "é cliente?", não "em que

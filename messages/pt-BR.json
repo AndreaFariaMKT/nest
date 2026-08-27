@@ -125,6 +125,22 @@
       "review": "Revisão do cliente",
       "approved": "Aprovado",
       "published": "Publicado"
+    },
+    "board": {
+      "moveTo": "Mover para",
+      "dropHere": "Solte aqui",
+      "moving": "Movendo…",
+      "refusal": {
+        "unknownBucket": "Essa não é uma coluna deste quadro.",
+        "notOnBoard": "Essa peça não está neste quadro.",
+        "sameBucket": "Ela já está aí.",
+        "cronOwnsPublished": "Publicado é marcado quando o post vai ao ar de verdade — agende em vez disso.",
+        "alreadyLive": "Esse post já está no ar.",
+        "unscheduleFirst": "Ele tem data na fila de publicação. Remova a data primeiro.",
+        "notFound": "Essa peça não está mais disponível.",
+        "notAllowed": "Você não tem permissão para mover esta peça.",
+        "failed": "Não foi salvo. Tente de novo."
+      }
     }
   },
   "scheduling": {
@@ -158,6 +174,21 @@
       "reel": "Reels",
       "story": "Story",
       "text": "Só texto"
+    },
+    "move": {
+      "reschedule": "Reagendar",
+      "save": "Mover",
+      "cancel": "Cancelar",
+      "refusal": {
+        "inFlight": "Esse post está sendo enviado agora. Mudar a data não cancela o envio.",
+        "alreadyPublished": "Esse post já saiu.",
+        "unknownStatus": "Esse post está num estado que esta tela não move.",
+        "badDate": "Não deu para ler essa data.",
+        "inThePast": "A fila pega tudo que já venceu, então um horário no passado sai na próxima rodada. Escolha um futuro.",
+        "tooFar": "Isso é mais de um ano à frente — confira o ano.",
+        "notFound": "Esse post não está mais na fila.",
+        "failed": "Não foi salvo. Tente de novo."
+      }
     }
   },
   "marketing": {
