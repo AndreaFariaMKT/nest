@@ -27,8 +27,10 @@ jobs:
       - name: Typecheck
         run: npm run typecheck
 
-      - name: Unit tests
-        run: npm run test
+      - name: Unit tests + coverage
+        # Thresholds live in vitest.config.ts (ROADMAP §4.2's 70% target),
+        # scoped to src/lib where the rules are.
+        run: npm run test:coverage
         env:
           # Supabase/Anthropic/Voyage are not needed for unit tests — the
           # wrapped libraries no-op when env vars are absent.
@@ -39,3 +41,45 @@ jobs:
       # TODO: add a Playwright smoke job once a hosted Supabase preview
       # database + seed is available to CI — currently the smoke tests
       # rely on a local Supabase stack.
+
+  types-drift:
+    name: Generated types match the database
+    runs-on: ubuntu-latest
+    # `types:check` regenerates from the live schema, which needs a Supabase
+    # access token. Skipped rather than failed when the secret is absent, so a
+    # fork's CI stays green — this job guards against drift, and a drift check
+    # that cannot run is not a failure.
+    if: github.repository_owner == 'AndreaFariaMKT'
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Skip without a token
+        id: guard
+        run: |
+          if [ -z "${{ secrets.SUPABASE_ACCESS_TOKEN }}" ]; then
+            echo "No SUPABASE_ACCESS_TOKEN — skipping the drift check."
+            echo "run=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "run=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      # The check this repo already had a script for and never ran anywhere.
+      # It is what would have caught database.gen.ts lagging migrations 044,
+      # 045 and 046 — three features shipped against a schema the committed
+      # types did not describe, each carrying a cast to work around it.
+      - name: Types match the live schema
+        if: steps.guard.outputs.run == 'true'
+        run: npm run types:check
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
