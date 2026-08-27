@@ -81,7 +81,40 @@
     "subtitle": "Prospects e pipeline.",
     "prospects": "Prospects",
     "active": "Clientes ativos",
-    "empty": "Nenhum prospect no momento."
+    "empty": "Nenhum prospect no momento.",
+    "pipeline": {
+      "board": "Funil",
+      "stage": {
+        "new": "Novo",
+        "contacted": "Contatado",
+        "proposal": "Proposta",
+        "negotiation": "Negociação",
+        "lost": "Perdido"
+      },
+      "move": {
+        "advance": "Avançar",
+        "regress": "Voltar",
+        "convert": "Ganho — tornar ativo",
+        "lose": "Marcar perdido",
+        "reopen": "Reabrir"
+      },
+      "reasonLabel": "Por que foi perdido?",
+      "reasonPlaceholder": "Orçamento, timing, foi para outro…",
+      "stageEmpty": "Ninguém aqui.",
+      "refusal": {
+        "notProspect": "Esse cliente não é mais um prospect.",
+        "unknownStage": "Esse prospect está num estágio que este funil não conhece.",
+        "unknownMove": "Isso não é algo que dê para fazer aqui.",
+        "atStart": "Já está no primeiro estágio.",
+        "atEnd": "Já está no último estágio. Marque como ganho ou perdido.",
+        "alreadyLost": "Esse prospect já está marcado como perdido.",
+        "notLost": "Só um prospect perdido pode ser reaberto.",
+        "needsReason": "Diga por que foi perdido — quem abrir esse registro depois vai ler.",
+        "notFound": "Esse prospect não está mais disponível.",
+        "notAllowed": "Você não tem permissão para alterar esse prospect.",
+        "failed": "Não foi salvo. Tente de novo."
+      }
+    }
   },
   "contentCalendar": {
     "title": "Calendário de conteúdo",

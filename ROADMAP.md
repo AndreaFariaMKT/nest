@@ -226,7 +226,17 @@ The last three items, plus the optional half of the readability review. Needs
      a founder está em "view as client".
    - [ ] Business plan / Administration → editable (needs tables) instead of static/derived.
    - [ ] Content calendar / Scheduling → create + drag to reschedule.
-   - [ ] Commercial → move a prospect through stages; convert to active client.
+   - [x] Commercial → move a prospect through stages; convert to active client.
+     — a tela era só leitura: listava prospects e linkava pro cliente. Não havia
+     estágio nenhum no schema (`clients.status` responde "é cliente?", não "em que
+     pé está a conversa"), então migration `045` adiciona `pipeline_stage`
+     (`new → contacted → proposal → negotiation`, mais `lost`) e o board agrupa
+     por ele — a ordem carrega informação, que a lista por data descartava.
+     **Não existe estágio `won`**: ganhar É a conversão, uma escrita só que põe
+     `status = 'active'` e limpa o estágio. Dois lugares afirmando "é cliente"
+     divergem na primeira vez que uma escrita passa e a outra não; há constraint
+     garantindo que só prospect carrega estágio. Regras em `src/lib/pipeline.ts`,
+     com teste de que o board nunca oferece um movimento que a escrita recusaria.
 3. **Roles hardening**
    - [ ] Assign granular roles to real staff logins (015 allows the 8); today all are `founder`.
    - [ ] Tighten per-role route allow-list beyond the sensitive set if needed.

@@ -81,7 +81,40 @@
     "subtitle": "Prospects and pipeline.",
     "prospects": "Prospects",
     "active": "Active clients",
-    "empty": "No prospects right now."
+    "empty": "No prospects right now.",
+    "pipeline": {
+      "board": "Pipeline",
+      "stage": {
+        "new": "New",
+        "contacted": "Contacted",
+        "proposal": "Proposal",
+        "negotiation": "Negotiation",
+        "lost": "Lost"
+      },
+      "move": {
+        "advance": "Move forward",
+        "regress": "Move back",
+        "convert": "Won — make active",
+        "lose": "Mark lost",
+        "reopen": "Reopen"
+      },
+      "reasonLabel": "Why was it lost?",
+      "reasonPlaceholder": "Budget, timing, went elsewhere…",
+      "stageEmpty": "Nobody here.",
+      "refusal": {
+        "notProspect": "That client is no longer a prospect.",
+        "unknownStage": "That prospect is at a stage this board does not know.",
+        "unknownMove": "That is not something you can do here.",
+        "atStart": "Already at the first stage.",
+        "atEnd": "Already at the last stage. Mark it won or lost.",
+        "alreadyLost": "That prospect is already marked lost.",
+        "notLost": "Only a lost prospect can be reopened.",
+        "needsReason": "Say why it was lost — the next person to open this will read it.",
+        "notFound": "That prospect is no longer available.",
+        "notAllowed": "You do not have permission to change this prospect.",
+        "failed": "That did not save. Try again."
+      }
+    }
   },
   "contentCalendar": {
     "title": "Content calendar",
