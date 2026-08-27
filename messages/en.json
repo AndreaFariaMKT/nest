@@ -208,7 +208,30 @@
       "studio": "Studio"
     },
     "previewing": "Previewing as {name}. This is what that client sees — you are not them.",
-    "previewingNoClient": "Previewing the client portal. There is no client to show yet, so this is what a new one would see."
+    "previewingNoClient": "Previewing the client portal. There is no client to show yet, so this is what a new one would see.",
+    "engineContent": {
+      "title": "From the content engine",
+      "note": "Carousels and posts built from your meetings. Approving here is the same as answering the link we email you.",
+      "approve": "Approve",
+      "requestChanges": "Request changes",
+      "commentLabel": "What should change?",
+      "commentPlaceholder": "Tell us what to adjust",
+      "approved": "Approved",
+      "changesRequested": "Changes requested",
+      "answeredOn": "Answered {date}",
+      "empty": "Nothing from the content engine is waiting on you.",
+      "refusal": {
+        "notLinked": "This login is not linked to a client yet. Ask the studio to connect it.",
+        "preview": "You are previewing the portal. Only the client's own login can answer.",
+        "notFound": "That piece is no longer available.",
+        "wrongEngine": "That piece is answered on its own card, above.",
+        "notWithClient": "That piece is not waiting on you right now.",
+        "alreadyAnswered": "That piece has already been answered.",
+        "needsComment": "Say what should change so the team knows what to adjust.",
+        "rateLimited": "Too many answers at once. Wait a moment and try again.",
+        "failed": "That did not save. Try again."
+      }
+    }
   },
   "identityProjects": {
     "title": "Identity projects",

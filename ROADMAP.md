@@ -210,7 +210,20 @@ The last three items, plus the optional half of the readability review. Needs
    - [ ] Enable Vercel **Web Analytics + Speed Insights** in the dashboard.
    - [ ] SMTP for auth emails (invites/reset); Free-plan **backups** (no daily backup — upgrade Pro or scheduled dump).
 2. **Actions on the read-only pages** (currently views)
-   - [ ] Client **approves/comments** on content in `/portal/content` (writes `approvals`).
+   - [x] Client **approves/comments** on content in `/portal/content` (writes `approvals`).
+     — o lado **social** disso já existia (`client_approve` / `client_request_changes`
+     / `client_reject` via `Moves`, que movem o estágio na peça). O que faltava era
+     o **content engine**: os dois surfaces do portal filtram `engine = 'social'`,
+     então um carrossel feito da reunião do próprio cliente nunca aparecia ali — a
+     única via era o link `/a/<token>` do e-mail, que expira em 14 dias e funciona
+     uma vez só. Agora aparece no portal, e responder escreve em `approvals` (sem
+     mover o status, igual ao link — o estúdio move).
+     Migration `044`: `token` vira nullable e entra `source ('link'|'portal')`.
+     Uma resposta pelo portal **não** cunha token — antes seria preciso gerar um
+     link de 14 dias que ninguém enviou só para satisfazer o `not null`, e uma
+     credencial que existe sem motivo só pode vazar. Regras puras e testadas em
+     `src/lib/portal-approval.ts`, incluindo a recusa de gravar decisão enquanto
+     a founder está em "view as client".
    - [ ] Business plan / Administration → editable (needs tables) instead of static/derived.
    - [ ] Content calendar / Scheduling → create + drag to reschedule.
    - [ ] Commercial → move a prospect through stages; convert to active client.

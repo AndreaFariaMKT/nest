@@ -208,7 +208,30 @@
       "studio": "Studio"
     },
     "previewing": "Pré-visualizando como {name}. É isto que esse cliente vê — você não é ele.",
-    "previewingNoClient": "Pré-visualizando o portal do cliente. Ainda não há cliente para mostrar, então isto é o que um novo veria."
+    "previewingNoClient": "Pré-visualizando o portal do cliente. Ainda não há cliente para mostrar, então isto é o que um novo veria.",
+    "engineContent": {
+      "title": "Do motor de conteúdo",
+      "note": "Carrosséis e posts criados a partir das suas reuniões. Aprovar aqui é o mesmo que responder o link que enviamos por e-mail.",
+      "approve": "Aprovar",
+      "requestChanges": "Pedir ajustes",
+      "commentLabel": "O que deve mudar?",
+      "commentPlaceholder": "Conte o que ajustar",
+      "approved": "Aprovado",
+      "changesRequested": "Ajustes pedidos",
+      "answeredOn": "Respondido em {date}",
+      "empty": "Nada do motor de conteúdo está esperando por você.",
+      "refusal": {
+        "notLinked": "Este login ainda não está ligado a um cliente. Peça ao estúdio para conectar.",
+        "preview": "Você está visualizando o portal. Só o login do próprio cliente pode responder.",
+        "notFound": "Essa peça não está mais disponível.",
+        "wrongEngine": "Essa peça é respondida no card dela, acima.",
+        "notWithClient": "Essa peça não está esperando por você agora.",
+        "alreadyAnswered": "Essa peça já foi respondida.",
+        "needsComment": "Diga o que deve mudar para o time saber o que ajustar.",
+        "rateLimited": "Respostas demais de uma vez. Espere um instante e tente de novo.",
+        "failed": "Não foi salvo. Tente de novo."
+      }
+    }
   },
   "identityProjects": {
     "title": "Projetos de identidade",
