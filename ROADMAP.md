@@ -563,41 +563,70 @@ Não pertencem a nenhuma sprint específica — vão acontecendo em paralelo.
   - Also added `npm run types:check` for CI drift detection
   - `database.gen.ts` seeded (1417 lines, all tables / enums / functions / triggers)
   - Swap from hand-rolled `database.ts` → generated file still pending (next bullet)
-- [ ] Substituir `database.ts` manual pelo gerado, commitar
-- [ ] CI check: se `.gen.ts` tiver drift comparado ao gerado no momento do CI, falhar
+- [x] Substituir `database.ts` manual pelo gerado, commitar
+  — `database.ts` hoje só reexporta `database.gen.ts` e acrescenta aliases
+  (`MeetingStatus`, `TaskPriority`, …) pra não quebrar imports existentes.
+- [x] CI check: se `.gen.ts` tiver drift comparado ao gerado no momento do CI, falhar
+  — job `types-drift` no `ci.yml`. É exatamente o guard que teria pegado o
+  `database.gen.ts` atrasado em relação às migrations 044/045/046: três
+  features shipadas contra um schema que os tipos commitados não descreviam,
+  cada uma carregando um cast pra contornar. Pula (não falha) sem
+  `SUPABASE_ACCESS_TOKEN` — um drift check que não pode rodar não é falha.
 
 ### 4.2 Testing
-- [ ] **Vitest** pra unit/integration: `slugify`, actions validation, pure helpers
-- [ ] **Playwright** E2E: login, clients CRUD, brand kit, content engine (quando existir)
-- [ ] Coverage target: 70% nas actions; nem todo UI precisa de teste
-- [ ] Roda em CI a cada PR
+- [x] **Vitest** pra unit/integration: `slugify`, actions validation, pure helpers
+  — 59 arquivos, 802 testes.
+- [x] **Playwright** E2E: login, clients CRUD, brand kit, content engine
+  — 16 specs em `tests/e2e/`. Ainda **não roda em CI**: dependem de um Supabase
+  local, e CI precisaria de um preview hospedado + seed (TODO no `ci.yml`).
+- [x] Coverage target: 70% nas actions; nem todo UI precisa de teste
+  — thresholds em `vitest.config.ts`, escopados a `src/lib` (onde as regras
+  moram; contar páginas moveria o número a cada mudança de layout sem dizer
+  nada sobre o domínio). A fronteira de I/O — fábricas de client Supabase e
+  leituras finas de sessão — fica de fora por não ser testável em unidade, não
+  por conveniência: incluída, senta em 0% e derruba o número sem sinal nenhum.
+  Atual: 80% statements, 73% branches.
+- [x] Roda em CI a cada PR — unit + coverage. Playwright ainda não (acima).
 
 ### 4.3 CI/CD
 - [x] GitHub Actions: `typecheck`, `lint`, `vitest`, `playwright` em todo push
   - `.github/workflows/ci.yml` runs Node 20, `npm ci`, `typecheck`, then `vitest` on every push + PR targeting `main`
   - `lint` deferred (next lint is deprecated upstream; migration to `@eslint/cli` codemod tracked inline)
   - Playwright smoke deferred until a hosted Supabase preview DB + seed is available in CI
-- [ ] Preview deploy automático via Vercel em PRs
-- [ ] Branch `main` → production deploy após tests green
+- [x] Preview deploy automático via Vercel em PRs — comportamento padrão do
+  projeto conectado na Vercel.
+- [ ] Branch `main` → production deploy **após tests green**
+  — hoje a Vercel deploya no push, sem esperar o CI. Falta ligar os dois.
 
 ### 4.4 Supabase Cloud migration
-- [ ] Criar projeto production no Supabase Cloud (plano Pro)
-- [ ] Rodar migrations via `supabase db push`
+- [x] Criar projeto production no Supabase Cloud (plano Pro)
+- [x] Rodar migrations via `supabase db push`
 - [ ] Configurar SMTP (auth emails) + storage buckets + RLS spot-check
-- [ ] Rotate env secrets na Vercel
+  — buckets e RLS ok; **SMTP continua pendente** (convites/reset de senha).
+- [x] Rotate env secrets na Vercel
+  — ver `docs/credentials-status.md`: projeto saiu das chaves JWT legadas.
 
 ### 4.5 Observability
-- [ ] **Sentry** pra erros client + server
-- [ ] **Vercel Analytics** pra web vitals
-- [ ] Logs estruturados nas server actions (pino ou console JSON)
-- [ ] Dashboard interno "/admin/usage" pra monitorar consumo Claude API por cliente
+- [x] **Sentry** pra erros client + server
+  — `src/lib/sentry.ts`, cliente mínimo (fetch direto no envelope endpoint, sem
+  a dep de 500 KB), ligado em `log.error` por import dinâmico. **Só falta o
+  `SENTRY_DSN`** — sem ele toda chamada é no-op de propósito.
+- [x] **Vercel Analytics** pra web vitals
+  — montado em `[locale]/layout.tsx`, deliberadamente fora do root: as rotas
+  públicas `/p/[token]` e `/a/[token]` vivem fora de `[locale]`, e no root o
+  token ia como path pra um terceiro.
+- [x] Logs estruturados nas server actions — `src/lib/log.ts`, com redação.
+- [x] Dashboard interno `/admin/usage` pra consumo Claude API por cliente
 
 ### 4.6 Segurança
-- [ ] CSRF: server actions já têm origin check, OK
-- [ ] Rate limit em APIs públicas (approvals, webhooks) via Vercel Edge
-- [ ] 2FA obrigatório pra role=owner (Supabase Auth MFA)
-- [ ] Rotação de tokens Meta/Google (job diário de refresh)
-- [ ] Backup semanal do Postgres (Supabase já faz; validar retention)
+- [x] CSRF: server actions já têm origin check, OK
+- [ ] Rate limit em APIs públicas (approvals, webhooks) → **Upstash Redis**
+  — `src/lib/rate-limit.ts` existe e é usado, mas é in-memory: o próprio
+  arquivo avisa que o estado zera no restart, o que numa função serverless é
+  praticamente todo request. Precisa de credencial Upstash.
+- [ ] 2FA obrigatório pra founder (Supabase Auth MFA)
+- [x] Rotação de tokens Meta/Google — cron `meta-refresh` diário (`vercel.json`).
+- [ ] Backup do Postgres — validar retention do plano.
 
 ### 4.7 Performance
 - [x] Paginação: clients list (>50), tasks list (>100), published_posts
