@@ -206,9 +206,19 @@ The last three items, plus the optional half of the readability review. Needs
 1. **Operational / quick**
    - [ ] DNS: `nest.andreafariamkt.com` → CNAME `cname.vercel-dns.com` (Google Cloud DNS); then set `NEXT_PUBLIC_APP_URL` + redeploy.
    - [ ] **Rotate the DB password** (it was used/exposed during setup) — Supabase → Database → Reset password. Does not affect the app (uses keys).
-   - [ ] Remove the **demo data** (Demo Client + client@ login + its meeting/contract/draft) once portal testing is done.
+   - [ ] Remove the **demo data** (Demo Client + client@ login + its meeting/contract/draft).
+     — **em uso no momento** (2026-08-27): não remover ainda. Enquanto ficar,
+     o Demo Client entra nas contagens dos relatórios e no funil comercial, e
+     `client@` é um login vivo. Custo aceito conscientemente, não esquecido.
    - [ ] Enable Vercel **Web Analytics + Speed Insights** in the dashboard.
-   - [ ] SMTP for auth emails (invites/reset); Free-plan **backups** (no daily backup — upgrade Pro or scheduled dump).
+   - [ ] **SMTP for auth emails** — bloqueia três fluxos, não dois: convite de
+     equipe (`team/actions.ts`), criação de login de portal do cliente
+     (`clients/actions.ts`) e o **magic link do próprio login**
+     (`LoginForm.tsx`). Sem SMTP o app depende inteiramente de senha.
+   - [ ] **Backups** — validar retention no painel. Esta linha dizia "Free-plan
+     (no daily backup)" enquanto `docs/credentials-status.md` registra
+     "Created on Pro plan". Um dos dois está errado e a diferença é ter ou não
+     backup diário; confirmar no dashboard antes de confiar em qualquer um.
 2. **Actions on the read-only pages** (currently views)
    - [x] Client **approves/comments** on content in `/portal/content` (writes `approvals`).
      — o lado **social** disso já existia (`client_approve` / `client_request_changes`
@@ -548,7 +558,9 @@ Goal: v1.0 em produção.
   - `.env.example`: pasted-token slot + TIKTOK_PUBLISH_MODE; CLIENT_KEY / CLIENT_SECRET kept for the future 3-legged OAuth flow once Content Posting API is approved
   - `/api/cron/publish` adds TikTok dispatch: 503 only when **all** platforms missing creds; tiktok rows fail fast when the draft has no `video_url`; on success the published_post stores `platform="tiktok"` + the TikTok publish_id as `external_id`. `content_drafts` select widened to `(title, video_url)` so the cron can populate the TikTok title + locate the source URL
   - inactive until TikTok creds + Content Posting API approval + verified source domain; tsc clean, 401 tests green (14 new)
-- [ ] **Production deploy** — Vercel (app) + Supabase Cloud (DB), DNS, SSL, env secrets, first smoke test
+- [x] **Production deploy** — Vercel (app) + Supabase Cloud (DB), SSL, env secrets, first smoke test
+  — no ar desde 2026-05-19 em `nest-six-beta.vercel.app`. Só o **DNS próprio**
+  continua pendente, e está rastreado no backlog operacional (§0).
 
 **Entrega:** Nest v1.0 rodando em produção, Andréa + equipe + Nayara usando diariamente.
 
@@ -602,7 +614,8 @@ Não pertencem a nenhuma sprint específica — vão acontecendo em paralelo.
 - [x] Criar projeto production no Supabase Cloud (plano Pro)
 - [x] Rodar migrations via `supabase db push`
 - [ ] Configurar SMTP (auth emails) + storage buckets + RLS spot-check
-  — buckets e RLS ok; **SMTP continua pendente** (convites/reset de senha).
+  — buckets e RLS ok; **SMTP continua pendente**. Detalhe do impacto em §0,
+  para não manter duas descrições do mesmo item que possam divergir.
 - [x] Rotate env secrets na Vercel
   — ver `docs/credentials-status.md`: projeto saiu das chaves JWT legadas.
 
