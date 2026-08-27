@@ -6,6 +6,7 @@ import { createClient as createSupabaseClient } from "@/lib/supabase/server";
 import { currentTenantId } from "@/lib/tenant-server";
 import { canMoveToBucket } from "@/lib/content-board";
 import { log } from "@/lib/log";
+import type { Enums } from "@/types/database";
 
 export type BoardState = { ok: boolean; error?: string };
 
@@ -49,7 +50,7 @@ export async function moveDraftToBucketAction(
   // so without this an RLS refusal looks exactly like a move that worked.
   const { data: updated, error } = await supabase
     .from("content_drafts")
-    .update({ status: verdict.status as never })
+    .update({ status: verdict.status as Enums<"content_status"> })
     .eq("id", draft.id)
     .eq("tenant_id", tenantId)
     .select("id")

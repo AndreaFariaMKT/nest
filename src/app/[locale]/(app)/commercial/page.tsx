@@ -29,9 +29,7 @@ export default async function CommercialPage({
     .order("created_at", { ascending: false })
     .limit(OPTION_LIST_CAP);
 
-  const clients = (data ?? []) as unknown as Array<
-    Prospect & { created_at: string }
-  >;
+  const clients = (data ?? []) as Array<Prospect & { created_at: string }>;
   const prospects = clients.filter((c) => c.status === "prospect");
   const active = clients.filter((c) => c.status === "active").length;
 

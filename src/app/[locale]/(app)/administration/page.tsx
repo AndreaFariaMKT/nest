@@ -7,7 +7,6 @@ import { PageHeader } from "@/components/ui/PageHeader";
 import { CompanyDocuments, type CompanyDoc } from "./CompanyDocuments";
 import { EXPIRY_ORDER, expiryOf } from "@/lib/company-documents";
 import { STUDIO_TIMEZONE, todayIso } from "@/lib/social";
-import type { CompanyDocumentRow } from "@/types/database";
 import { Link } from "@/i18n/routing";
 import type { Route } from "next";
 
@@ -23,33 +22,13 @@ export default async function AdministrationPage({
   const t = await getTranslations("administration");
   const supabase = await createClient();
   const tenantId = await currentTenantId();
-  // See administration/actions.ts — `company_documents` arrives with migration
-  // 046 and the generated types do not know it until `types:gen` runs. One
-  // cast, the same one, on the read side.
-  const fromDocs = (
-    supabase as unknown as {
-      from(t: string): {
-        select(c: string): {
-          eq(
-            col: string,
-            v: string,
-          ): {
-            order(
-              c: string,
-              o: { ascending: boolean; nullsFirst?: boolean },
-            ): { limit(n: number): Promise<{ data: CompanyDocumentRow[] | null }> };
-          };
-        };
-      };
-    }
-  ).from("company_documents");
-
   const [{ data: contracts }, { data: clients }, { data: companyDocs }] =
     await Promise.all([
     supabase.from("contracts").select("id, title, document_url, client_id, starts_on").eq("tenant_id", tenantId).not("document_url", "is", null).order("starts_on", { ascending: false })
     .limit(OPTION_LIST_CAP),
     supabase.from("clients").select("id, name, slug").eq("tenant_id", tenantId),
-    fromDocs
+    supabase
+      .from("company_documents")
       .select("id, title, category, document_url, notes, valid_until")
       .eq("tenant_id", tenantId)
       .order("valid_until", { ascending: true, nullsFirst: false })
@@ -66,7 +45,7 @@ export default async function AdministrationPage({
 
   // Ordered by the domain, not by name: this screen is opened to answer "is
   // anything about to lapse", so the answer is the top of the list.
-  const docs: CompanyDoc[] = ((companyDocs ?? []) as CompanyDocumentRow[])
+  const docs: CompanyDoc[] = (companyDocs ?? [])
     .map((d) => {
       const expiry = expiryOf(d.valid_until, today);
       return {

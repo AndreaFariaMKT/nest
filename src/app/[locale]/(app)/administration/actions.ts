@@ -6,41 +6,10 @@ import { createClient as createSupabaseClient } from "@/lib/supabase/server";
 import { currentTenantId } from "@/lib/tenant-server";
 import { cleanText } from "@/lib/sanitize";
 import { validateDocument } from "@/lib/company-documents";
-import type { CompanyDocumentInsert } from "@/types/database";
+import type { TablesInsert } from "@/types/database";
 import { log } from "@/lib/log";
 
 export type DocumentState = { ok: boolean; error?: string };
-
-/**
- * One cast, at one boundary, and it is temporary.
- *
- * `company_documents` arrives with migration 046. `database.gen.ts` is
- * generated from the live schema, so until `npm run types:gen` runs against a
- * database that has 046, the client does not know the table exists and
- * `.from("company_documents")` will not type-check at all — a new table cannot
- * be cast row by row the way a new column can.
- *
- * The payloads are still typed: everything written below is built as a
- * `CompanyDocumentInsert` first, and `validateDocument` has already checked
- * the values. This widens the table name, not the data.
- */
-type Written = {
-  data: { id: string } | null;
-  error: { code?: string } | null;
-};
-
-/** Only the chain this file actually uses. */
-type DocQuery = {
-  update(values: unknown): DocQuery;
-  insert(values: unknown): DocQuery;
-  delete(): DocQuery;
-  eq(column: string, value: string): DocQuery;
-  select(columns: string): DocQuery;
-  maybeSingle(): Promise<Written>;
-};
-
-const docs = (sb: Awaited<ReturnType<typeof createSupabaseClient>>): DocQuery =>
-  (sb as unknown as { from(table: string): DocQuery }).from("company_documents");
 
 function read(formData: FormData, key: string, max = 500): string {
   return cleanText((formData.get(key) ?? "").toString(), { maxLength: max });
@@ -75,15 +44,20 @@ export async function saveCompanyDocumentAction(
   // `.select()` on both paths. PostgREST reports a write that matched no row
   // as success, so this is the only thing that tells an RLS refusal — which is
   // what a non-founder gets here — from a save that worked.
-  const row: CompanyDocumentInsert = { ...verdict.value, tenant_id: tenantId };
+  const row: TablesInsert<"company_documents"> = {
+    ...verdict.value,
+    tenant_id: tenantId,
+  };
   const { data, error } = id
-    ? await docs(supabase)
+    ? await supabase
+        .from("company_documents")
         .update(row)
         .eq("id", id)
         .eq("tenant_id", tenantId)
         .select("id")
         .maybeSingle()
-    : await docs(supabase)
+    : await supabase
+        .from("company_documents")
         .insert(row)
         .select("id")
         .maybeSingle();
@@ -116,7 +90,8 @@ export async function deleteCompanyDocumentAction(
   const supabase = await createSupabaseClient();
   const tenantId = await currentTenantId();
 
-  const { data, error } = await docs(supabase)
+  const { data, error } = await supabase
+    .from("company_documents")
     .delete()
     .eq("id", id)
     .eq("tenant_id", tenantId)

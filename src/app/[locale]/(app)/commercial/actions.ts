@@ -7,6 +7,7 @@ import { currentTenantId } from "@/lib/tenant-server";
 import { cleanText } from "@/lib/sanitize";
 import { applyMove } from "@/lib/pipeline";
 import { log } from "@/lib/log";
+import type { TablesUpdate } from "@/types/database";
 
 export type PipelineState = { ok: boolean; error?: string };
 
@@ -55,7 +56,7 @@ export async function movePipelineAction(
   });
   if (!verdict.ok) return { ok: false, error: verdict.reason };
 
-  const patch: Record<string, unknown> = {
+  const patch: TablesUpdate<"clients"> = {
     pipeline_stage: verdict.stage,
     status: verdict.status,
     updated_at: new Date().toISOString(),
@@ -77,10 +78,7 @@ export async function movePipelineAction(
   // nothing comes back, nothing was written.
   const { data: updated, error } = await supabase
     .from("clients")
-    // The generated types still describe `clients` as migration 045 found it,
-    // with no `pipeline_stage`. `npm run types:gen` once 045 is applied drops
-    // this cast.
-    .update(patch as never)
+    .update(patch)
     .eq("id", client.id)
     .eq("tenant_id", tenantId)
     .select("id")

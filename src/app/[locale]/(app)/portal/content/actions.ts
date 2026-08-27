@@ -14,19 +14,6 @@ import { log } from "@/lib/log";
 
 export type RespondState = { ok: boolean; error?: string };
 
-/**
- * The row a portal answer writes — `approvals` as migration 044 leaves it.
- * Declared here rather than taken from the generated types because those are
- * produced from the live schema and lag the migration until `types:gen` runs.
- */
-type PortalApprovalInsert = {
-  draft_id: string;
-  token: null;
-  source: "portal";
-  client_comment: string | null;
-  approved_at: string | null;
-  rejected_at: string | null;
-};
 
 /**
  * A signed-in client answering a content-engine draft.
@@ -130,7 +117,7 @@ export async function respondToDraftAction(
   if (!draft) return { ok: false, error: "notFound" };
 
   const now = new Date().toISOString();
-  const row: PortalApprovalInsert = {
+  const row: TablesInsert<"approvals"> = {
     draft_id: draft.id,
     // No token. Migration 044 made the column nullable precisely so a portal
     // answer does not have to mint a live 14-day link nobody sent.
@@ -141,15 +128,7 @@ export async function respondToDraftAction(
     rejected_at: verdict.decision === "approve" ? null : now,
   };
 
-  // One cast, here, and it is temporary. `database.gen.ts` is generated from
-  // the live schema, so it still describes `approvals` as migration 044 found
-  // it: `token` non-null, no `source`. Running `npm run types:gen` once 044 is
-  // applied regenerates both and this cast can go. The shape above is checked
-  // against `PortalApprovalInsert` rather than being an `any` — the cast
-  // crosses the client boundary, it does not switch the type checking off.
-  const { error } = await admin
-    .from("approvals")
-    .insert(row as unknown as TablesInsert<"approvals">);
+  const { error } = await admin.from("approvals").insert(row);
   if (error) {
     // Never the error object — a unique violation echoes the conflicting
     // value, and on this table that value is a bearer token.

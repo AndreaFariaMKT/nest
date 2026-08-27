@@ -56,28 +56,3 @@ export const PLATFORMS: Platform[] = ["instagram", "linkedin", "tiktok"];
 // Structured jsonb shapes that the generated types expose only as `Json`.
 export type BrandColor = { name: string; hex: string };
 export type BrandTypography = { headings: string; body: string };
-
-/**
- * `company_documents` (migration 046) — the studio's own paperwork.
- *
- * Declared here rather than taken from `database.gen.ts` because that file is
- * generated from the live schema and does not know the table until
- * `npm run types:gen` runs against a database with 046 applied. Delete these
- * and import from the generated types once it has.
- */
-export type CompanyDocumentRow = {
-  id: string;
-  tenant_id: string;
-  title: string;
-  category: "legal" | "finance" | "insurance" | "plan" | "other";
-  document_url: string | null;
-  notes: string | null;
-  valid_until: string | null;
-  created_at: string;
-  updated_at: string;
-};
-
-export type CompanyDocumentInsert = Omit<
-  CompanyDocumentRow,
-  "id" | "created_at" | "updated_at"
->;

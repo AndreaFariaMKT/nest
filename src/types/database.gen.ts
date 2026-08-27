@@ -10,7 +10,7 @@ export type Database = {
   // Allows to automatically instantiate createClient with right options
   // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
-    PostgrestVersion: "14.5"
+    PostgrestVersion: "14.17"
   }
   public: {
     Tables: {
@@ -94,8 +94,9 @@ export type Database = {
           expires_at: string | null
           id: string
           rejected_at: string | null
+          source: string
           tenant_id: string
-          token: string
+          token: string | null
         }
         Insert: {
           approved_at?: string | null
@@ -105,8 +106,9 @@ export type Database = {
           expires_at?: string | null
           id?: string
           rejected_at?: string | null
+          source?: string
           tenant_id?: string
-          token: string
+          token?: string | null
         }
         Update: {
           approved_at?: string | null
@@ -116,8 +118,9 @@ export type Database = {
           expires_at?: string | null
           id?: string
           rejected_at?: string | null
+          source?: string
           tenant_id?: string
-          token?: string
+          token?: string | null
         }
         Relationships: [
           {
@@ -523,6 +526,7 @@ export type Database = {
           legal_name: string | null
           name: string
           notes: string | null
+          pipeline_stage: string | null
           portal_token: string | null
           portal_token_expires_at: string | null
           portal_user_id: string | null
@@ -543,6 +547,7 @@ export type Database = {
           legal_name?: string | null
           name: string
           notes?: string | null
+          pipeline_stage?: string | null
           portal_token?: string | null
           portal_token_expires_at?: string | null
           portal_user_id?: string | null
@@ -563,6 +568,7 @@ export type Database = {
           legal_name?: string | null
           name?: string
           notes?: string | null
+          pipeline_stage?: string | null
           portal_token?: string | null
           portal_token_expires_at?: string | null
           portal_user_id?: string | null
@@ -586,6 +592,50 @@ export type Database = {
           },
           {
             foreignKeyName: "clients_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      company_documents: {
+        Row: {
+          category: string
+          created_at: string
+          document_url: string | null
+          id: string
+          notes: string | null
+          tenant_id: string
+          title: string
+          updated_at: string
+          valid_until: string | null
+        }
+        Insert: {
+          category?: string
+          created_at?: string
+          document_url?: string | null
+          id?: string
+          notes?: string | null
+          tenant_id?: string
+          title: string
+          updated_at?: string
+          valid_until?: string | null
+        }
+        Update: {
+          category?: string
+          created_at?: string
+          document_url?: string | null
+          id?: string
+          notes?: string | null
+          tenant_id?: string
+          title?: string
+          updated_at?: string
+          valid_until?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "company_documents_tenant_id_fkey"
             columns: ["tenant_id"]
             isOneToOne: false
             referencedRelation: "tenants"
