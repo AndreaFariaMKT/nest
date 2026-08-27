@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
-import localFont from "next/font/local";
+import { Fraunces, Inter } from "next/font/google";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import "./globals.css";
 import { getCurrentTenant } from "@/lib/tenant-server";
@@ -11,40 +10,29 @@ const sans = Inter({
   display: "swap",
 });
 
-// Manier — TRIAL FILES, NOT LICENSED. Read this before touching the display face.
+// Fraunces — SIL Open Font License 1.1, served by next/font/google.
 //
-// The comment here used to read "Indian Type Foundry — licensed to Studio
-// Andréa Faria". Both halves were false. The files name themselves
-// "Manier Regular-Trial" and carry "Copyright © 2018 by Piotr Łapa".
+// This replaced Manier, which shipped here as unlicensed trial files
+// ("Manier Regular-Trial", © 2018 Piotr Łapa) that could not set Portuguese.
+// Each weight carried 70 glyphs — A-Z, a-z, 0-9 and a little punctuation —
+// and none of á à â ã é ê í ó ô õ ú ü ç, their capitals, or ; ' " ( ) / % – —.
+// The browser falls back per character, so "Configurações" rendered as
+// "Configura" + "çõ" + "es" in two different faces inside one word, across
+// 524 pt-BR strings.
 //
-// They also cannot set Portuguese. Each weight holds 70 glyphs — A-Z, a-z,
-// 0-9 and a little punctuation — and NONE of the accents this product is
-// written in: á à â ã é ê í ó ô õ ú ü ç and every capital form, plus
-// ; ' " ( ) [ ] { } – — … / % $ @ # * + =
+// Fraunces was chosen to hold Manier's register rather than replace it:
+// Manier measured as an editorial display serif (cap height 700, x-height 499,
+// wide caps against narrow lowercase). Fraunces is the same voice with a full
+// Latin charset, and it carries a real optical-size axis — so one variable
+// file does what twelve static ones were loaded for and never did. Only
+// Regular was ever used; no weight class appears with `font-display` anywhere.
 //
-// The browser falls back per character, so "Configurações" renders as
-// "Configura" in Manier, "çõ" in the system face, "es" in Manier again —
-// mismatched letterforms inside one word. 27 page titles in messages/pt-BR.json
-// are affected, including Calendário, Reuniões, Administração and Visão geral.
-//
-// Fixing this means buying the licence and shipping the full-charset files, or
-// choosing a different display face. Both are the studio's call, not a code
-// change — which is why this is a comment and not a swap.
-const manier = localFont({
-  src: [
-    { path: "../../public/fonts/Manier-Thin.otf",         weight: "100", style: "normal" },
-    { path: "../../public/fonts/Manier-ThinItalic.otf",   weight: "100", style: "italic" },
-    { path: "../../public/fonts/Manier-Light.otf",        weight: "300", style: "normal" },
-    { path: "../../public/fonts/Manier-LightItalic.otf",  weight: "300", style: "italic" },
-    { path: "../../public/fonts/Manier-Regular.otf",      weight: "400", style: "normal" },
-    { path: "../../public/fonts/Manier-RegularItalic.otf", weight: "400", style: "italic" },
-    { path: "../../public/fonts/Manier-Medium.otf",       weight: "500", style: "normal" },
-    { path: "../../public/fonts/Manier-MediumItalic.otf", weight: "500", style: "italic" },
-    { path: "../../public/fonts/Manier-Bold.otf",         weight: "700", style: "normal" },
-    { path: "../../public/fonts/Manier-BoldItalic.otf",   weight: "700", style: "italic" },
-    { path: "../../public/fonts/Manier-Heavy.otf",        weight: "900", style: "normal" },
-    { path: "../../public/fonts/Manier-HeavyItalic.otf",  weight: "900", style: "italic" },
-  ],
+// SOFT and WONK are pinned low in tailwind.config.ts: this is a serif with a
+// point of view, not a novelty face. opsz is left to `font-optical-sizing:
+// auto` so a 36px page title and a 20px card title are drawn differently.
+const display = Fraunces({
+  subsets: ["latin"],
+  axes: ["SOFT", "WONK", "opsz"],
   variable: "--font-display",
   display: "swap",
 });
@@ -72,7 +60,7 @@ export default async function RootLayout({
   const tenant = await getCurrentTenant();
   return (
     <html
-      className={`${sans.variable} ${manier.variable}`}
+      className={`${sans.variable} ${display.variable}`}
       data-theme={tenant.theme}
       suppressHydrationWarning
     >

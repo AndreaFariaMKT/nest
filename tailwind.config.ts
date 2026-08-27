@@ -10,7 +10,20 @@ const config: Config = {
     extend: {
       fontFamily: {
         sans: ["var(--font-sans)", "system-ui", "sans-serif"],
-        display: ["var(--font-display)", "system-ui", "sans-serif"],
+        // Fraunces is a serif, so the swap-period fallback is one too. This
+        // used to read `system-ui, sans-serif`: with `display: "swap"` every
+        // page title was drawn in a sans first and then reflowed into a serif.
+        //
+        // SOFT/WONK are pinned here so all 84 `font-display` usages inherit
+        // one cut instead of each guessing. WONK stays 0 — its alternate
+        // glyphs are drawn for large sizes and read as noise on a 20px card
+        // title. PageHeader turns it on for the one line per screen that is
+        // big enough to earn it. opsz is left to `font-optical-sizing: auto`
+        // in globals.css.
+        display: [
+          ["var(--font-display)", "Georgia", "Times New Roman", "serif"],
+          { fontVariationSettings: '"SOFT" 20, "WONK" 0' },
+        ],
       },
       colors: {
         // Design tokens — consumed via CSS variables in globals.css

@@ -33,7 +33,11 @@ export function CardTitle({
 }: React.HTMLAttributes<HTMLHeadingElement>) {
   return (
     <h3
-      className={cn("font-display text-xl tracking-tight", className)}
+      // No `tracking-tight` here. It was the only tracking in the app and it
+      // was on the *smaller* of the two display sizes — backwards: a serif
+      // needs its letterfit opened up as it gets smaller, not closed. The
+      // negative tracking lives on PageHeader, at 36px, where it belongs.
+      className={cn("font-display text-xl leading-snug", className)}
       {...rest}
     />
   );

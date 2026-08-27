@@ -95,6 +95,115 @@
     --sidebar-border: 193 40% 22%;
   }
 
+  /* ── Dark ─────────────────────────────────────────────────────────────
+     `darkMode` is unset in tailwind.config.ts, so it is Tailwind's default:
+     `media`. Twenty `dark:` utilities were already shipping (the emerald and
+     amber Pill tones, the portal preview band) — but no dark values for any
+     token existed, so a reader whose OS is set to dark got dark badges on the
+     light rose background, and nobody saw it because the studio tests in
+     light.
+
+     Each block keeps its theme's hue and inverts lightness. The brand is
+     lifted rather than reused: 345 39% 52% is a rose sized for contrast
+     against a near-white page and goes muddy against a near-black one.
+
+     Order matters. `:root` and `[data-theme="…"]` have equal specificity
+     (0,1,0), so the theme blocks must come second to win — the html element
+     always carries data-theme from the tenant. */
+  @media (prefers-color-scheme: dark) {
+    :root,
+    [data-theme="nest"] {
+      --background: 340 18% 8%;
+      --foreground: 340 12% 96%;
+
+      --card: 340 14% 11%;
+      --card-foreground: 340 12% 96%;
+
+      --muted: 340 12% 15%;
+      --muted-foreground: 340 8% 62%;
+
+      --border: 340 12% 20%;
+      --input: 340 12% 20%;
+      --ring: 346 70% 66%;
+
+      --primary: 340 12% 96%;
+      --primary-foreground: 340 18% 8%;
+
+      --accent: 340 14% 17%;
+      --accent-foreground: 340 12% 96%;
+
+      --destructive: 0 62% 58%;
+      --destructive-foreground: 0 0% 100%;
+
+      --brand: 346 70% 66%;
+      --brand-foreground: 340 30% 10%;
+      --brand-soft: 345 30% 24%;
+      --brand-soft-foreground: 346 74% 86%;
+
+      /* The sidebar floats *above* the page. At 5% lightness it read as
+         "dark panel on light page"; on a dark page it has to sit slightly
+         above the background instead of below it. */
+      --sidebar: 340 14% 12%;
+      --sidebar-foreground: 340 10% 96%;
+      --sidebar-muted: 340 8% 58%;
+      --sidebar-active: 346 60% 46%;
+      --sidebar-active-foreground: 0 0% 100%;
+      --sidebar-border: 340 12% 22%;
+    }
+
+    [data-theme="afm"] {
+      --background: 195 30% 7%;
+      --foreground: 40 20% 94%;
+
+      --card: 195 26% 10%;
+      --card-foreground: 40 20% 94%;
+
+      --muted: 195 20% 15%;
+      --muted-foreground: 195 10% 62%;
+
+      --border: 195 18% 20%;
+      --input: 195 18% 20%;
+      --ring: 189 70% 52%;
+
+      --primary: 40 20% 94%;
+      --primary-foreground: 195 30% 7%;
+
+      --accent: 195 22% 16%;
+      --accent-foreground: 40 20% 94%;
+
+      --destructive: 0 62% 58%;
+      --destructive-foreground: 0 0% 100%;
+
+      --brand: 189 70% 52%;
+      --brand-foreground: 195 40% 8%;
+      --brand-soft: 193 32% 22%;
+      --brand-soft-foreground: 189 60% 78%;
+
+      --sidebar: 195 34% 10%;
+      --sidebar-foreground: 40 24% 95%;
+      --sidebar-muted: 195 12% 60%;
+      --sidebar-active: 189 60% 34%;
+      --sidebar-active-foreground: 0 0% 100%;
+      --sidebar-border: 195 24% 20%;
+    }
+  }
+
+  /* 39 `transition-colors` and three `animate-pulse` shipped with nothing
+     honouring this. The pulse is the one that matters — it loops for as long
+     as the screen is open. Transitions are reduced to a near-zero duration
+     rather than removed, so state changes still land instantly instead of
+     appearing not to work at all. */
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
+
   * {
     @apply border-border;
   }
@@ -103,5 +212,11 @@
   body {
     @apply bg-background text-foreground antialiased;
     font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+    /* Fraunces carries an opsz axis (9–144). Left to the browser, a 36px page
+       title and a 20px card title are drawn from different optical cuts —
+       which is the whole reason twelve static Manier files were being loaded
+       and never used. SOFT/WONK are set on `.font-display`; opsz is
+       deliberately not listed there, so this stays in effect. */
+    font-optical-sizing: auto;
   }
 }
