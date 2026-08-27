@@ -2,6 +2,7 @@ import { setRequestLocale, getTranslations } from "next-intl/server";
 import { Link } from "@/i18n/routing";
 import type { Route } from "next";
 
+import { OPTION_LIST_CAP } from "@/lib/pagination";
 import { createClient } from "@/lib/supabase/server";
 import { currentTenantId } from "@/lib/tenant-server";
 import { getSessionUser } from "@/lib/auth";
@@ -53,13 +54,14 @@ export default async function MessagesPage({
   const [user, role, { data: people }, { data: clientData }] = await Promise.all([
     getSessionUser(),
     getCurrentRole(),
-    supabase.from("profiles").select("id, full_name"),
+    supabase.from("profiles").select("id, full_name").limit(OPTION_LIST_CAP),
     supabase
       .from("clients")
       .select("id, name")
       .eq("tenant_id", tenantId)
       .neq("status", "archived")
-      .order("name"),
+      .order("name")
+      .limit(OPTION_LIST_CAP),
   ]);
 
   // Who gets to see what. A room list built from every client used to render

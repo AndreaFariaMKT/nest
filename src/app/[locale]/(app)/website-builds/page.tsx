@@ -1,5 +1,6 @@
 import { setRequestLocale, getTranslations } from "next-intl/server";
 
+import { OPTION_LIST_CAP } from "@/lib/pagination";
 import { createClient } from "@/lib/supabase/server";
 import { currentTenantId } from "@/lib/tenant-server";
 import { PageHeader } from "@/components/ui/PageHeader";
@@ -18,7 +19,8 @@ export default async function WebsiteBuildsPage({
   const t = await getTranslations("websiteBuilds");
   const supabase = await createClient();
   const tenantId = await currentTenantId();
-  const { data } = await supabase.from("clients").select("id, name, slug, website, status").eq("tenant_id", tenantId).not("website", "is", null).order("name", { ascending: true });
+  const { data } = await supabase.from("clients").select("id, name, slug, website, status").eq("tenant_id", tenantId).not("website", "is", null).order("name", { ascending: true })
+    .limit(OPTION_LIST_CAP);
   const rows = data ?? [];
   return (
     <>

@@ -350,12 +350,6 @@
       "tooShort": "Name must be at least 2 characters.",
       "outOfRange": "Must be between 1 and 40."
     },
-    "pagination": {
-      "prev": "Previous",
-      "next": "Next",
-      "pageOf": "Page {page} of {total}",
-      "range": "{from}–{to} of {total}"
-    },
     "social": {
       "legend": "Social media module",
       "enabled": "Run the social media module for this client",
@@ -502,12 +496,6 @@
   "contentEngine": {
     "title": "Content Engine",
     "subtitle": "Transcription → carousels → creatives → publish.",
-    "pagination": {
-      "prev": "Previous",
-      "next": "Next",
-      "pageOf": "Page {page} of {total}",
-      "range": "{from}–{to} of {total}"
-    },
     "new": "New transcript",
     "newTitle": "New transcript",
     "newSubtitle": "Paste text or upload a .txt / .vtt file. The engine will clean up timing lines automatically.",
@@ -899,6 +887,12 @@
       "dbBadReference": "One of the things this is linked to no longer exists. Refresh the page — if it keeps happening, tell coordination.",
       "dbTooLong": "That text is over the field's limit. Shorten it and save again.",
       "dbFailed": "That could not be saved and nothing changed. Try again — if it repeats, tell coordination; the error is already logged on our side."
+    },
+    "pagination": {
+      "prev": "Previous",
+      "next": "Next",
+      "pageOf": "Page {page} of {total}",
+      "range": "{from}–{to} of {total}"
     }
   },
   "social": {

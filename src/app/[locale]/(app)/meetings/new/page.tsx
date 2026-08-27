@@ -1,5 +1,6 @@
 import { setRequestLocale, getTranslations } from "next-intl/server";
 import { Link } from "@/i18n/routing";
+import { OPTION_LIST_CAP } from "@/lib/pagination";
 import { createClient } from "@/lib/supabase/server";
 import { currentTenantId } from "@/lib/tenant-server";
 import {
@@ -24,7 +25,8 @@ export default async function NewMeetingPage({
     .select("id, name, status")
     .eq("tenant_id", tenantId)
     .neq("status", "archived")
-    .order("name", { ascending: true });
+    .order("name", { ascending: true })
+    .limit(OPTION_LIST_CAP);
   const clients: ClientChoice[] = (clientsData ?? []).map((c) => ({
     id: c.id,
     name: c.name,

@@ -350,12 +350,6 @@
       "tooShort": "O nome precisa ter pelo menos 2 caracteres.",
       "outOfRange": "Precisa ficar entre 1 e 40."
     },
-    "pagination": {
-      "prev": "Anterior",
-      "next": "Próximo",
-      "pageOf": "Página {page} de {total}",
-      "range": "{from}–{to} de {total}"
-    },
     "social": {
       "legend": "Módulo de social media",
       "enabled": "Rodar o módulo de social media para este cliente",
@@ -502,12 +496,6 @@
   "contentEngine": {
     "title": "Motor de Conteúdo",
     "subtitle": "Transcrição → carrosséis → criativos → publicação.",
-    "pagination": {
-      "prev": "Anterior",
-      "next": "Próximo",
-      "pageOf": "Página {page} de {total}",
-      "range": "{from}–{to} de {total}"
-    },
     "new": "Nova transcrição",
     "newTitle": "Nova transcrição",
     "newSubtitle": "Cole o texto ou envie um arquivo .txt / .vtt. Linhas de tempo do WebVTT são removidas automaticamente.",
@@ -899,6 +887,12 @@
       "dbBadReference": "Um dos itens ligados a isso não existe mais. Atualize a página — se continuar, avise a coordenação.",
       "dbTooLong": "O texto passou do limite deste campo. Encurte um pouco e salve de novo.",
       "dbFailed": "Não deu para salvar e nada mudou. Tente de novo — se repetir, avise a coordenação; o erro já está registrado do nosso lado."
+    },
+    "pagination": {
+      "prev": "Anterior",
+      "next": "Próximo",
+      "pageOf": "Página {page} de {total}",
+      "range": "{from}–{to} de {total}"
     }
   },
   "social": {

@@ -1,5 +1,6 @@
 import { setRequestLocale, getTranslations } from "next-intl/server";
 
+import { OPTION_LIST_CAP } from "@/lib/pagination";
 import { createClient } from "@/lib/supabase/server";
 import { getPortalClient } from "@/lib/client-portal";
 import { PageHeader } from "@/components/ui/PageHeader";
@@ -31,7 +32,8 @@ export default async function PortalLogins({
       "id, client_id, platform, site, username, secret_enc, holder, mfa, access_roles, note, rotated_on",
     )
     .eq("client_id", client.id)
-    .order("platform");
+    .order("platform")
+    .limit(OPTION_LIST_CAP);
 
   // Ciphertext stays server-side; the page only knows whether a password exists.
   const items: LoginRow[] = (data ?? []).map(({ secret_enc, ...row }) => ({

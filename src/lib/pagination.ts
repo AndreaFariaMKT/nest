@@ -67,3 +67,51 @@ export function pageMeta(
     hasNext: parsed.page < totalPages,
   };
 }
+
+/**
+ * The querystring for a given page, preserving every other parameter.
+ *
+ * This was written by hand in two screens and both copies dropped the rest of
+ * the querystring: on a list with filters applied, paging to page 2 silently
+ * cleared the filters and showed page 2 of everything. `page` is omitted at 1
+ * and `pageSize` at its default so the first page keeps a clean URL.
+ */
+export function pageLink(
+  sp: PageInput & Record<string, string | string[] | undefined>,
+  page: number,
+  opts: { defaultSize?: number } = {},
+): string {
+  const defaultSize = opts.defaultSize ?? DEFAULT_PAGE_SIZE;
+  const params = new URLSearchParams();
+
+  for (const [key, value] of Object.entries(sp)) {
+    if (key === "page" || key === "pageSize") continue;
+    if (value === undefined) continue;
+    for (const v of Array.isArray(value) ? value : [value]) {
+      if (v !== "") params.append(key, v);
+    }
+  }
+
+  if (page > 1) params.set("page", String(page));
+  const size = readFirst(sp.pageSize);
+  if (size && Number.parseInt(size, 10) !== defaultSize) {
+    params.set("pageSize", size);
+  }
+
+  const qs = params.toString();
+  return qs ? `?${qs}` : "";
+}
+
+/**
+ * Ceiling for a list that fills a `<select>` rather than a screen.
+ *
+ * These reads have no pager and should not get one — you cannot page a
+ * dropdown — but "no pager" had become "no ceiling": every client-picker on
+ * every form read the whole `clients` table, and the kanban read every task in
+ * the tenant. Set high enough that no real studio reaches it, low enough that
+ * a runaway table cannot take a page down.
+ *
+ * If a list ever does hit this, the fix is a typeahead that queries as you
+ * type, not a bigger number.
+ */
+export const OPTION_LIST_CAP = 500;

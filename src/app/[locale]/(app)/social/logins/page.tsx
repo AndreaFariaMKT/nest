@@ -1,6 +1,7 @@
 import { setRequestLocale, getTranslations } from "next-intl/server";
 
 import { PageHeader } from "@/components/ui/PageHeader";
+import { OPTION_LIST_CAP } from "@/lib/pagination";
 import { createClient } from "@/lib/supabase/server";
 import { currentTenantId } from "@/lib/tenant-server";
 import { secretsAvailable } from "@/lib/secrets";
@@ -32,7 +33,8 @@ export default async function LoginsPage({
       "id, client_id, platform, site, username, secret_enc, holder, mfa, access_roles, note, rotated_on",
     )
     .eq("tenant_id", tenantId)
-    .order("platform");
+    .order("platform")
+    .limit(OPTION_LIST_CAP);
   if (scope.client) query = query.eq("client_id", scope.client.id);
 
   const { data } = await query;

@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { setRequestLocale, getTranslations } from "next-intl/server";
 import { Link } from "@/i18n/routing";
 import { Pill } from "@/components/ui/Pill";
+import { OPTION_LIST_CAP } from "@/lib/pagination";
 import { createClient } from "@/lib/supabase/server";
 import type { Database, MeetingStatus } from "@/types/database";
 import { deleteMeetingAction } from "../actions";
@@ -59,7 +60,8 @@ export default async function MeetingDetailPage({
     .from("transcripts")
     .select("id, language, content, created_at")
     .eq("meeting_id", id)
-    .order("created_at", { ascending: false });
+    .order("created_at", { ascending: false })
+    .limit(OPTION_LIST_CAP);
   const transcripts = (transcriptsData ?? []) as Transcript[];
 
   const dtf = new Intl.DateTimeFormat(locale, {

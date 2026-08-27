@@ -548,10 +548,40 @@ Não pertencem a nenhuma sprint específica — vão acontecendo em paralelo.
 - [ ] Backup semanal do Postgres (Supabase já faz; validar retention)
 
 ### 4.7 Performance
-- [ ] Paginação: clients list (>50), tasks list (>100), published_posts
-- [ ] Index review: adicionar índices conforme queries reais
-- [ ] Edge caching: Today page, Reports (com revalidate tag)
-- [ ] Image optimization: `next/image` em tudo que mostra Storage URL
+- [x] Paginação: clients list (>50), tasks list (>100), published_posts
+  — `Pager` compartilhado (`src/components/ui/Pager.tsx`) + `pageLink()`, que
+  preserva os filtros da querystring; as duas cópias hand-rolled foram
+  removidas e as strings vivem em `common.pagination`. Pager real em clients,
+  content-engine, meetings (dividido em futuro/passado no SQL) e scheduling.
+  Onde paginar seria **errado**, entra teto (`OPTION_LIST_CAP`): o kanban
+  precisa de todos os cards nas colunas, e finance/content-calendar derivam
+  MRR e as colunas do conjunto inteiro — uma página deles reportaria um total
+  que encolheu junto. 45 leituras que não tinham limite nenhum agora têm.
+- [x] Index review: adicionar índices conforme queries reais
+  — migration `043_list_sort_indexes.sql`. O achado: a 013 deu `(tenant_id)` de
+  coluna única a toda tabela, o que cobre o filtro e nada da ordenação — e
+  dentro de um tenant só, `tenant_id` casa com quase toda linha. Nove índices
+  compostos `(tenant_id, <coluna de ordenação>)`, mesma forma que
+  `messages_tenant_created_idx` já usava. Inclui
+  `notifications (user_id, created_at desc)`, a query mais frequente do
+  produto — o sino está no layout, então ela roda em todo page load.
+- [x] Edge caching: Today page, Reports (com revalidate tag)
+  — **feito diferente do que o item pedia, de propósito.** Today e Reports não
+  podem ir pro cache de edge: toda rota lê `cookies()` pelo cliente Supabase,
+  então são personalizadas por usuário E por tenant. Cacheá-las na CDN
+  arriscaria servir os dados de um tenant para outro. O que era seguro já
+  estava no lugar (`staleTimes.dynamic: 30`, `React.cache()` por request,
+  `revalidatePath` após mutação), e o ganho de latência dessas telas vem dos
+  índices acima. O caching que foi adicionado é onde ele é seguro e caro:
+  `/api/reports/[id]/pdf` agora responde 304 por `ETag`
+  (`id + generated_at + locale`) **antes** de subir o Chromium — o PDF é função
+  pura do snapshot, e baixar o mesmo report duas vezes pagava dois browsers.
+  `private`, para não entrar em cache compartilhado.
+- [x] Image optimization: `next/image` em tudo que mostra Storage URL
+  — as miniaturas de artwork eram `<img>` cru: exports de carrossel de 1080px
+  baixados inteiros para desenhar 96px. A justificativa antiga (loader por
+  bucket) caducou quando `remotePatterns` passou a permitir os hosts do
+  Supabase. As telas de mídia listam metadados, não renderizam imagem.
 
 ### 4.8 Documentação
 - [ ] Cada feature maior ganha `docs/<feature>.md` com: propósito, fluxo, pontos de extensão

@@ -10,6 +10,7 @@
 import { log } from "@/lib/log";
 import { cache } from "react";
 
+import { OPTION_LIST_CAP } from "@/lib/pagination";
 import { createClient } from "@/lib/supabase/server";
 import { currentTenantId } from "@/lib/tenant-server";
 import { getCurrentRole } from "@/lib/roles-server";
@@ -84,7 +85,8 @@ export const listSocialClients = cache(async (): Promise<SocialClient[]> => {
     .eq("tenant_id", tenantId)
     .eq("social_enabled", true)
     .neq("status", "archived")
-    .order("name");
+    .order("name")
+    .limit(OPTION_LIST_CAP);
   return (data ?? []) as SocialClient[];
 });
 

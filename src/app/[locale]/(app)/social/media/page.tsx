@@ -1,6 +1,7 @@
 import { setRequestLocale, getTranslations } from "next-intl/server";
 
 import { PageHeader } from "@/components/ui/PageHeader";
+import { OPTION_LIST_CAP } from "@/lib/pagination";
 import { createClient } from "@/lib/supabase/server";
 import { currentTenantId } from "@/lib/tenant-server";
 import { loadScope } from "../_data";
@@ -29,7 +30,8 @@ export default async function MediaPage({
     .from("media_assets")
     .select("id, client_id, title, url, access_note, description, captured_on")
     .eq("tenant_id", tenantId)
-    .order("captured_on", { ascending: false });
+    .order("captured_on", { ascending: false })
+    .limit(OPTION_LIST_CAP);
   if (scope.client) query = query.eq("client_id", scope.client.id);
 
   const { data } = await query;

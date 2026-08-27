@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import Image from "next/image";
 import { Link } from "@/i18n/routing";
 import { Pill } from "@/components/ui/Pill";
+import { OPTION_LIST_CAP } from "@/lib/pagination";
 import { createClient } from "@/lib/supabase/server";
 import type { Database } from "@/types/database";
 import { DraftEditForm, type InitialSlide } from "./DraftEditForm";
@@ -93,7 +94,8 @@ export default async function DraftEditPage({
     .from("creatives")
     .select("id, slide_id, version, image_url")
     .eq("draft_id", id)
-    .order("version", { ascending: false });
+    .order("version", { ascending: false })
+    .limit(OPTION_LIST_CAP);
   const latestBySlide = new Map<string, Creative>();
   for (const c of (creativesData ?? []) as Creative[]) {
     if (c.slide_id && !latestBySlide.has(c.slide_id)) {
@@ -139,7 +141,8 @@ export default async function DraftEditPage({
     .from("scheduled_posts")
     .select("id, platform, scheduled_for, status")
     .eq("draft_id", id)
-    .order("scheduled_for", { ascending: true });
+    .order("scheduled_for", { ascending: true })
+    .limit(OPTION_LIST_CAP);
   const scheduled = (scheduledData ?? []) as Scheduled[];
 
   // Last 5 AI rewrites for audit trail + "what changed" context

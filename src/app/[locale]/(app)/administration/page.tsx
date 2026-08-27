@@ -1,5 +1,6 @@
 import { setRequestLocale, getTranslations } from "next-intl/server";
 
+import { OPTION_LIST_CAP } from "@/lib/pagination";
 import { createClient } from "@/lib/supabase/server";
 import { currentTenantId } from "@/lib/tenant-server";
 import { PageHeader } from "@/components/ui/PageHeader";
@@ -19,7 +20,8 @@ export default async function AdministrationPage({
   const supabase = await createClient();
   const tenantId = await currentTenantId();
   const [{ data: contracts }, { data: clients }] = await Promise.all([
-    supabase.from("contracts").select("id, title, document_url, client_id, starts_on").eq("tenant_id", tenantId).not("document_url", "is", null).order("starts_on", { ascending: false }),
+    supabase.from("contracts").select("id, title, document_url, client_id, starts_on").eq("tenant_id", tenantId).not("document_url", "is", null).order("starts_on", { ascending: false })
+    .limit(OPTION_LIST_CAP),
     supabase.from("clients").select("id, name, slug").eq("tenant_id", tenantId),
   ]);
   // The slug too: this screen lists contracts that need attention and then

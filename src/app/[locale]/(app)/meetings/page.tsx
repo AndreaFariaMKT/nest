@@ -2,6 +2,13 @@ import { STUDIO_TIMEZONE } from "@/lib/social";
 import { setRequestLocale, getTranslations } from "next-intl/server";
 import { Link } from "@/i18n/routing";
 import { Pill } from "@/components/ui/Pill";
+import {
+  OPTION_LIST_CAP,
+  pageMeta,
+  parsePage,
+} from "@/lib/pagination";
+import { Pager } from "@/components/ui/Pager";
+import { PageHeader } from "@/components/ui/PageHeader";
 import { createClient } from "@/lib/supabase/server";
 import { currentTenantId } from "@/lib/tenant-server";
 import type { Database, MeetingStatus } from "@/types/database";
@@ -36,35 +43,55 @@ function statusTone(
   return "default";
 }
 
+const PAGE_SIZE = 25;
+
+const SELECT =
+  "id, title, starts_at, ends_at, status, google_meet_url, client_id, client:clients(name), summary, decisions";
+
 export default async function MeetingsPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ locale: string }>;
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
 }) {
   const { locale } = await params;
+  const sp = await searchParams;
   setRequestLocale(locale);
   const t = await getTranslations("meetings");
 
+  const parsed = parsePage(sp, { defaultSize: PAGE_SIZE, maxSize: 100 });
+
   const supabase = await createClient();
   const tenantId = await currentTenantId();
-  const { data } = await supabase
-    .from("meetings")
-    .select(
-      "id, title, starts_at, ends_at, status, google_meet_url, client_id, client:clients(name), summary, decisions",
-    )
-    .eq("tenant_id", tenantId)
-    .order("starts_at", { ascending: true });
 
-  const meetings = (data ?? []) as unknown as JoinedMeeting[];
-  const now = Date.now();
-  const upcoming: JoinedMeeting[] = [];
-  const past: JoinedMeeting[] = [];
-  for (const m of meetings) {
-    if (new Date(m.starts_at).getTime() >= now) upcoming.push(m);
-    else past.push(m);
-  }
-  // Past meetings: show most-recent first
-  past.reverse();
+  // Two reads, not one. This screen used to fetch every meeting the tenant had
+  // ever held and split them in JavaScript — so the cost grew with history
+  // even though the top half of the page only ever shows the future. Only the
+  // past grows without bound, so only the past is paged; splitting in SQL also
+  // lets each half carry its own sort instead of reversing an array.
+  const nowIso = new Date().toISOString();
+  const [{ data: upcomingData }, { data: pastData, count: pastCount }] =
+    await Promise.all([
+      supabase
+        .from("meetings")
+        .select(SELECT)
+        .eq("tenant_id", tenantId)
+        .gte("starts_at", nowIso)
+        .order("starts_at", { ascending: true })
+        .limit(OPTION_LIST_CAP),
+      supabase
+        .from("meetings")
+        .select(SELECT, { count: "exact" })
+        .eq("tenant_id", tenantId)
+        .lt("starts_at", nowIso)
+        .order("starts_at", { ascending: false })
+        .range(parsed.from, parsed.to),
+    ]);
+
+  const upcoming = (upcomingData ?? []) as unknown as JoinedMeeting[];
+  const past = (pastData ?? []) as unknown as JoinedMeeting[];
+  const meta = pageMeta(parsed, pastCount ?? past.length);
 
   const dtf = new Intl.DateTimeFormat(locale, {
     timeZone: STUDIO_TIMEZONE,
@@ -118,19 +145,19 @@ export default async function MeetingsPage({
 
   return (
     <>
-      <div className="mb-8 flex items-start justify-between gap-4">
-        <div>
-          <h1 className="font-display text-4xl text-foreground">{t("title")}</h1>
-          <p className="mt-1 text-sm text-muted-foreground">{t("subtitle")}</p>
-        </div>
-        <Link
-          href="/meetings/new"
-          className="inline-flex h-10 items-center rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground hover:bg-primary/90"
-          data-testid="meetings-new"
-        >
-          {t("new")}
-        </Link>
-      </div>
+      <PageHeader
+        title={t("title")}
+        subtitle={t("subtitle")}
+        action={
+          <Link
+            href="/meetings/new"
+            className="inline-flex h-10 items-center rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+            data-testid="meetings-new"
+          >
+            {t("new")}
+          </Link>
+        }
+      />
 
       <section className="mb-10">
         <h2 className="mb-3 font-display text-xl">{t("sections.upcoming")}</h2>
@@ -160,6 +187,14 @@ export default async function MeetingsPage({
             ))}
           </ul>
         )}
+        <Pager
+          parsed={parsed}
+          meta={meta}
+          shown={past.length}
+          searchParams={sp}
+          defaultSize={PAGE_SIZE}
+          testId="meetings-pagination"
+        />
       </section>
     </>
   );

@@ -1,6 +1,7 @@
 import { setRequestLocale, getTranslations } from "next-intl/server";
 import { Link } from "@/i18n/routing";
 
+import { OPTION_LIST_CAP } from "@/lib/pagination";
 import { createClient } from "@/lib/supabase/server";
 import { currentTenantId } from "@/lib/tenant-server";
 import { PageHeader } from "@/components/ui/PageHeader";
@@ -23,7 +24,8 @@ export default async function CommercialPage({
     .from("clients")
     .select("id, name, slug, industry, status, created_at")
     .eq("tenant_id", tenantId)
-    .order("created_at", { ascending: false });
+    .order("created_at", { ascending: false })
+    .limit(OPTION_LIST_CAP);
 
   const clients = data ?? [];
   const prospects = clients.filter((c) => c.status === "prospect");

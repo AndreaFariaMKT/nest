@@ -1,5 +1,6 @@
 import { setRequestLocale, getTranslations } from "next-intl/server";
 
+import { OPTION_LIST_CAP } from "@/lib/pagination";
 import { createClient } from "@/lib/supabase/server";
 import { getPortalClient } from "@/lib/client-portal";
 import { PageHeader } from "@/components/ui/PageHeader";
@@ -30,7 +31,8 @@ export default async function PortalMedia({
     .from("media_assets")
     .select("id, client_id, title, url, access_note, description, captured_on")
     .eq("client_id", client.id)
-    .order("captured_on", { ascending: false });
+    .order("captured_on", { ascending: false })
+    .limit(OPTION_LIST_CAP);
 
   return (
     <>

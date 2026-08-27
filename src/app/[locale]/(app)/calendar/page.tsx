@@ -1,6 +1,7 @@
 import { dayOf, todayIso } from "@/lib/social";
 import { setRequestLocale, getTranslations } from "next-intl/server";
 import { Link } from "@/i18n/routing";
+import { OPTION_LIST_CAP } from "@/lib/pagination";
 import { createClient } from "@/lib/supabase/server";
 import { currentTenantId } from "@/lib/tenant-server";
 import type { Database } from "@/types/database";
@@ -46,7 +47,8 @@ export default async function CalendarPage({
     .eq("tenant_id", tenantId)
     .gte("starts_at", range.startISO)
     .lte("starts_at", range.endISO)
-    .order("starts_at", { ascending: true });
+    .order("starts_at", { ascending: true })
+    .limit(OPTION_LIST_CAP);
   const meetings = (meetingsData ?? []) as Meeting[];
 
   // Pre-compute dateKey for each meeting so the client component doesn't

@@ -1,6 +1,7 @@
 import { setRequestLocale, getTranslations } from "next-intl/server";
 import { notFound } from "next/navigation";
 import { Link } from "@/i18n/routing";
+import { OPTION_LIST_CAP } from "@/lib/pagination";
 import { createClient } from "@/lib/supabase/server";
 import type { BrandColor, BrandTypography, Database } from "@/types/database";
 import { BrandKitForm } from "./BrandKitForm";
@@ -49,7 +50,8 @@ export default async function ClientBrandKitPage({
       .from("brand_assets")
       .select("id, kind, label, storage_path, mime_type")
       .eq("brand_kit_id", kit.id)
-      .order("created_at", { ascending: false });
+      .order("created_at", { ascending: false })
+    .limit(OPTION_LIST_CAP);
 
     assets = ((rawAssets ?? []) as Pick<
       BrandAssetRow,

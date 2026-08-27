@@ -63,6 +63,25 @@ export async function GET(
   const accept = _request.headers.get("accept-language") ?? "pt-BR";
   const locale = accept.toLowerCase().startsWith("en") ? "en" : "pt-BR";
 
+  // Everything below this point launches Chromium, which is why this route
+  // asks for a 60-second budget. The bytes it produces are a pure function of
+  // the stored snapshot: `content` is written once when the report is
+  // generated, so the same id and the same `generated_at` render the same PDF
+  // every time. Downloading the same report twice paid for two browsers.
+  //
+  // The validator carries `generated_at` and the locale, so regenerating a
+  // report — or opening it in the other language — misses, as it should.
+  // `private` keeps it in the one browser that authenticated for it and out of
+  // any shared cache; this is one client's numbers.
+  const etag = `W/"${report.id}-${report.generated_at}-${locale}"`;
+  const cacheHeaders = {
+    ETag: etag,
+    "Cache-Control": "private, max-age=300, must-revalidate",
+  };
+  if (_request.headers.get("if-none-match") === etag) {
+    return new NextResponse(null, { status: 304, headers: cacheHeaders });
+  }
+
   const counts: Array<{ label: string; value: string }> = [];
   if (content.input?.counts) {
     for (const [k, v] of Object.entries(content.input.counts)) {
@@ -120,7 +139,7 @@ export async function GET(
     headers: {
       "Content-Type": "application/pdf",
       "Content-Disposition": `attachment; filename="${filename}"`,
-      "Cache-Control": "private, no-store",
+      ...cacheHeaders,
     },
   });
 }

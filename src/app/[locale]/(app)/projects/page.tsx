@@ -1,5 +1,6 @@
 import { listAssignablePeople } from "@/lib/people";
 import { setRequestLocale, getTranslations } from "next-intl/server";
+import { OPTION_LIST_CAP } from "@/lib/pagination";
 import { createClient } from "@/lib/supabase/server";
 import { currentTenantId } from "@/lib/tenant-server";
 import type { Database } from "@/types/database";
@@ -67,7 +68,10 @@ export default async function ProjectsPage({
   if (currentClient) query = query.eq("client_id", currentClient);
   if (currentAssignee) query = query.eq("assignee_id", currentAssignee);
 
-  const { data } = await query;
+  // A board cannot be paged — every card has to be in its column — but it
+  // still needs a ceiling. Read the whole tenant's tasks and the screen grows
+  // without bound; the filters above are the intended way to narrow it.
+  const { data } = await query.limit(OPTION_LIST_CAP);
   const tasks: KanbanTask[] = ((data ?? []) as unknown as Joined[]).map((r) => {
     const client = pickOne(r.client);
     const assignee = pickOne(r.assignee);
@@ -89,7 +93,8 @@ export default async function ProjectsPage({
     .select("id, name, status")
     .eq("tenant_id", tenantId)
     .neq("status", "archived")
-    .order("name", { ascending: true });
+    .order("name", { ascending: true })
+    .limit(OPTION_LIST_CAP);
   const clients: FilterOption[] = (clientsData ?? []).map((c) => ({
     id: c.id,
     label: c.name,

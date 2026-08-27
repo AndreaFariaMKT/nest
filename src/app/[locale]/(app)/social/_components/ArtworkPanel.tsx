@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { useTranslations } from "next-intl";
 
 import { Button } from "@/components/ui/Button";
@@ -73,15 +74,27 @@ export function ArtworkPanel({
         <ol className="mt-4 flex flex-wrap gap-3">
           {images.map((img) => (
             <li key={img.id} className="w-24">
-              {/* Plain <img>: these are arbitrary user exports at unknown
-                  dimensions, and next/image would want a loader config per
-                  bucket for no benefit at thumbnail size. */}
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src={img.url}
-                alt={t("slideAlt", { n: img.position })}
-                className="aspect-[4/5] w-full rounded-md border border-border object-cover"
-              />
+              {/* These are carousel exports — 1080px-wide artwork rendered
+                  into a 96px box. As a plain <img> the browser downloaded
+                  every one of them at full size and threw the pixels away in
+                  CSS; a piece with ten slides pulled several megabytes to
+                  draw a strip of thumbnails.
+
+                  The note that used to sit here said next/image would need a
+                  loader config per bucket. That stopped being true once
+                  `remotePatterns` in next.config.ts allowed the Supabase
+                  hosts. Dimensions are still unknown, which is what `fill`
+                  is for — the 4:5 box below is the frame, `sizes` tells the
+                  optimizer how small it really is. */}
+              <div className="relative aspect-[4/5] w-full overflow-hidden rounded-md border border-border">
+                <Image
+                  src={img.url}
+                  alt={t("slideAlt", { n: img.position })}
+                  fill
+                  sizes="96px"
+                  className="object-cover"
+                />
+              </div>
               <span className="mt-1 block text-center text-[10px] text-muted-foreground">
                 {img.position}
               </span>

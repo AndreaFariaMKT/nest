@@ -1,5 +1,6 @@
 import { notFound } from "next/navigation";
 import { setRequestLocale, getTranslations } from "next-intl/server";
+import { OPTION_LIST_CAP } from "@/lib/pagination";
 import { createClient } from "@/lib/supabase/server";
 import { isOwner } from "@/lib/roles-server";
 import { currentTenantId } from "@/lib/tenant-server";
@@ -79,7 +80,8 @@ export default async function AdminUsagePage({
     )
     .eq("draft.tenant_id", tenantId)
     .gte("created_at", cutoff.toISOString())
-    .order("created_at", { ascending: false });
+    .order("created_at", { ascending: false })
+    .limit(OPTION_LIST_CAP);
 
   const rows = (data ?? []) as unknown as AiEditRow[];
 

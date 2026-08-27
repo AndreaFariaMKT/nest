@@ -6,6 +6,7 @@
 import { todayIso } from "@/lib/social";
 import { setRequestLocale, getTranslations } from "next-intl/server";
 
+import { OPTION_LIST_CAP } from "@/lib/pagination";
 import { createClient } from "@/lib/supabase/server";
 import { currentTenantId } from "@/lib/tenant-server";
 import { PageHeader } from "@/components/ui/PageHeader";
@@ -45,8 +46,12 @@ export default async function FinancePage({
         "id, title, monthly_value_cents, starts_on, ends_on, auto_renew, client_id",
       )
       .eq("tenant_id", tenantId)
-      .order("starts_on", { ascending: false }),
-    supabase.from("clients").select("id, name, slug").eq("tenant_id", tenantId),
+      // No pager on this one: the MRR, the active count and the retainer
+      // count below are all derived from the whole set, so a page of it would
+      // report a total that silently shrank to whatever fitted on the page.
+      .order("starts_on", { ascending: false })
+      .limit(OPTION_LIST_CAP),
+    supabase.from("clients").select("id, name, slug").eq("tenant_id", tenantId).limit(OPTION_LIST_CAP),
   ]);
 
   const contracts = (contractsData ?? []) as Row[];

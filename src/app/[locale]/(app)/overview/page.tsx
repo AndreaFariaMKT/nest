@@ -1,6 +1,7 @@
 import { setRequestLocale, getTranslations } from "next-intl/server";
 import { Link } from "@/i18n/routing";
 
+import { OPTION_LIST_CAP } from "@/lib/pagination";
 import { createClient } from "@/lib/supabase/server";
 import { currentTenantId } from "@/lib/tenant-server";
 import { PageHeader } from "@/components/ui/PageHeader";
@@ -47,9 +48,10 @@ export default async function OverviewPage({
         .eq("tenant_id", tenantId)
         .eq("is_template", false)
         .neq("status", "done")
-        .order("due_at", { ascending: true, nullsFirst: false }),
-      supabase.from("clients").select("id, name, status").eq("tenant_id", tenantId),
-      supabase.from("profiles").select("id, full_name"),
+        .order("due_at", { ascending: true, nullsFirst: false })
+        .limit(OPTION_LIST_CAP),
+      supabase.from("clients").select("id, name, status").eq("tenant_id", tenantId).limit(OPTION_LIST_CAP),
+      supabase.from("profiles").select("id, full_name").limit(OPTION_LIST_CAP),
     ]);
 
   const tasks = (taskData ?? []) as Task[];

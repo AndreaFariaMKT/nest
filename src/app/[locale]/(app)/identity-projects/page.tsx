@@ -1,5 +1,6 @@
 import { setRequestLocale, getTranslations } from "next-intl/server";
 
+import { OPTION_LIST_CAP } from "@/lib/pagination";
 import { createClient } from "@/lib/supabase/server";
 import { currentTenantId } from "@/lib/tenant-server";
 import { PageHeader } from "@/components/ui/PageHeader";
@@ -20,8 +21,8 @@ export default async function IdentityProjectsPage({
   const supabase = await createClient();
   const tenantId = await currentTenantId();
   const [{ data: kits }, { data: clients }] = await Promise.all([
-    supabase.from("brand_kits").select("id, name, palette, guidelines_url, client_id").eq("tenant_id", tenantId).order("updated_at", { ascending: false }),
-    supabase.from("clients").select("id, name, slug").eq("tenant_id", tenantId),
+    supabase.from("brand_kits").select("id, name, palette, guidelines_url, client_id").eq("tenant_id", tenantId).order("updated_at", { ascending: false }).limit(OPTION_LIST_CAP),
+    supabase.from("clients").select("id, name, slug").eq("tenant_id", tenantId).limit(OPTION_LIST_CAP),
   ]);
   // This printed the client as dead text; a duplicate index screen at
   // /brand-kits linked them correctly and was reachable from nowhere. That

@@ -2,6 +2,7 @@ import { setRequestLocale, getTranslations } from "next-intl/server";
 import { notFound } from "next/navigation";
 import { Link } from "@/i18n/routing";
 import { Pill } from "@/components/ui/Pill";
+import { OPTION_LIST_CAP } from "@/lib/pagination";
 import { createClient } from "@/lib/supabase/server";
 import { wordCount } from "@/lib/vtt";
 import type { Database } from "@/types/database";
@@ -41,7 +42,8 @@ export default async function TranscriptDetailPage({
     .from("content_drafts")
     .select("*, slides(*)")
     .eq("transcript_id", id)
-    .order("created_at", { ascending: false });
+    .order("created_at", { ascending: false })
+    .limit(OPTION_LIST_CAP);
   const drafts = (draftRows ?? []) as unknown as Draft[];
 
   return (

@@ -16,6 +16,7 @@ import {
   replyDueBy,
   type DesignState,
 } from "@/lib/social";
+import { OPTION_LIST_CAP } from "@/lib/pagination";
 import { createClient } from "@/lib/supabase/server";
 import { getPiece, listSocialClients } from "../../_data";
 import { getCurrentRole } from "@/lib/roles-server";
@@ -58,7 +59,8 @@ export default async function PiecePage({
       .from("slides")
       .select("id, position, creatives(image_url, version)")
       .eq("draft_id", id)
-      .order("position", { ascending: true }),
+      .order("position", { ascending: true })
+    .limit(OPTION_LIST_CAP),
   ]);
   if (!piece) notFound();
 

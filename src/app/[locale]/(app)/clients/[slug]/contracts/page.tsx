@@ -9,6 +9,7 @@ import { notFound } from "next/navigation";
 import { Link } from "@/i18n/routing";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/Card";
 import { Pill } from "@/components/ui/Pill";
+import { OPTION_LIST_CAP } from "@/lib/pagination";
 import { createClient } from "@/lib/supabase/server";
 import { currentTenantId } from "@/lib/tenant-server";
 import { isOwner } from "@/lib/roles-server";
@@ -46,7 +47,8 @@ export default async function ClientContractsPage({
     .from("contracts")
     .select("*")
     .eq("client_id", client.id)
-    .order("starts_on", { ascending: false });
+    .order("starts_on", { ascending: false })
+    .limit(OPTION_LIST_CAP);
   const contracts = (contractData ?? []) as Contract[];
 
   const today = todayIso();

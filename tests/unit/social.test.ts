@@ -30,6 +30,7 @@ import {
   socialScreensFor,
   studioInstant,
   todayIso,
+  type SocialCap,
   type SocialPiece,
   type SocialStage,
   waitingFor,
@@ -820,9 +821,10 @@ describe("movesFor and canRun agree", () => {
       { ...base, material_url: null },
     ]) {
       for (const move of movesFor(piece, caps).moves) {
-        expect(canRun(move.action, piece, caps, "comment").ok, move.action).toBe(
-          true,
-        );
+        expect(
+          canRun(move.action, piece, { comment: "comment" }).ok,
+          move.action,
+        ).toBe(true);
       }
     }
   });

@@ -1,5 +1,6 @@
 import { setRequestLocale, getTranslations } from "next-intl/server";
 
+import { OPTION_LIST_CAP } from "@/lib/pagination";
 import { createClient } from "@/lib/supabase/server";
 import { getPortalClient } from "@/lib/client-portal";
 import { PageHeader } from "@/components/ui/PageHeader";
@@ -40,7 +41,8 @@ export default async function PortalContent({
     .eq("engine", "social")
     .eq("client_id", client.id)
     .in("status", CLIENT_VISIBLE_STAGES)
-    .order("publish_on", { ascending: true, nullsFirst: false });
+    .order("publish_on", { ascending: true, nullsFirst: false })
+    .limit(OPTION_LIST_CAP);
 
   const pieces = (data ?? []) as unknown as SocialPieceRow[];
   const waiting = pieces.filter(

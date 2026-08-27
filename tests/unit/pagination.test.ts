@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { pageMeta, parsePage } from "@/lib/pagination";
+import { pageMeta, parsePage, pageLink } from "@/lib/pagination";
 
 describe("parsePage", () => {
   it("defaults to page 1 + 30-per-page when params are missing", () => {
@@ -57,5 +57,45 @@ describe("pageMeta", () => {
 
   it("totalPages never drops below 1 even with zero rows", () => {
     expect(pageMeta(parsePage({}), 0).totalPages).toBe(1);
+  });
+});
+
+describe("pageLink", () => {
+  it("keeps every other filter when paging", () => {
+    // The regression this helper exists for: both hand-rolled copies built the
+    // link from scratch, so paging a filtered list cleared the filters and
+    // showed page 2 of everything.
+    const link = pageLink(
+      { client: "acme", status: "review", page: "1" },
+      2,
+      { defaultSize: 30 },
+    );
+    const qs = new URLSearchParams(link.slice(1));
+    expect(qs.get("client")).toBe("acme");
+    expect(qs.get("status")).toBe("review");
+    expect(qs.get("page")).toBe("2");
+  });
+
+  it("omits page=1 so the first page keeps a clean URL", () => {
+    expect(pageLink({}, 1)).toBe("");
+  });
+
+  it("keeps a non-default pageSize across pages", () => {
+    const qs = new URLSearchParams(
+      pageLink({ pageSize: "100" }, 3, { defaultSize: 30 }).slice(1),
+    );
+    expect(qs.get("pageSize")).toBe("100");
+    expect(qs.get("page")).toBe("3");
+  });
+
+  it("drops a pageSize that already is the default", () => {
+    expect(pageLink({ pageSize: "30" }, 1, { defaultSize: 30 })).toBe("");
+  });
+
+  it("preserves repeated params rather than collapsing them", () => {
+    const qs = new URLSearchParams(
+      pageLink({ tag: ["a", "b"] }, 2).slice(1),
+    );
+    expect(qs.getAll("tag")).toEqual(["a", "b"]);
   });
 });

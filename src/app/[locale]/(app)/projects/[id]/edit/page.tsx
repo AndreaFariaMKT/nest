@@ -2,6 +2,7 @@ import { listAssignablePeople } from "@/lib/people";
 import { setRequestLocale, getTranslations } from "next-intl/server";
 import { notFound } from "next/navigation";
 import { Link } from "@/i18n/routing";
+import { OPTION_LIST_CAP } from "@/lib/pagination";
 import { createClient } from "@/lib/supabase/server";
 import {
   TaskForm,
@@ -36,7 +37,8 @@ export default async function EditTaskPage({
     .from("clients")
     .select("id, name, status")
     .neq("status", "archived")
-    .order("name", { ascending: true });
+    .order("name", { ascending: true })
+    .limit(OPTION_LIST_CAP);
   const clients: ClientChoice[] = (clientsData ?? []).map((c) => ({
     id: c.id,
     name: c.name,

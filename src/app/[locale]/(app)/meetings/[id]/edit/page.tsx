@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 import { setRequestLocale, getTranslations } from "next-intl/server";
 import { Link } from "@/i18n/routing";
+import { OPTION_LIST_CAP } from "@/lib/pagination";
 import { createClient } from "@/lib/supabase/server";
 import type { Database } from "@/types/database";
 import {
@@ -33,7 +34,8 @@ export default async function EditMeetingPage({
     .from("clients")
     .select("id, name, status")
     .neq("status", "archived")
-    .order("name", { ascending: true });
+    .order("name", { ascending: true })
+    .limit(OPTION_LIST_CAP);
   const clients: ClientChoice[] = (clientsData ?? []).map((c) => ({
     id: c.id,
     name: c.name,

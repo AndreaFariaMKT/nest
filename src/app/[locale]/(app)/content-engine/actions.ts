@@ -1,6 +1,7 @@
 "use server";
 
 import { dbError } from "@/lib/db-error";
+import { OPTION_LIST_CAP } from "@/lib/pagination";
 import { revalidatePath } from "next/cache";
 import { Constants, type Database } from "@/types/database.gen";
 import { redirect } from "next/navigation";
@@ -1769,7 +1770,8 @@ export async function updateDraftAction(
     .from("slides")
     .select("id, position")
     .eq("draft_id", draftId)
-    .order("position", { ascending: true });
+    .order("position", { ascending: true })
+    .limit(OPTION_LIST_CAP);
   if (readError) return { error: readError.message };
 
   const existing = existingRows ?? [];

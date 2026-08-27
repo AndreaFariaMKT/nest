@@ -1,5 +1,6 @@
 import { setRequestLocale, getTranslations } from "next-intl/server";
 import { Link } from "@/i18n/routing";
+import { OPTION_LIST_CAP } from "@/lib/pagination";
 import { createClient } from "@/lib/supabase/server";
 import { currentTenantId } from "@/lib/tenant-server";
 import { isOwner } from "@/lib/roles-server";
@@ -23,7 +24,8 @@ export default async function ServicesPage({
     .from("services")
     .select("*")
     .eq("tenant_id", tenantId)
-    .order("name", { ascending: true });
+    .order("name", { ascending: true })
+    .limit(OPTION_LIST_CAP);
   const services = (data ?? []) as Service[];
 
   const canWrite = await isOwner();

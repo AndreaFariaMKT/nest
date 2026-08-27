@@ -1,5 +1,6 @@
 import { env } from "@/lib/env";
 import { setRequestLocale, getTranslations } from "next-intl/server";
+import { OPTION_LIST_CAP } from "@/lib/pagination";
 import { createClient } from "@/lib/supabase/server";
 import { currentTenantId } from "@/lib/tenant-server";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/Card";
@@ -121,7 +122,8 @@ export default async function KpiPage({
     .from("clients")
     .select("id, name")
     .eq("tenant_id", tenantId)
-    .order("name", { ascending: true });
+    .order("name", { ascending: true })
+    .limit(OPTION_LIST_CAP);
 
   const formatInt = (n: number) => new Intl.NumberFormat(locale).format(n);
   const formatPct = (n: number | null) =>

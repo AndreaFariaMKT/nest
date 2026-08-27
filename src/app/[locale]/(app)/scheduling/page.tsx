@@ -3,6 +3,8 @@ import { setRequestLocale, getTranslations } from "next-intl/server";
 import { createClient } from "@/lib/supabase/server";
 import { currentTenantId } from "@/lib/tenant-server";
 import { PageHeader } from "@/components/ui/PageHeader";
+import { Pager } from "@/components/ui/Pager";
+import { pageMeta, parsePage } from "@/lib/pagination";
 
 export const dynamic = "force-dynamic";
 
@@ -27,28 +29,38 @@ const TONE: Record<string, string> = {
   unknown: "bg-muted text-muted-foreground",
 };
 
+const PAGE_SIZE = 50;
+
 export default async function SchedulingPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ locale: string }>;
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
 }) {
   const { locale } = await params;
+  const sp = await searchParams;
   setRequestLocale(locale);
   const t = await getTranslations("scheduling");
 
   const supabase = await createClient();
   const tenantId = await currentTenantId();
 
-  const { data } = await supabase
+  const parsed = parsePage(sp, { defaultSize: PAGE_SIZE, maxSize: 200 });
+
+  const { data, count } = await supabase
     .from("scheduled_posts")
     // last_error was written by the cron on every failure and read by nothing.
     .select(
       "id, scheduled_for, platform, post_type, status, last_error, draft:content_drafts(title)",
+      { count: "exact" },
     )
     .eq("tenant_id", tenantId)
-    .order("scheduled_for", { ascending: true });
+    .order("scheduled_for", { ascending: true })
+    .range(parsed.from, parsed.to);
 
   const rows = (data ?? []) as unknown as Row[];
+  const meta = pageMeta(parsed, count ?? rows.length);
   const draftTitle = (d: Row["draft"]) =>
     Array.isArray(d) ? d[0]?.title : d?.title;
 
@@ -143,6 +155,15 @@ export default async function SchedulingPage({
           </tbody>
         </table>
       </div>
+
+      <Pager
+        parsed={parsed}
+        meta={meta}
+        shown={rows.length}
+        searchParams={sp}
+        defaultSize={PAGE_SIZE}
+        testId="scheduling-pagination"
+      />
     </>
   );
 }

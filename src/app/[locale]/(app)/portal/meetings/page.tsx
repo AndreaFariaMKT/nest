@@ -1,5 +1,6 @@
 import { setRequestLocale, getTranslations } from "next-intl/server";
 
+import { OPTION_LIST_CAP } from "@/lib/pagination";
 import { createClient } from "@/lib/supabase/server";
 import { getPortalClient } from "@/lib/client-portal";
 import { PageHeader } from "@/components/ui/PageHeader";
@@ -27,7 +28,8 @@ export default async function PortalMeetings({
     .select("id, title, starts_at, google_meet_url, status, summary, agenda_url, decisions")
     .eq("client_id", client.id)
     .neq("status", "cancelled")
-    .order("starts_at", { ascending: true });
+    .order("starts_at", { ascending: true })
+    .limit(OPTION_LIST_CAP);
   const meetings = data ?? [];
   const now = Date.now();
   const df = new Intl.DateTimeFormat(locale, { weekday: "short", day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit" });

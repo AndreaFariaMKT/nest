@@ -1,5 +1,6 @@
 import { setRequestLocale, getTranslations } from "next-intl/server";
 
+import { OPTION_LIST_CAP } from "@/lib/pagination";
 import { createClient } from "@/lib/supabase/server";
 import { getPortalClient } from "@/lib/client-portal";
 import { PageHeader } from "@/components/ui/PageHeader";
@@ -26,7 +27,8 @@ export default async function PortalInvoices({
     .from("portal_contract")
     .select("id, title, monthly_value_cents, starts_on, ends_on")
     .eq("client_id", client.id)
-    .order("starts_on", { ascending: false });
+    .order("starts_on", { ascending: false })
+    .limit(OPTION_LIST_CAP);
   const rows = data ?? [];
   const df = new Intl.DateTimeFormat(locale, { day: "2-digit", month: "short", year: "numeric" });
   const fd = (d: string | null) => (d ? df.format(new Date(d)) : "—");

@@ -5,6 +5,8 @@ import { Pill } from "@/components/ui/Pill";
 import { createClient } from "@/lib/supabase/server";
 import { currentTenantId } from "@/lib/tenant-server";
 import { pageMeta, parsePage } from "@/lib/pagination";
+import { Pager } from "@/components/ui/Pager";
+import { PageHeader } from "@/components/ui/PageHeader";
 import type { Database } from "@/types/database";
 
 type ClientRow = Pick<
@@ -47,30 +49,20 @@ export default async function ClientsPage({
   const clients = (data ?? []) as ClientRow[];
   const meta = pageMeta(parsed, count ?? clients.length);
 
-  const pageLink = (page: number): string => {
-    const params = new URLSearchParams();
-    if (page > 1) params.set("page", String(page));
-    if (parsed.pageSize !== PAGE_SIZE) {
-      params.set("pageSize", String(parsed.pageSize));
-    }
-    const qs = params.toString();
-    return qs ? `?${qs}` : "";
-  };
-
   return (
     <>
-      <div className="mb-8 flex items-start justify-between gap-4">
-        <div>
-          <h1 className="font-display text-4xl text-foreground">{t("title")}</h1>
-          <p className="mt-1 text-sm text-muted-foreground">{t("subtitle")}</p>
-        </div>
-        <Link
-          href="/clients/new"
-          className="inline-flex h-10 items-center justify-center rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
-        >
-          {t("new")}
-        </Link>
-      </div>
+      <PageHeader
+        title={t("title")}
+        subtitle={t("subtitle")}
+        action={
+          <Link
+            href="/clients/new"
+            className="inline-flex h-10 items-center justify-center rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+          >
+            {t("new")}
+          </Link>
+        }
+      />
 
       {clients.length === 0 ? (
         <Placeholder>{t("empty")}</Placeholder>
@@ -102,46 +94,14 @@ export default async function ClientsPage({
             ))}
           </div>
 
-          {meta.totalPages > 1 ? (
-            <nav
-              className="mt-8 flex items-center justify-between border-t border-border pt-4 text-sm"
-              data-testid="clients-pagination"
-            >
-              <p className="text-muted-foreground">
-                {t("pagination.range", {
-                  from: parsed.from + 1,
-                  to: parsed.from + clients.length,
-                  total: meta.totalCount,
-                })}
-              </p>
-              <div className="flex items-center gap-2">
-                {meta.hasPrev ? (
-                  <a
-                    href={pageLink(parsed.page - 1)}
-                    className="inline-flex h-9 items-center rounded-md border border-input bg-background px-3 hover:bg-muted"
-                    data-testid="clients-prev"
-                  >
-                    ← {t("pagination.prev")}
-                  </a>
-                ) : null}
-                <span className="text-xs text-muted-foreground">
-                  {t("pagination.pageOf", {
-                    page: meta.page,
-                    total: meta.totalPages,
-                  })}
-                </span>
-                {meta.hasNext ? (
-                  <a
-                    href={pageLink(parsed.page + 1)}
-                    className="inline-flex h-9 items-center rounded-md border border-input bg-background px-3 hover:bg-muted"
-                    data-testid="clients-next"
-                  >
-                    {t("pagination.next")} →
-                  </a>
-                ) : null}
-              </div>
-            </nav>
-          ) : null}
+          <Pager
+            parsed={parsed}
+            meta={meta}
+            shown={clients.length}
+            searchParams={sp}
+            defaultSize={PAGE_SIZE}
+            testId="clients-pagination"
+          />
         </>
       )}
     </>

@@ -1,6 +1,7 @@
 import { setRequestLocale, getTranslations } from "next-intl/server";
 import { Link } from "@/i18n/routing";
 
+import { OPTION_LIST_CAP } from "@/lib/pagination";
 import { createClient } from "@/lib/supabase/server";
 import { currentTenantId } from "@/lib/tenant-server";
 import { PageHeader } from "@/components/ui/PageHeader";
@@ -45,8 +46,11 @@ export default async function ContentCalendarPage({
       // editor, around the eleven-stage pipeline and every guard in it.
       .eq("engine", "content")
       .neq("status", "archived")
-      .order("updated_at", { ascending: false }),
-    supabase.from("clients").select("id, name").eq("tenant_id", tenantId),
+      // Bucketed into columns below, so this cannot be paged either — a page
+      // boundary would empty whichever columns fell after it.
+      .order("updated_at", { ascending: false })
+      .limit(OPTION_LIST_CAP),
+    supabase.from("clients").select("id, name").eq("tenant_id", tenantId).limit(OPTION_LIST_CAP),
   ]);
 
   const drafts = (draftData ?? []) as Draft[];
