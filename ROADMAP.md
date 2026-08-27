@@ -224,7 +224,20 @@ The last three items, plus the optional half of the readability review. Needs
      credencial que existe sem motivo só pode vazar. Regras puras e testadas em
      `src/lib/portal-approval.ts`, incluindo a recusa de gravar decisão enquanto
      a founder está em "view as client".
-   - [ ] Business plan / Administration → editable (needs tables) instead of static/derived.
+   - [x] Business plan / Administration → editable (needs tables) instead of static/derived.
+     — a tela dizia "Documentos da empresa e clientes" e mostrava só a segunda
+     metade: todo o conteúdo era *derivado* de contratos que por acaso tinham
+     `document_url`. Nunca houve onde registrar o papel do próprio estúdio —
+     contrato social, CNPJ, apólice, alvará, plano de negócios — então a tela
+     batizada com o nome deles não listava nenhum, e nada ali era editável
+     porque nada ali era um registro.
+     Migration `046`: tabela `company_documents` (founder-only, sem policy de
+     portal + o piso restritivo de 022/029 — são os papéis jurídicos e
+     financeiros da empresa). `valid_until` é `date`, não `timestamptz`: esses
+     documentos vencem num dia do calendário, e guardar instante reintroduziria
+     a deriva de fuso que o 91b4772 gastou oito correções removendo.
+     A lista ordena por vencimento (vencido → vencendo → resto), porque a
+     pergunta que abre essa tela é "tem algo prestes a vencer".
    - [x] Content calendar / Scheduling → create + drag to reschedule.
      — as duas telas eram só leitura. **Content calendar** é um quadro de *status*
      (não de datas), então arrastar ali move de coluna: regras em

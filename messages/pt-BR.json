@@ -306,8 +306,47 @@
   "administration": {
     "title": "Administração",
     "subtitle": "Documentos da empresa e clientes.",
-    "empty": "Nenhum documento ainda.",
-    "open": "Abrir"
+    "empty": "Nenhum documento da empresa ainda. Adicione o primeiro.",
+    "open": "Abrir",
+    "company": "Documentos da empresa",
+    "companyNote": "Os papéis do próprio estúdio. Só founders veem isto.",
+    "add": "Adicionar documento",
+    "edit": "Editar",
+    "delete": "Excluir",
+    "confirmDelete": "Excluir de vez?",
+    "save": "Salvar documento",
+    "cancel": "Cancelar",
+    "clientDocs": "Contratos de clientes",
+    "fields": {
+      "title": "Título",
+      "category": "Categoria",
+      "url": "Link",
+      "validUntil": "Válido até",
+      "notes": "Observações"
+    },
+    "category": {
+      "legal": "Jurídico",
+      "finance": "Financeiro",
+      "insurance": "Seguro",
+      "plan": "Plano de negócios",
+      "other": "Outro"
+    },
+    "expiry": {
+      "expired": "Vencido",
+      "soon": "Vence em breve",
+      "ok": "Válido",
+      "none": "Sem validade"
+    },
+    "expiresOn": "Válido até {date}",
+    "refusal": {
+      "needsTitle": "Dê um título ao documento.",
+      "unknownCategory": "Escolha uma das categorias.",
+      "badUrl": "O link precisa começar com http:// ou https://.",
+      "badDate": "Essa data não existe.",
+      "notFound": "Esse documento não está mais aqui.",
+      "notAllowed": "Só um founder pode alterar documentos da empresa.",
+      "failed": "Não foi salvo. Tente de novo."
+    }
   },
   "websiteBuilds": {
     "title": "Sites",

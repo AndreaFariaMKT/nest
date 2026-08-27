@@ -306,8 +306,47 @@
   "administration": {
     "title": "Administration",
     "subtitle": "Company & client documents.",
-    "empty": "No documents yet.",
-    "open": "Open"
+    "empty": "No company documents yet. Add the first one.",
+    "open": "Open",
+    "company": "Company documents",
+    "companyNote": "The studio's own paperwork. Only founders can see this.",
+    "add": "Add document",
+    "edit": "Edit",
+    "delete": "Delete",
+    "confirmDelete": "Delete for good?",
+    "save": "Save document",
+    "cancel": "Cancel",
+    "clientDocs": "Client contracts",
+    "fields": {
+      "title": "Title",
+      "category": "Category",
+      "url": "Link",
+      "validUntil": "Valid until",
+      "notes": "Notes"
+    },
+    "category": {
+      "legal": "Legal",
+      "finance": "Finance",
+      "insurance": "Insurance",
+      "plan": "Business plan",
+      "other": "Other"
+    },
+    "expiry": {
+      "expired": "Expired",
+      "soon": "Expires soon",
+      "ok": "Valid",
+      "none": "No expiry"
+    },
+    "expiresOn": "Valid until {date}",
+    "refusal": {
+      "needsTitle": "Give the document a title.",
+      "unknownCategory": "Pick one of the categories.",
+      "badUrl": "That link must start with http:// or https://.",
+      "badDate": "That is not a real date.",
+      "notFound": "That document is no longer here.",
+      "notAllowed": "Only a founder can change company documents.",
+      "failed": "That did not save. Try again."
+    }
   },
   "websiteBuilds": {
     "title": "Website builds",
