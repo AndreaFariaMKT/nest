@@ -7,7 +7,7 @@ import { redirect } from "next/navigation";
 import type { Route } from "next";
 import { createClient as createSupabaseClient } from "@/lib/supabase/server";
 import { currentTenantId } from "@/lib/tenant-server";
-import { slugify } from "@/lib/slug";
+import { slugify, uniqueSlug as sharedUniqueSlug } from "@/lib/slug";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { isOwner } from "@/lib/roles-server";
 
@@ -36,15 +36,14 @@ async function uniqueSlug(
   baseSlug: string,
   excludeId?: string,
 ) {
-  let slug = baseSlug || "client";
-  let suffix = 2;
-  while (true) {
+  // Loop lives in @/lib/slug now — it was duplicated here and in services,
+  // and projects would have been the third copy.
+  return sharedUniqueSlug(baseSlug, "client", async (slug) => {
     let query = supabase.from("clients").select("id").eq("slug", slug).limit(1);
     if (excludeId) query = query.neq("id", excludeId);
     const { data } = await query.maybeSingle();
-    if (!data) return slug;
-    slug = `${baseSlug || "client"}-${suffix++}`;
-  }
+    return !!data;
+  });
 }
 
 // ───────────────────────────────────────────────────────────────────────────

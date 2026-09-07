@@ -56,6 +56,9 @@ export interface NavItem {
 export const NAV: Record<string, NavItem> = {
   home: { key: "home", href: "/today", label: "home", icon: HomeIcon },
   tasks: { key: "tasks", href: "/tasks", label: "tasks", icon: ProjectsIcon },
+  // The engagements themselves, as opposed to `tasks` above — which held this
+  // word and this href until 048 gave it a table.
+  projects: { key: "projects", href: "/projects", label: "projects", icon: FolderIcon },
   calendar: { key: "calendar", href: "/calendar", label: "calendar", icon: CalendarIcon },
   messages: { key: "messages", href: "/messages", label: "messages", icon: MessageIcon },
   admin: { key: "admin", href: "/administration", label: "administration", icon: FolderIcon },
@@ -116,9 +119,13 @@ export const NAV_BY_ROLE: Record<AppRole, NavGroup[]> = {
   founder: [
     { group: "daily", keys: ["home", "tasks", "calendar", "meetings", "messages"] },
     { group: "leadership", keys: ["admin", "finance", "commercial", "marketing"] },
-    { group: "content", keys: ["social", "content", "schedule"] },
     { group: "insights", keys: ["reports", "socialReport"] },
-    { group: "operation", keys: ["overview", "clients"] },
+    // "Área conteúdo trocar nome para operação", and the studio already had an
+    // Operação group — so they merge rather than sitting one above the other
+    // with the same name. The content screens (social, calendar, scheduling)
+    // are reached from the project they belong to now, which is what "elas
+    // estarão dentro da aba operação" asks for.
+    { group: "operation", keys: ["overview", "clients", "projects", "social", "content", "schedule"] },
     { group: "directory", keys: ["people", "services"] },
     { group: "system", keys: ["errors", "settings"] },
   ],

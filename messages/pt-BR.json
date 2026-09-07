@@ -513,7 +513,61 @@
   },
   "projects": {
     "title": "Projetos",
-    "subtitle": "Ciclos mensais e trabalhos em andamento."
+    "subtitle": "Cada trabalho tem seu tipo, escopo, equipe e prazo.",
+    "new": "Novo projeto",
+    "newTitle": "Novo projeto",
+    "newSubtitle": "Um trabalho para um cliente, ou do próprio studio.",
+    "editTitle": "Editar projeto",
+    "clientProjects": "Projetos de clientes",
+    "internalProjects": "Projetos internos",
+    "internalLabel": "Interno",
+    "emptyClients": "Nenhum projeto de cliente ainda.",
+    "emptyInternal": "Nenhum projeto interno ainda.",
+    "progress": "{percent}% · {open} em aberto",
+    "late": "Atrasado",
+    "form": {
+      "name": "Nome do projeto",
+      "type": "Tipo de projeto",
+      "pickType": "Escolha o tipo",
+      "status": "Situação",
+      "client": "Cliente",
+      "internal": "Interno · projeto do studio",
+      "fiscalHint": "Razão social, CNPJ, endereço e contatos ficam no cadastro do cliente — um cliente pode ter vários projetos.",
+      "fiscalLink": "Abrir clientes",
+      "startsOn": "Início",
+      "endsOn": "Entrega",
+      "team": "Equipe envolvida",
+      "teamHint": "Quem trabalha neste projeto.",
+      "scope": "Escopo",
+      "scopeHint": "O escopo acordado deste projeto. Editável a qualquer momento.",
+      "create": "Criar projeto",
+      "save": "Salvar",
+      "edit": "Editar",
+      "delete": "Excluir projeto",
+      "cancel": "Cancelar",
+      "types": {
+        "brand": "Brand",
+        "visual_identity": "Identidade visual",
+        "website": "Website",
+        "launch": "Lançamento",
+        "hub": "Hub",
+        "seo": "SEO",
+        "social_media": "Social media"
+      },
+      "statuses": {
+        "negotiating": "Em negociação",
+        "active": "Ativo",
+        "paused": "Pausado",
+        "done": "Concluído",
+        "cancelled": "Cancelado"
+      },
+      "errors": {
+        "tooShort": "Nome muito curto.",
+        "tooLong": "Nome muito longo.",
+        "required": "Escolha um tipo.",
+        "endsBeforeStarts": "A entrega não pode ser antes do início."
+      }
+    }
   },
   "tasks": {
     "title": "Projetos",
@@ -542,7 +596,11 @@
       "internal": "Interno",
       "isTemplate": "Template",
       "isTemplateHint": "(clonado em cada novo ciclo)",
-      "formerAssignee": "Responsável atual (não está mais na equipe)"
+      "formerAssignee": "Responsável atual (não está mais na equipe)",
+      "project": "Projeto",
+      "followUp": "Responsável pelo acompanhamento",
+      "followUpHint": "Quem acompanha a entrega. O responsável acima é quem executa.",
+      "noFollowUp": "Sem acompanhamento"
     },
     "status": {
       "todo": "A fazer",

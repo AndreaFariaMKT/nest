@@ -4,6 +4,8 @@ import { notFound } from "next/navigation";
 import { Link } from "@/i18n/routing";
 import { OPTION_LIST_CAP } from "@/lib/pagination";
 import { createClient } from "@/lib/supabase/server";
+import { currentTenantId } from "@/lib/tenant-server";
+import { listProjectChoices } from "@/lib/projects-db";
 import {
   TaskForm,
   type AssigneeChoice,
@@ -25,6 +27,7 @@ export default async function EditTaskPage({
   const t = await getTranslations("tasks");
 
   const supabase = await createClient();
+  const tenantId = await currentTenantId();
   const { data } = await supabase
     .from("tasks")
     .select("*")
@@ -48,6 +51,13 @@ export default async function EditTaskPage({
   // app never writes, so filtering on it matched everyone and not
   // filtering matched every tenant. See listAssignablePeople.
   const assignees: AssigneeChoice[] = await listAssignablePeople();
+
+  const projects = await listProjectChoices(
+    supabase,
+    tenantId,
+    new Map(clients.map((c) => [c.id, c.name])),
+    OPTION_LIST_CAP,
+  );
 
   return (
     <div className="mx-auto max-w-2xl">
@@ -74,6 +84,7 @@ export default async function EditTaskPage({
         locale={locale}
         initial={task}
         clients={clients}
+        projects={projects}
         assignees={assignees}
         action={updateTaskAction}
         submitLabel={t("saveSubmit")}

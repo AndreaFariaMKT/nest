@@ -7,7 +7,7 @@ import type { Route } from "next";
 import { createClient as createSupabaseClient } from "@/lib/supabase/server";
 import { currentTenantId } from "@/lib/tenant-server";
 import { parseBrlToCents } from "@/lib/money";
-import { slugify } from "@/lib/slug";
+import { slugify, uniqueSlug as sharedUniqueSlug } from "@/lib/slug";
 
 export type ServiceFormState = {
   error?: string;
@@ -33,15 +33,12 @@ async function uniqueSlug(
   baseSlug: string,
   excludeId?: string,
 ): Promise<string> {
-  let slug = baseSlug || "service";
-  let suffix = 2;
-  while (true) {
+  return sharedUniqueSlug(baseSlug, "service", async (slug) => {
     let query = supabase.from("services").select("id").eq("slug", slug).limit(1);
     if (excludeId) query = query.neq("id", excludeId);
     const { data } = await query.maybeSingle();
-    if (!data) return slug;
-    slug = `${baseSlug || "service"}-${suffix++}`;
-  }
+    return !!data;
+  });
 }
 
 function resolveMonthly(

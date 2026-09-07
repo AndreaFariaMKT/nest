@@ -21,12 +21,15 @@ type Task = Database["public"]["Tables"]["tasks"]["Row"];
 
 
 export type ClientChoice = { id: string; name: string };
+export type ProjectChoice = { id: string; name: string; client_name: string | null };
 export type AssigneeChoice = { id: string; label: string };
 
 export function TaskForm({
   locale,
   initial,
   clients,
+  projects,
+  defaultProjectId,
   assignees,
   action,
   submitLabel,
@@ -34,6 +37,9 @@ export function TaskForm({
   locale: string;
   initial?: Task | null;
   clients: ClientChoice[];
+  projects: ProjectChoice[];
+  /** Pre-selected when the task is created from inside a project's board. */
+  defaultProjectId?: string;
   assignees: AssigneeChoice[];
   action: (
     state: TaskFormState,
@@ -47,6 +53,16 @@ export function TaskForm({
     action,
     {},
   );
+
+  // 048's columns are not in the generated Task row until the migration is
+  // applied, so they are read through a widened view of the same object rather
+  // than by casting the whole form's props.
+  const extra = (initial ?? {}) as {
+    project_id?: string | null;
+    follow_up_id?: string | null;
+  };
+  const projectInitial = extra.project_id ?? defaultProjectId ?? "";
+  const followUpInitial = extra.follow_up_id ?? "";
 
   return (
     <form action={formAction} className="space-y-5">
@@ -161,17 +177,41 @@ export function TaskForm({
       </div>
 
       <div className="space-y-1.5">
-        <Label htmlFor="client_id">{t("fields.client")}</Label>
+        <Label htmlFor="follow_up_id">{t("fields.followUp")}</Label>
         <select
-          id="client_id"
-          name="client_id"
-          defaultValue={initial?.client_id ?? ""}
+          id="follow_up_id"
+          name="follow_up_id"
+          defaultValue={followUpInitial}
+          className="flex h-10 w-full rounded-md border border-input bg-background px-3 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+        >
+          <option value="">{t("fields.noFollowUp")}</option>
+          {assignees.map((a) => (
+            <option key={a.id} value={a.id}>
+              {a.label}
+            </option>
+          ))}
+        </select>
+        <p className="text-xs text-muted-foreground">
+          {t("fields.followUpHint")}
+        </p>
+      </div>
+
+      {/* "Trocar a palavra cliente por projeto, pq um cliente pode ter vários
+          projetos ao mesmo tempo." The client is no longer asked for here — it
+          comes from the project. A task with no project is still internal
+          work, which is what the empty option means. */}
+      <div className="space-y-1.5">
+        <Label htmlFor="project_id">{t("fields.project")}</Label>
+        <select
+          id="project_id"
+          name="project_id"
+          defaultValue={projectInitial}
           className="flex h-10 w-full rounded-md border border-input bg-background px-3 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
         >
           <option value="">{t("fields.internal")}</option>
-          {clients.map((c) => (
-            <option key={c.id} value={c.id}>
-              {c.name}
+          {projects.map((p) => (
+            <option key={p.id} value={p.id}>
+              {p.client_name ? `${p.client_name} · ${p.name}` : p.name}
             </option>
           ))}
         </select>

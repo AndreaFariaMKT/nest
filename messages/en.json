@@ -513,7 +513,61 @@
   },
   "projects": {
     "title": "Projects",
-    "subtitle": "Monthly cycles and ongoing work."
+    "subtitle": "Every engagement has its own type, scope, team and dates.",
+    "new": "New project",
+    "newTitle": "New project",
+    "newSubtitle": "Work for a client, or the studio's own.",
+    "editTitle": "Edit project",
+    "clientProjects": "Client projects",
+    "internalProjects": "Internal projects",
+    "internalLabel": "Internal",
+    "emptyClients": "No client projects yet.",
+    "emptyInternal": "No internal projects yet.",
+    "progress": "{percent}% · {open} open",
+    "late": "Late",
+    "form": {
+      "name": "Project name",
+      "type": "Project type",
+      "pickType": "Pick a type",
+      "status": "Status",
+      "client": "Client",
+      "internal": "Internal · studio project",
+      "fiscalHint": "Legal name, tax ID, address and contacts live on the client record — one client can run several projects.",
+      "fiscalLink": "Open clients",
+      "startsOn": "Starts",
+      "endsOn": "Due",
+      "team": "Team on this project",
+      "teamHint": "Who works on it.",
+      "scope": "Scope",
+      "scopeHint": "The agreed scope for this engagement. Editable at any time.",
+      "create": "Create project",
+      "save": "Save",
+      "edit": "Edit",
+      "delete": "Delete project",
+      "cancel": "Cancel",
+      "types": {
+        "brand": "Brand",
+        "visual_identity": "Visual identity",
+        "website": "Website",
+        "launch": "Launch",
+        "hub": "Hub",
+        "seo": "SEO",
+        "social_media": "Social media"
+      },
+      "statuses": {
+        "negotiating": "Negotiating",
+        "active": "Active",
+        "paused": "Paused",
+        "done": "Done",
+        "cancelled": "Cancelled"
+      },
+      "errors": {
+        "tooShort": "Name is too short.",
+        "tooLong": "Name is too long.",
+        "required": "Pick a type.",
+        "endsBeforeStarts": "Due date cannot be before the start."
+      }
+    }
   },
   "tasks": {
     "title": "Projects",
@@ -542,7 +596,11 @@
       "internal": "Internal",
       "isTemplate": "Template",
       "isTemplateHint": "(cloned into each new cycle)",
-      "formerAssignee": "Current owner (no longer on the team)"
+      "formerAssignee": "Current owner (no longer on the team)",
+      "project": "Project",
+      "followUp": "Follow-up owner",
+      "followUpHint": "Who checks it lands. The owner above is who does the work.",
+      "noFollowUp": "No follow-up"
     },
     "status": {
       "todo": "To do",

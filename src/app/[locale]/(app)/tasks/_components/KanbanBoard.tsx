@@ -43,6 +43,8 @@ export function KanbanBoard({
   assignees,
   currentClient,
   currentAssignee,
+  showFilters = true,
+  newTaskHref = "/tasks/new",
 }: {
   locale: string;
   tasks: KanbanTask[];
@@ -50,6 +52,14 @@ export function KanbanBoard({
   assignees: FilterOption[];
   currentClient: string;
   currentAssignee: string;
+  /**
+   * The board inside a project is already filtered by being there — showing a
+   * client picker on it would offer to filter a single client's engagement by
+   * a different client.
+   */
+  showFilters?: boolean;
+  /** Carries the project through, so a task created here belongs to it. */
+  newTaskHref?: string;
 }) {
   const t = useTranslations("tasks");
   const router = useRouter();
@@ -102,25 +112,29 @@ export function KanbanBoard({
       <FormError error={error} />
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="flex flex-wrap items-center gap-3">
-          <FilterSelect
-            label={t("fields.client")}
-            name="client"
-            value={currentClient}
-            options={clients}
-            placeholder={t("filters.allClients")}
-            onChange={(v) => updateFilter("client", v)}
-          />
-          <FilterSelect
-            label={t("fields.assignee")}
-            name="assignee"
-            value={currentAssignee}
-            options={assignees}
-            placeholder={t("filters.allAssignees")}
-            onChange={(v) => updateFilter("assignee", v)}
-          />
+          {showFilters ? (
+            <>
+              <FilterSelect
+                label={t("fields.client")}
+                name="client"
+                value={currentClient}
+                options={clients}
+                placeholder={t("filters.allClients")}
+                onChange={(v) => updateFilter("client", v)}
+              />
+              <FilterSelect
+                label={t("fields.assignee")}
+                name="assignee"
+                value={currentAssignee}
+                options={assignees}
+                placeholder={t("filters.allAssignees")}
+                onChange={(v) => updateFilter("assignee", v)}
+              />
+            </>
+          ) : null}
         </div>
         <Link
-          href="/tasks/new"
+          href={newTaskHref as "/tasks/new"}
           className="inline-flex h-10 items-center justify-center rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
         >
           {t("new")}
