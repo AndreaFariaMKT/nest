@@ -230,7 +230,8 @@
     "clientRoomWho": "Coordination · direction · client",
     "internalOnly": "internal only",
     "clientReadsThis": "the client reads this room",
-    "noMessagesYet": "no messages yet"
+    "noMessagesYet": "no messages yet",
+    "emoji": "Insert emoji"
   },
   "portal": {
     "notLinked": "Your account isn't linked to a client yet. Ask the studio to connect it.",
@@ -269,7 +270,8 @@
       "placeholder": "Write a message…",
       "send": "Send",
       "you": "You",
-      "studio": "Studio"
+      "studio": "Studio",
+      "emoji": "Insert emoji"
     },
     "previewing": "Previewing as {name}. This is what that client sees — you are not them.",
     "previewingNoClient": "Previewing the client portal. There is no client to show yet, so this is what a new one would see.",
@@ -372,7 +374,10 @@
     "stats": {
       "activeClients": "Active clients",
       "activeServices": "Active services",
-      "monthlyRevenue": "Monthly revenue"
+      "monthlyRevenue": "Monthly revenue",
+      "show": "Show value",
+      "hide": "Hide value",
+      "hidden": "Value hidden"
     },
     "blocks": {
       "tasks": {
@@ -936,7 +941,9 @@
     "fields": {
       "email": "Email",
       "fullName": "Full name",
-      "role": "Role"
+      "role": "Role",
+      "jobTitle": "Job title",
+      "department": "Department"
     },
     "roles": {
       "owner": "Owner",

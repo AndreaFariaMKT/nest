@@ -145,6 +145,14 @@ export const EyeIcon = (p: IconProps) => (
   </svg>
 );
 
+export const EyeOffIcon = (p: IconProps) => (
+  <svg {...base} {...p}>
+    <path d="M10.6 6.2A9.6 9.6 0 0 1 12 6c6 0 10 6 10 6a17 17 0 0 1-3.1 3.5M6.5 8.5C3.9 10.1 2 12 2 12s4 6 10 6a9.9 9.9 0 0 0 3.9-.8" />
+    <path d="M9.9 9.9a3 3 0 0 0 4.2 4.2" />
+    <path d="M3 3l18 18" />
+  </svg>
+);
+
 export const PlaybookIcon = (p: IconProps) => (
   <svg {...base} {...p}>
     <path d="M6 3h8l4 4v14H6z" />

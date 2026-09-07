@@ -26,6 +26,10 @@ export async function inviteMemberAction(
 
   const email = (formData.get("email") ?? "").toString().trim().toLowerCase();
   const fullName = (formData.get("full_name") ?? "").toString().trim() || null;
+  const jobTitle =
+    (formData.get("job_title") ?? "").toString().trim().slice(0, 120) || null;
+  const department =
+    (formData.get("department") ?? "").toString().trim().slice(0, 120) || null;
   const locale = (formData.get("locale") ?? "pt-BR").toString();
   const roleValue = (formData.get("role") ?? "").toString();
 
@@ -85,6 +89,28 @@ export async function inviteMemberAction(
       code: memberError.code ?? "unknown",
     });
     return { error: "membershipFailed" };
+  }
+
+  // Title and department, if they were given. Written after the membership on
+  // purpose and never allowed to fail the invite: the profile row is created
+  // by the trigger on auth.users, these two columns are descriptive, and an
+  // invite that already granted access should not report failure because a job
+  // title did not stick. Worst case the person fills it in themselves.
+  if (jobTitle || department) {
+    const { error: profileError } = await admin
+      .from("profiles")
+      // `as never` until migration 047 reaches the database that
+      // `npm run types:gen` reads from — it generates against the live schema,
+      // so job_title/department are absent from database.gen.ts until then.
+      // Remove this cast (and the one in team/page.tsx) after:
+      //   supabase db push && npm run types:gen
+      .update({ job_title: jobTitle, department } as never)
+      .eq("id", invitedId);
+    if (profileError) {
+      log.error("team.invite", "profile_details_failed", {
+        code: profileError.code ?? "unknown",
+      });
+    }
   }
 
   revalidatePath(`/${locale}/team`);

@@ -29,6 +29,8 @@ import {
   socialCaps,
   socialScreensFor,
   studioInstant,
+  studioDayInstant,
+  studioDayOf,
   todayIso,
   type SocialCap,
   type SocialPiece,
@@ -755,6 +757,44 @@ describe("recentMonths", () => {
     const offered = recentMonths(12, "2026-08-31");
     expect(offered).not.toContainEqual({ year: 2026, month: 8 });
     expect(offered[0]).toEqual({ year: 2026, month: 7 });
+  });
+});
+
+describe("studioDayInstant / studioDayOf", () => {
+  /**
+   * A task due date is a day, not an instant, but the column is timestamptz —
+   * so some hour gets chosen. Midnight is the tempting one and it is the trap:
+   * "2026-09-15" stored as 00:00Z is 21:00 on the 14th in Sao Paulo, and the
+   * task reads as due a day early to every reader that formats in the studio's
+   * zone. Midday clears both boundaries by three hours.
+   */
+  it("anchors a bare date at midday in the studio's zone", () => {
+    expect(studioDayInstant("2026-09-15")).toBe("2026-09-15T15:00:00.000Z");
+  });
+
+  it("survives the round trip back to the date input", () => {
+    const stored = studioDayInstant("2026-09-15");
+    expect(studioDayOf(stored)).toBe("2026-09-15");
+  });
+
+  it("keeps the studio's day for an instant late in the evening", () => {
+    // 23:30 in Sao Paulo on the 15th is 02:30Z on the 16th. Formatting in UTC
+    // would report the 16th; the studio's calendar says the 15th.
+    expect(studioDayOf("2026-09-16T02:30:00.000Z")).toBe("2026-09-15");
+  });
+
+  it("does not re-anchor a value that already carries a time", () => {
+    // An existing due_at flowing back through the form must not be moved.
+    expect(studioDayInstant("2026-09-15T17:00:00Z")).toBe(
+      "2026-09-15T17:00:00.000Z",
+    );
+  });
+
+  it("treats empty and unparseable input as no date", () => {
+    expect(studioDayInstant("")).toBeNull();
+    expect(studioDayInstant(null)).toBeNull();
+    expect(studioDayOf(null)).toBe("");
+    expect(studioDayOf("not a date")).toBe("");
   });
 });
 

@@ -10,7 +10,13 @@ import { InviteForm } from "./_components/InviteForm";
 import { RoleSelect } from "./_components/RoleSelect";
 
 type Row = { user_id: string; role: string };
-type Profile = { id: string; email: string | null; full_name: string | null };
+type Profile = {
+  id: string;
+  email: string | null;
+  full_name: string | null;
+  job_title: string | null;
+  department: string | null;
+};
 
 export default async function TeamPage({
   params,
@@ -44,11 +50,15 @@ export default async function TeamPage({
   const { data: profileData } = ids.length
     ? await supabase
         .from("profiles")
-        .select("id, email, full_name")
+        .select("id, email, full_name, job_title, department")
         .in("id", ids)
     : { data: [] };
+  // `as unknown as` for the same reason as the cast in ./actions.ts: 047 adds
+  // job_title/department, and database.gen.ts is generated from the live
+  // schema, so the select types as an error until the migration is applied.
+  // Remove after: supabase db push && npm run types:gen
   const byId = new Map(
-    ((profileData ?? []) as Profile[]).map((p) => [p.id, p]),
+    ((profileData ?? []) as unknown as Profile[]).map((p) => [p.id, p]),
   );
 
   const rows = members
@@ -97,6 +107,18 @@ export default async function TeamPage({
                 <div className="truncate text-xs text-muted-foreground">
                   {r.profile?.email ?? t("pendingInvite")}
                 </div>
+                {/* What the person does, which is a different question from
+                    the role select on the right — that one is the permission
+                    set. Hidden entirely when empty rather than shown as a
+                    dash: an existing team predates these fields, and a column
+                    of placeholders reads as broken. */}
+                {r.profile?.job_title || r.profile?.department ? (
+                  <div className="truncate text-xs text-muted-foreground">
+                    {[r.profile?.job_title, r.profile?.department]
+                      .filter(Boolean)
+                      .join(" · ")}
+                  </div>
+                ) : null}
               </div>
               <RoleSelect
                 userId={r.user_id}

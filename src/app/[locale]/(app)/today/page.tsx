@@ -3,6 +3,7 @@ import { setRequestLocale, getTranslations } from "next-intl/server";
 import { Link } from "@/i18n/routing";
 import type { Route } from "next";
 import { Pill } from "@/components/ui/Pill";
+import { HideableStat } from "./_components/HideableStat";
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentProfile } from "@/lib/auth";
 import { getCurrentRole } from "@/lib/roles-server";
@@ -177,7 +178,14 @@ export default async function TodayPage({
   return (
     <div className="">
       <header className="mb-8">
-        <p className="text-sm capitalize text-muted-foreground">{dateLabel}</p>
+        {/* `capitalize` is per-word, and Portuguese dates are not title case:
+            it rendered "Quinta-Feira, 27 De Agosto". Intl already returns
+            "quinta-feira, 27 de agosto" — only the first letter is ours to
+            raise. `first-letter` also stops at the hyphen, which is why
+            "quinta-feira" keeps its lowercase second half. */}
+        <p className="text-sm text-muted-foreground first-letter:uppercase">
+          {dateLabel}
+        </p>
         <h1 className="mt-1 font-display text-4xl text-foreground">
           {firstName ? t("greeting", { name: firstName }) : t("title")}
         </h1>
@@ -191,7 +199,7 @@ export default async function TodayPage({
             label={t("stats.activeServices")}
             value={String(activeServices)}
           />
-          <Stat
+          <HideableStat
             label={t("stats.monthlyRevenue")}
             value={formatCentsAsBrl(mrrCents)}
           />

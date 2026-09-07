@@ -253,6 +253,7 @@ export default async function MessagesPage({
               room={active.kind}
               placeholder={t("placeholder")}
               sendLabel={t("send")}
+              emojiLabel={t("emoji")}
             />
             <LiveMessages
               clientId={active.clientId || null}

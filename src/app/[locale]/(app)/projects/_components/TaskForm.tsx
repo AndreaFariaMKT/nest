@@ -1,5 +1,7 @@
 "use client";
 
+import { studioDayOf } from "@/lib/social";
+
 import { FormError } from "@/components/ui/FormError";
 import { useActionState } from "react";
 import { useTranslations } from "next-intl";
@@ -17,14 +19,6 @@ import type { TaskFormState } from "../actions";
 
 type Task = Database["public"]["Tables"]["tasks"]["Row"];
 
-function toLocalInput(value: string | null | undefined): string {
-  if (!value) return "";
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return "";
-  // Return in local timezone formatted for <input type="datetime-local">
-  const pad = (n: number) => String(n).padStart(2, "0");
-  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
-}
 
 export type ClientChoice = { id: string; name: string };
 export type AssigneeChoice = { id: string; label: string };
@@ -127,8 +121,8 @@ export function TaskForm({
           <Input
             id="due_at"
             name="due_at"
-            type="datetime-local"
-            defaultValue={toLocalInput(initial?.due_at)}
+            type="date"
+            defaultValue={studioDayOf(initial?.due_at)}
           />
           {state.fieldErrors?.due_at ? (
             <p className="text-xs text-destructive">

@@ -40,6 +40,14 @@ export function InviteForm({ locale }: { locale: string }) {
           <Input id="full_name" name="full_name" maxLength={120} />
         </div>
         <div className="space-y-1.5">
+          <Label htmlFor="job_title">{t("fields.jobTitle")}</Label>
+          <Input id="job_title" name="job_title" maxLength={120} />
+        </div>
+        <div className="space-y-1.5">
+          <Label htmlFor="department">{t("fields.department")}</Label>
+          <Input id="department" name="department" maxLength={120} />
+        </div>
+        <div className="space-y-1.5">
           <Label htmlFor="role">{t("fields.role")}</Label>
           {/* Required, with no pre-selected value. The role decides what the
               person sees on their first login, and defaulting it quietly is

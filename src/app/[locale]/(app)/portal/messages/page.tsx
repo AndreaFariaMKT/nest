@@ -101,6 +101,7 @@ export default async function PortalChat({
         room="client"
         placeholder={t("chat.placeholder")}
         sendLabel={t("chat.send")}
+        emojiLabel={t("chat.emoji")}
       />
       {/* The client's side of the same room. Realtime applies this table's
           RLS per subscriber, so they are told about their own room and about

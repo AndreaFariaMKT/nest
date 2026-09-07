@@ -277,6 +277,46 @@ export function studioInstant(
   return Number.isNaN(at.getTime()) ? null : at.toISOString();
 }
 
+/**
+ * A day with no time of day, pinned to **midday** in the studio's zone.
+ *
+ * A task due date is a day — "entregar quinta" — not an instant, but the
+ * column is `timestamptz`, so some hour has to be chosen. Midnight is the
+ * tempting default and it is the one that breaks: stored as 00:00 UTC it is
+ * 21:00 of the previous day in São Paulo, and the task reads as due a day
+ * early to everyone who looks at it. Midday sits three hours clear of both
+ * boundaries, so the date survives the shift whichever direction a reader
+ * formats in.
+ *
+ * (`due_on date` is the real fix and is planned; this keeps the stored
+ * instants sane until that migration lands.)
+ */
+export function studioDayInstant(
+  dateOnly: string | null | undefined,
+): string | null {
+  const raw = (dateOnly ?? "").trim();
+  if (!raw) return null;
+  // Round-tripping a stored timestamptz back through a date input: the value
+  // arrives full-length, and re-anchoring it would move it every save.
+  if (!isIsoDate(raw)) return studioInstant(raw);
+  const at = new Date(`${raw}T12:00:00${STUDIO_UTC_OFFSET}`);
+  return Number.isNaN(at.getTime()) ? null : at.toISOString();
+}
+
+/** The studio-zone calendar day of an instant, for `<input type="date">`. */
+export function studioDayOf(value: string | null | undefined): string {
+  if (!value) return "";
+  const at = new Date(value);
+  if (Number.isNaN(at.getTime())) return "";
+  // en-CA gives YYYY-MM-DD, which is exactly the shape the input wants.
+  return new Intl.DateTimeFormat("en-CA", {
+    timeZone: STUDIO_TIMEZONE,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).format(at);
+}
+
 export function publishInstant(
   publishOn: string | null | undefined,
   publishTime: string | null | undefined,
