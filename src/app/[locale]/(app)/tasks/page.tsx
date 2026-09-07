@@ -1,143 +1,289 @@
-import { listAssignablePeople } from "@/lib/people";
 import { setRequestLocale, getTranslations } from "next-intl/server";
+
 import { OPTION_LIST_CAP } from "@/lib/pagination";
 import { createClient } from "@/lib/supabase/server";
 import { currentTenantId } from "@/lib/tenant-server";
-import type { Database } from "@/types/database";
+import { getCurrentProfile } from "@/lib/auth";
+import { PageHeader } from "@/components/ui/PageHeader";
+import { Pill } from "@/components/ui/Pill";
 import { Link } from "@/i18n/routing";
-import type { Route } from "next";
-import {
-  KanbanBoard,
-  type FilterOption,
-  type KanbanTask,
-} from "./_components/KanbanBoard";
+import { todayIso, studioDayOf } from "@/lib/social";
+import { isLate, projectProgress } from "@/lib/projects";
+import { pending, type ProjectRow } from "@/lib/projects-db";
+import type { TaskPriority, TaskStatus } from "@/types/database";
 
-type Task = Database["public"]["Tables"]["tasks"]["Row"];
+export const dynamic = "force-dynamic";
 
-type Joined = Task & {
-  client:
-    | { name: string }
-    | Array<{ name: string }>
-    | null;
-  assignee:
-    | { full_name: string | null; email: string }
-    | Array<{ full_name: string | null; email: string }>
-    | null;
+const priorityTone = {
+  low: "muted",
+  medium: "default",
+  high: "warning",
+  urgent: "danger",
+} as const;
+
+type MyTask = {
+  id: string;
+  title: string;
+  status: TaskStatus;
+  priority: TaskPriority;
+  due_at: string | null;
 };
 
-function pickOne<T>(v: T | T[] | null): T | null {
-  if (!v) return null;
-  return Array.isArray(v) ? v[0] ?? null : v;
-}
-
-export default async function ProjectsPage({
+/**
+ * "Tarefas e projetos" — the screen the brief describes, and it is three
+ * panels rather than three tabs: the reference she sent shows tasks and
+ * notifications side by side with projects underneath, all visible at once.
+ * Tabs would hide two thirds of it behind a click.
+ *
+ * Everything here is scoped to the person looking: my tasks, my
+ * notifications, the projects I am on. The whole-studio views are one link
+ * away — the board at /tasks/board, every engagement at /projects.
+ */
+export default async function TasksAndProjectsPage({
   params,
-  searchParams,
 }: {
   params: Promise<{ locale: string }>;
-  searchParams: Promise<Record<string, string | string[] | undefined>>;
 }) {
   const { locale } = await params;
-  const sp = await searchParams;
   setRequestLocale(locale);
   const t = await getTranslations("tasks");
-
-  const currentClient = (
-    Array.isArray(sp.client) ? sp.client[0] : sp.client
-  ) ?? "";
-  const currentAssignee = (
-    Array.isArray(sp.assignee) ? sp.assignee[0] : sp.assignee
-  ) ?? "";
-  const templatesParam = Array.isArray(sp.templates)
-    ? sp.templates[0]
-    : sp.templates;
-  const showingTemplates = templatesParam === "1";
+  const tp = await getTranslations("projects");
+  const tn = await getTranslations("notifications");
 
   const supabase = await createClient();
   const tenantId = await currentTenantId();
+  const profile = await getCurrentProfile();
+  const today = todayIso();
 
-  let query = supabase
-    .from("tasks")
-    .select(
-      "*, client:clients(name), assignee:profiles!tasks_assignee_id_fkey(full_name, email)",
-    )
-    .eq("tenant_id", tenantId)
-    .eq("is_template", showingTemplates)
-    .order("due_at", { ascending: true, nullsFirst: false })
-    .order("created_at", { ascending: false });
-  if (currentClient) query = query.eq("client_id", currentClient);
-  if (currentAssignee) query = query.eq("assignee_id", currentAssignee);
-
-  // A board cannot be paged — every card has to be in its column — but it
-  // still needs a ceiling. Read the whole tenant's tasks and the screen grows
-  // without bound; the filters above are the intended way to narrow it.
-  const { data } = await query.limit(OPTION_LIST_CAP);
-  const tasks: KanbanTask[] = ((data ?? []) as unknown as Joined[]).map((r) => {
-    const client = pickOne(r.client);
-    const assignee = pickOne(r.assignee);
-    return {
-      id: r.id,
-      title: r.title,
-      status: r.status,
-      priority: r.priority,
-      due_at: r.due_at,
-      client_name: client?.name ?? null,
-      assignee_label: assignee
-        ? assignee.full_name ?? assignee.email
+  // One wave. None of these four reads consumes another's result, and the
+  // pattern is the one today/page.tsx already uses for the same reason.
+  const [taskRows, notificationRows, membershipRows, taskStatusRows] =
+    await Promise.all([
+      profile
+        ? supabase
+            .from("tasks")
+            .select("id, title, status, priority, due_at")
+            .eq("tenant_id", tenantId)
+            .eq("assignee_id", profile.id)
+            .eq("is_template", false)
+            .neq("status", "done")
+            .order("due_at", { ascending: true, nullsFirst: false })
+            .limit(12)
         : null,
-    };
-  });
+      profile
+        ? supabase
+            .from("notifications")
+            .select("id, title, body, link, read_at, created_at")
+            .eq("user_id", profile.id)
+            .order("created_at", { ascending: false })
+            .limit(8)
+        : null,
+      profile
+        ? pending(supabase)
+            .from("project_members")
+            .select("project_id")
+            .eq("user_id", profile.id)
+        : null,
+      supabase
+        .from("tasks")
+        .select("project_id, status" as "status")
+        .eq("tenant_id", tenantId)
+        .eq("is_template", false)
+        .limit(OPTION_LIST_CAP),
+    ]);
 
-  const { data: clientsData } = await supabase
-    .from("clients")
-    .select("id, name, status")
-    .eq("tenant_id", tenantId)
-    .neq("status", "archived")
-    .order("name", { ascending: true })
-    .limit(OPTION_LIST_CAP);
-  const clients: FilterOption[] = (clientsData ?? []).map((c) => ({
-    id: c.id,
-    label: c.name,
-  }));
+  const myTasks = (taskRows?.data ?? []) as MyTask[];
+  const notifications = (notificationRows?.data ?? []) as Array<{
+    id: string;
+    title: string;
+    body: string | null;
+    link: string | null;
+    read_at: string | null;
+  }>;
 
-  // Not `profiles`: that table's `role` column is the legacy enum the
-  // app never writes, so filtering on it matched everyone and not
-  // filtering matched every tenant. See listAssignablePeople.
-  const assignees: FilterOption[] = await listAssignablePeople();
+  const myProjectIds = ((membershipRows?.data ?? []) as Array<{
+    project_id: string;
+  }>).map((m) => m.project_id);
+
+  // Only the engagements this person is on. A founder who is on none sees the
+  // empty state and the link to all of them, which is honest — the alternative
+  // is a "my projects" panel listing projects that are not theirs.
+  const { data: projectData } = myProjectIds.length
+    ? await pending(supabase)
+        .from("projects")
+        .select("*")
+        .eq("tenant_id", tenantId)
+        .in("id", myProjectIds)
+        .order("name", { ascending: true })
+    : { data: [] };
+
+  const myProjects = (projectData ?? []) as ProjectRow[];
+
+  const statusesByProject = new Map<string, string[]>();
+  for (const row of (taskStatusRows?.data ?? []) as unknown as Array<{
+    project_id: string | null;
+    status: string;
+  }>) {
+    if (!row.project_id) continue;
+    const list = statusesByProject.get(row.project_id) ?? [];
+    list.push(row.status);
+    statusesByProject.set(row.project_id, list);
+  }
 
   return (
-    <div className="mx-auto max-w-7xl">
-      <div className="mb-8 flex items-start justify-between gap-4">
-        <div>
-          <h1 className="font-display text-4xl text-foreground">
-            {showingTemplates ? t("templatesTitle") : t("title")}
-          </h1>
-          <p className="mt-1 text-sm text-muted-foreground">
-            {showingTemplates ? t("templatesSubtitle") : t("subtitle")}
-          </p>
-        </div>
-        {/* Locale-aware Link, not a hardcoded /en path. A pt-BR user clicking
-            "gerenciar modelos" was thrown into the English app and stayed
-            there. */}
-        <Link
-          href={
-            (showingTemplates ? "/tasks" : "/tasks?templates=1") as Route
-          }
-          className="inline-flex h-10 items-center rounded-md border border-input bg-background px-3 text-sm text-muted-foreground hover:bg-muted"
-        >
-          {showingTemplates ? t("backToKanban") : t("manageTemplates")}
-        </Link>
-      </div>
-      <KanbanBoard
-        locale={locale}
-        tasks={tasks}
-        clients={clients}
-        assignees={assignees}
-        currentClient={currentClient}
-        currentAssignee={currentAssignee}
+    <div>
+      <PageHeader
+        title={t("overviewTitle")}
+        subtitle={t("overviewSubtitle")}
+        action={
+          <Link
+            href="/tasks/board"
+            className="inline-flex h-10 items-center justify-center rounded-md border border-border px-4 text-sm font-medium transition-colors hover:bg-muted"
+          >
+            {t("openBoard")}
+          </Link>
+        }
       />
+
+      <div className="grid gap-4 lg:grid-cols-3">
+        {/* Tarefas — mine, as the brief says: "tudo atrelado a mim". */}
+        <section className="rounded-2xl border border-border bg-card p-5 lg:col-span-2">
+          <div className="mb-4 flex items-center justify-between">
+            <h2 className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
+              {t("myTasks")}
+            </h2>
+            <Link
+              href="/tasks/new"
+              className="text-sm text-muted-foreground hover:text-foreground"
+            >
+              {t("new")}
+            </Link>
+          </div>
+          {myTasks.length === 0 ? (
+            <p className="text-sm text-muted-foreground">{t("noneMine")}</p>
+          ) : (
+            <ul className="divide-y divide-border">
+              {myTasks.map((task) => (
+                <li key={task.id}>
+                  <Link
+                    href={`/tasks/${task.id}/edit`}
+                    className="flex items-center justify-between gap-3 py-2.5 text-sm hover:text-brand"
+                    data-testid="my-task"
+                  >
+                    <span className="min-w-0 truncate">{task.title}</span>
+                    <span className="flex shrink-0 items-center gap-2">
+                      {task.due_at ? (
+                        <span className="text-xs text-muted-foreground">
+                          {studioDayOf(task.due_at)}
+                        </span>
+                      ) : null}
+                      <Pill tone={priorityTone[task.priority]}>
+                        {t(`priority.${task.priority}`)}
+                      </Pill>
+                    </span>
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          )}
+        </section>
+
+        {/* Notificações — also mine. */}
+        <section className="rounded-2xl border border-border bg-card p-5">
+          <h2 className="mb-4 text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
+            {tn("title")}
+          </h2>
+          {notifications.length === 0 ? (
+            <p className="text-sm text-muted-foreground">{tn("empty")}</p>
+          ) : (
+            <ul className="divide-y divide-border">
+              {notifications.map((n) => (
+                <li key={n.id} className="py-2.5">
+                  <Link
+                    href={(n.link ?? "/tasks") as "/tasks"}
+                    className="block text-sm hover:text-brand"
+                  >
+                    <span className="flex items-center gap-2">
+                      {!n.read_at ? (
+                        <span
+                          className="h-1.5 w-1.5 shrink-0 rounded-full bg-brand"
+                          aria-hidden
+                        />
+                      ) : null}
+                      <span className="min-w-0 truncate">{n.title}</span>
+                    </span>
+                    {n.body ? (
+                      <span className="mt-0.5 block truncate text-xs text-muted-foreground">
+                        {n.body}
+                      </span>
+                    ) : null}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          )}
+        </section>
+      </div>
+
+      {/* Projetos — the ones this person is on. Clicking opens that project's
+          own board, which is what "abrir o kanban daquele projeto especifico"
+          asks for. */}
+      <section className="mt-4 rounded-2xl border border-border bg-card p-5">
+        <div className="mb-4 flex items-center justify-between">
+          <h2 className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
+            {t("myProjects")}
+          </h2>
+          <Link
+            href="/projects"
+            className="text-sm text-muted-foreground hover:text-foreground"
+          >
+            {tp("title")}
+          </Link>
+        </div>
+        {myProjects.length === 0 ? (
+          <p className="text-sm text-muted-foreground">{t("noProjects")}</p>
+        ) : (
+          <ul className="divide-y divide-border">
+            {myProjects.map((project) => {
+              const progress = projectProgress(
+                statusesByProject.get(project.id) ?? [],
+              );
+              return (
+                <li key={project.id}>
+                  <Link
+                    href={`/projects/${project.id}`}
+                    className="flex flex-wrap items-center gap-3 py-3 text-sm hover:text-brand"
+                    data-testid="my-project"
+                  >
+                    <span className="min-w-0 flex-1 truncate font-medium">
+                      {project.name}
+                    </span>
+                    <span className="h-1 w-24 overflow-hidden rounded-full bg-muted">
+                      <span
+                        className="block h-full bg-brand"
+                        style={{ width: `${progress.percent}%` }}
+                      />
+                    </span>
+                    <span className="w-28 text-xs text-muted-foreground">
+                      {tp("progress", {
+                        percent: progress.percent,
+                        open: progress.open,
+                      })}
+                    </span>
+                    {isLate(project, today) ? (
+                      <Pill tone="danger">{tp("late")}</Pill>
+                    ) : (
+                      <Pill tone="muted">
+                        {tp(`form.statuses.${project.status}`)}
+                      </Pill>
+                    )}
+                  </Link>
+                </li>
+              );
+            })}
+          </ul>
+        )}
+      </section>
     </div>
   );
 }
-
-export const dynamic = "force-dynamic";

@@ -102,7 +102,7 @@ export function KanbanBoard({
     startTransitionBase(() => {
       router.replace(
         // next-intl router accepts a href object; "query" must be plain object
-        { pathname: pathname as "/tasks", query: Object.fromEntries(params) },
+        { pathname: pathname as "/tasks/board", query: Object.fromEntries(params) },
       );
     });
   }

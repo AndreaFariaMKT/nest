@@ -22,7 +22,7 @@ test("owner creates a task and it shows up in the list", async ({ page }) => {
   await expect(page.locator("#title")).toHaveValue(taskTitle);
 
   // Back on the kanban, the new task appears in the To-do column
-  await page.goto("/en/tasks");
+  await page.goto("/en/tasks/board");
   await expect(
     page
       .getByTestId("kanban-column-todo")

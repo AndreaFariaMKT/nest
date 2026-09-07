@@ -28,7 +28,7 @@
     "team": "Equipe",
     "settings": "Configurações",
     "home": "Início",
-    "tasks": "Tarefas",
+    "tasks": "Tarefas e projetos",
     "messages": "Mensagens",
     "administration": "Administração",
     "finance": "Financeiro",
@@ -622,7 +622,14 @@
     "filters": {
       "allClients": "Todos os clientes",
       "allAssignees": "Todos responsáveis"
-    }
+    },
+    "overviewTitle": "Tarefas e projetos",
+    "overviewSubtitle": "O que está com você agora, e os projetos que você toca.",
+    "openBoard": "Abrir quadro geral",
+    "myTasks": "Minhas tarefas",
+    "noneMine": "Nada atribuído a você agora.",
+    "myProjects": "Meus projetos",
+    "noProjects": "Você ainda não está em nenhum projeto."
   },
   "calendar": {
     "title": "Calendário",
