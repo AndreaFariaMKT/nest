@@ -9,7 +9,7 @@ const ACTIONS = [
   "clients/actions.ts",
   "clients/[slug]/brand-kit/actions.ts",
   "clients/[slug]/contracts/actions.ts",
-  "projects/actions.ts",
+  "tasks/actions.ts",
   "meetings/actions.ts",
   "services/actions.ts",
   "content-engine/actions.ts",

@@ -267,7 +267,7 @@ export async function updateTaskStatusAction(
   // error meant a refused write left the card sitting in its new column until
   // something happened to refresh the page, and then it silently jumped back.
   if (error) {
-    log.error("projects.status", "update_failed", {
+    log.error("tasks.status", "update_failed", {
       code: error.code ?? "unknown",
     });
     return { ok: false, error: dbError(error) };
