@@ -53,7 +53,8 @@
     "waitingOnYou": "Esperando você",
     "errors": "Erros",
     "suppliers": "Fornecedores",
-    "cashflow": "Fluxo de caixa"
+    "cashflow": "Fluxo de caixa",
+    "reconcile": "Conciliação"
   },
   "finance": {
     "title": "Financeiro",
@@ -169,6 +170,42 @@
         "amount": "Valor",
         "reconciled": "Conciliado",
         "month": "Mês"
+      }
+    },
+    "reconcile": {
+      "title": "Conciliação",
+      "subtitle": "O arquivo do banco contra o que o sistema esperava.",
+      "addFile": "Adicionar extrato",
+      "account": "Conta",
+      "file": "Arquivo",
+      "import": "Importar",
+      "reading": "Lendo…",
+      "category": "Categoria",
+      "confirm": "Confirmar",
+      "discard": "Descartar",
+      "nothingStaged": "Nada aguardando conferência.",
+      "nothingWritten": "Nada é lançado sem a sua confirmação. O sistema propõe, você decide.",
+      "result": "{imported} linhas importadas · {skipped} já estavam no sistema · {unreadable} ilegíveis.",
+      "kinds": {
+        "auto": "Conciliado automático",
+        "suggested": "Sugestão",
+        "unmatched": "Sem correspondência"
+      },
+      "kindHints": {
+        "auto": "Valor, data e destinatário conferem.",
+        "suggested": "Precisa da sua aprovação.",
+        "unmatched": "Classificar e lançar."
+      },
+      "reasons": {
+        "dateDiffers": "data diferente",
+        "nameDiffers": "destinatário não confere",
+        "noAmount": "nenhum valor igual",
+        "dateTooFar": "data distante demais"
+      },
+      "errors": {
+        "noFile": "Selecione um arquivo.",
+        "tooLarge": "Arquivo grande demais.",
+        "noLines": "Nenhuma transação legível no arquivo."
       }
     }
   },

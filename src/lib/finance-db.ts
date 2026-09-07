@@ -83,6 +83,30 @@ export type SupplierRow = {
   note_status: string;
 };
 
+export type ImportLineRow = {
+  id: string;
+  import_id: string;
+  external_ref: string | null;
+  date: string;
+  description: string;
+  amount_cents: number;
+  match_kind: "auto" | "suggested" | "unmatched";
+  match_reasons: string[];
+  matched_kind: string | null;
+  matched_id: string | null;
+  confirmed_at: string | null;
+};
+
+export type ImportRow = {
+  id: string;
+  filename: string;
+  format: string;
+  period_start: string | null;
+  period_end: string | null;
+  line_count: number;
+  created_at: string;
+};
+
 export type FxRow = {
   day: string;
   base: string;
@@ -97,7 +121,9 @@ type FinTable =
   | "fin_entries"
   | "fin_receivables"
   | "fin_payables"
-  | "fin_fx_rates";
+  | "fin_fx_rates"
+  | "fin_imports"
+  | "fin_import_lines";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type LooseClient = { from: (table: FinTable) => any };

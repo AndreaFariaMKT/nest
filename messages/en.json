@@ -53,7 +53,8 @@
     "waitingOnYou": "Waiting on you",
     "errors": "Errors",
     "suppliers": "Suppliers",
-    "cashflow": "Cash flow"
+    "cashflow": "Cash flow",
+    "reconcile": "Reconciliation"
   },
   "finance": {
     "title": "Finance",
@@ -169,6 +170,42 @@
         "amount": "Amount",
         "reconciled": "Reconciled",
         "month": "Month"
+      }
+    },
+    "reconcile": {
+      "title": "Reconciliation",
+      "subtitle": "The bank file against what the system expected.",
+      "addFile": "Add statement",
+      "account": "Account",
+      "file": "File",
+      "import": "Import",
+      "reading": "Reading…",
+      "category": "Category",
+      "confirm": "Confirm",
+      "discard": "Discard",
+      "nothingStaged": "Nothing waiting for review.",
+      "nothingWritten": "Nothing is posted without your confirmation. The system proposes, you decide.",
+      "result": "{imported} lines imported · {skipped} already known · {unreadable} unreadable.",
+      "kinds": {
+        "auto": "Auto-matched",
+        "suggested": "Suggestion",
+        "unmatched": "No match"
+      },
+      "kindHints": {
+        "auto": "Amount, date and counterparty agree.",
+        "suggested": "Needs your approval.",
+        "unmatched": "Classify and post."
+      },
+      "reasons": {
+        "dateDiffers": "different date",
+        "nameDiffers": "counterparty differs",
+        "noAmount": "no matching amount",
+        "dateTooFar": "date too far off"
+      },
+      "errors": {
+        "noFile": "Pick a file.",
+        "tooLarge": "File is too large.",
+        "noLines": "No readable transactions in the file."
       }
     }
   },
