@@ -1,57 +1,36 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 
-import type { ProjectStatus, ProjectType } from "@/lib/projects";
+import type { Database } from "@/types/database";
 
 /**
- * TEMPORARY — delete this file once migration 048 is applied and
- * `npm run types:gen` has run. Every import of it disappears with it.
+ * Row aliases for the project tables, plus the picker query shared by the two
+ * task forms.
  *
- * `database.gen.ts` is generated from the live schema, so `projects` and
- * `project_members` are not in it until 048 lands on the database that
- * types:gen reads. A brand-new table cannot be worked around the way a new
- * column can — `as never` on the payload is enough when the table exists, but
- * here `supabase.from("projects")` itself does not typecheck, because the
- * table name is not in the union.
+ * 048's tables are applied, so `projects` and `project_members` come from the
+ * generated types and every call site uses the normal client.
  *
- * So the loose cast is confined to one place: the client, at the point of
- * `.from()`. The row shapes below stay honest and typed, so the pages and
- * actions that use them are checked as normal — what is unchecked is exactly
- * one edge, not the code built on it.
+ * `project_flow_steps` (052) is NOT applied yet, and is the only reason the
+ * loose accessor below still exists. It goes when 052 lands and `types:gen`
+ * runs — see docs/pending-migrations.md.
  */
-export type ProjectRow = {
-  id: string;
-  tenant_id: string;
-  client_id: string | null;
-  name: string;
-  slug: string;
-  type: ProjectType;
-  scope: string | null;
-  status: ProjectStatus;
-  starts_on: string | null;
-  ends_on: string | null;
-  // 050 — the commercials.
-  contract_url: string | null;
-  proposal_url: string | null;
-  service_value_cents: number | null;
-  currency: string;
-  payment_terms: string | null;
-  // 052 — set once the type's standard flow has been run, so it cannot be run
-  // twice and double the board.
+type T = Database["public"]["Tables"];
+
+export type ProjectRow = T["projects"]["Row"];
+export type ProjectMemberRow = T["project_members"]["Row"];
+
+/** Still pending: 052. */
+type PendingTables = "project_flow_steps";
+
+/**
+ * A project row as it will be once 052 is applied.
+ *
+ * 052 adds `flow_applied_at`, so the generated row does not carry it yet.
+ * Every read that needs it goes through this alias, which means removing the
+ * shim is deleting this type and its four uses — not hunting casts.
+ */
+export type ProjectRowWithFlow = ProjectRow & {
   flow_applied_at: string | null;
-  created_at: string;
-  updated_at: string;
 };
-
-export type ProjectMemberRow = {
-  project_id: string;
-  user_id: string;
-  tenant_id: string;
-  role_on_project: string | null;
-  created_at: string;
-};
-
-/** The two tables 048 adds, addressable before the generated types know them. */
-type PendingTables = "projects" | "project_members" | "project_flow_steps";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type LooseClient = { from: (table: PendingTables) => any };
@@ -69,13 +48,12 @@ export function pending(
  * the query and the label shape do not drift apart.
  */
 export async function listProjectChoices(
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  supabase: SupabaseClient<any, any, any>,
+  supabase: SupabaseClient<Database>,
   tenantId: string,
   clientNameById: Map<string, string>,
   cap: number,
 ): Promise<Array<{ id: string; name: string; client_name: string | null }>> {
-  const { data } = await pending(supabase)
+  const { data } = await supabase
     .from("projects")
     .select("id, name, client_id, status")
     .eq("tenant_id", tenantId)
@@ -86,11 +64,7 @@ export async function listProjectChoices(
     .order("name", { ascending: true })
     .limit(cap);
 
-  return ((data ?? []) as Array<{
-    id: string;
-    name: string;
-    client_id: string | null;
-  }>).map((p) => ({
+  return (data ?? []).map((p) => ({
     id: p.id,
     name: p.name,
     client_name: p.client_id ? clientNameById.get(p.client_id) ?? null : null,

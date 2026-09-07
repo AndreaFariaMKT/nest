@@ -1,139 +1,26 @@
-import type { SupabaseClient } from "@supabase/supabase-js";
+import type { Database } from "@/types/database";
 
 /**
- * TEMPORARY — delete once migration 049 is applied and `npm run types:gen`
- * has run, the same arrangement as @/lib/projects-db and for the same reason:
- * database.gen.ts is generated from the live schema, so none of the fin_*
- * tables are in its union yet and `supabase.from("fin_entries")` does not
- * typecheck.
+ * Row aliases for the finance tables, plus the one derivation that is real
+ * logic rather than a type.
  *
- * The row shapes stay honest, so the pages built on them are checked as
- * normal. What is unchecked is one edge.
+ * This file used to carry a loose client — `fin(supabase)` — because 049 and
+ * 051 were written before they were applied, so `supabase.from("fin_entries")`
+ * did not typecheck against generated types that had never seen the tables.
+ * That escape hatch is gone: these are the generated rows now, and every call
+ * site goes through the normal client.
  */
-export type AccountRow = {
-  id: string;
-  tenant_id: string;
-  name: string;
-  institution: string | null;
-  currency: string;
-  kind: string;
-  is_active: boolean;
-};
+type T = Database["public"]["Tables"];
 
-export type CategoryRow = {
-  id: string;
-  name: string;
-  slug: string;
-  kind: string;
-  sort: number;
-};
-
-export type EntryRow = {
-  id: string;
-  account_id: string | null;
-  category_id: string | null;
-  description: string;
-  amount_cents: number;
-  currency: string;
-  date_cash: string;
-  date_accrual: string;
-  client_id: string | null;
-  project_id: string | null;
-  supplier_id: string | null;
-  reconciled: boolean;
-  external_ref: string | null;
-};
-
-export type ReceivableRow = {
-  id: string;
-  client_id: string | null;
-  project_id: string | null;
-  description: string;
-  amount_cents: number;
-  currency: string;
-  due_on: string;
-  paid_on: string | null;
-  date_accrual: string;
-  status: string;
-  invoice_status: string;
-};
-
-export type PayableRow = {
-  id: string;
-  supplier_id: string | null;
-  category_id: string | null;
-  description: string;
-  amount_cents: number;
-  currency: string;
-  due_on: string;
-  paid_on: string | null;
-  date_accrual: string;
-  status: string;
-};
-
-export type SupplierRow = {
-  id: string;
-  name: string;
-  category: string | null;
-  doc_type: string | null;
-  doc_number: string | null;
-  pix_key: string | null;
-  default_amount_cents: number | null;
-  pay_day: number | null;
-  note_status: string;
-};
-
-export type ImportLineRow = {
-  id: string;
-  import_id: string;
-  external_ref: string | null;
-  date: string;
-  description: string;
-  amount_cents: number;
-  match_kind: "auto" | "suggested" | "unmatched";
-  match_reasons: string[];
-  matched_kind: string | null;
-  matched_id: string | null;
-  confirmed_at: string | null;
-};
-
-export type ImportRow = {
-  id: string;
-  filename: string;
-  format: string;
-  period_start: string | null;
-  period_end: string | null;
-  line_count: number;
-  created_at: string;
-};
-
-export type FxRow = {
-  day: string;
-  base: string;
-  quote: string;
-  rate: number;
-};
-
-type FinTable =
-  | "fin_accounts"
-  | "fin_categories"
-  | "fin_suppliers"
-  | "fin_entries"
-  | "fin_receivables"
-  | "fin_payables"
-  | "fin_fx_rates"
-  | "fin_imports"
-  | "fin_import_lines";
-
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-type LooseClient = { from: (table: FinTable) => any };
-
-export function fin(
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  supabase: SupabaseClient<any, any, any>,
-): LooseClient {
-  return supabase as unknown as LooseClient;
-}
+export type AccountRow = T["fin_accounts"]["Row"];
+export type CategoryRow = T["fin_categories"]["Row"];
+export type EntryRow = T["fin_entries"]["Row"];
+export type ReceivableRow = T["fin_receivables"]["Row"];
+export type PayableRow = T["fin_payables"]["Row"];
+export type SupplierRow = T["fin_suppliers"]["Row"];
+export type FxRow = T["fin_fx_rates"]["Row"];
+export type ImportRow = T["fin_imports"]["Row"];
+export type ImportLineRow = T["fin_import_lines"]["Row"];
 
 /**
  * Account balances are derived from the ledger, never stored.

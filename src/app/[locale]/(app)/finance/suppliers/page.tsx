@@ -6,7 +6,8 @@ import { currentTenantId } from "@/lib/tenant-server";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { Pill } from "@/components/ui/Pill";
 import { formatCentsAsBrl } from "@/lib/money";
-import { fin, type SupplierRow } from "@/lib/finance-db";
+import {
+  type SupplierRow } from "@/lib/finance-db";
 import { SupplierForm } from "./SupplierForm";
 import { deleteSupplierAction } from "./actions";
 
@@ -30,8 +31,7 @@ export default async function SuppliersPage({
   const supabase = await createClient();
   const tenantId = await currentTenantId();
 
-  const { data } = await fin(supabase)
-    .from("fin_suppliers")
+  const { data } = await supabase.from("fin_suppliers")
     .select(
       "id, name, category, doc_type, doc_number, pix_key, default_amount_cents, pay_day, note_status",
     )

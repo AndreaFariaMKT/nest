@@ -72,20 +72,6 @@ function readForm(formData: FormData) {
   };
 }
 
-/**
- * 048 adds `project_id` and `follow_up_id`, and database.gen.ts is generated
- * from the live schema — so until the migration is applied, naming them in a
- * payload does not typecheck. Confined to this one helper rather than spread
- * across both write sites; it and its two call sites go when types:gen catches
- * up. See @/lib/projects-db for the same arrangement on the new tables.
- */
-function projectColumns(form: {
-  projectId: string | null;
-  followUpId: string | null;
-}): Record<string, string | null> {
-  return { project_id: form.projectId, follow_up_id: form.followUpId };
-}
-
 async function resolveCurrentCycle(
   supabase: Awaited<ReturnType<typeof createSupabaseClient>>,
   clientId: string | null,
@@ -127,7 +113,8 @@ export async function createTaskAction(
   const { error, data } = await supabase
     .from("tasks")
     .insert({
-      ...projectColumns(form),
+      project_id: form.projectId,
+      follow_up_id: form.followUpId,
       tenant_id: tenantId,
       title: form.title,
       description: form.description,
@@ -205,7 +192,8 @@ export async function updateTaskAction(
   }
 
   const update: Database["public"]["Tables"]["tasks"]["Update"] = {
-    ...projectColumns(form),
+    project_id: form.projectId,
+    follow_up_id: form.followUpId,
     title: form.title,
     description: form.description,
     status: form.status,

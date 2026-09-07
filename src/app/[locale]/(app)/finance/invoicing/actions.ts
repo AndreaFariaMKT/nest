@@ -5,7 +5,6 @@ import { revalidatePath } from "next/cache";
 import { log } from "@/lib/log";
 import { createClient as createSupabaseClient } from "@/lib/supabase/server";
 import { currentTenantId } from "@/lib/tenant-server";
-import { fin } from "@/lib/finance-db";
 
 /**
  * Move a receivable along the nota fiscal track.
@@ -27,8 +26,7 @@ export async function setInvoiceStatusAction(formData: FormData): Promise<void> 
   const supabase = await createSupabaseClient();
   const tenantId = await currentTenantId();
 
-  const { error } = await fin(supabase)
-    .from("fin_receivables")
+  const { error } = await supabase.from("fin_receivables")
     .update({ invoice_status: next, invoice_ref: ref })
     .eq("id", id)
     .eq("tenant_id", tenantId);

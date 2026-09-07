@@ -186,7 +186,7 @@ export default async function TodayPage({
 
   if (ownerView) {
     const [{ data: projectRows }, finance] = await Promise.all([
-      pendingTables(supabase)
+      supabase
         .from("projects")
         .select("status")
         .eq("tenant_id", tenantId),

@@ -520,6 +520,8 @@ export type Database = {
       }
       clients: {
         Row: {
+          address: string | null
+          country: string
           created_at: string
           id: string
           industry: string | null
@@ -536,11 +538,14 @@ export type Database = {
           social_digest_at: string | null
           social_enabled: boolean
           status: Database["public"]["Enums"]["client_status"]
+          tax_id: string | null
           tenant_id: string
           updated_at: string
           website: string | null
         }
         Insert: {
+          address?: string | null
+          country?: string
           created_at?: string
           id?: string
           industry?: string | null
@@ -557,11 +562,14 @@ export type Database = {
           social_digest_at?: string | null
           social_enabled?: boolean
           status?: Database["public"]["Enums"]["client_status"]
+          tax_id?: string | null
           tenant_id?: string
           updated_at?: string
           website?: string | null
         }
         Update: {
+          address?: string | null
+          country?: string
           created_at?: string
           id?: string
           industry?: string | null
@@ -578,6 +586,7 @@ export type Database = {
           social_digest_at?: string | null
           social_enabled?: boolean
           status?: Database["public"]["Enums"]["client_status"]
+          tax_id?: string | null
           tenant_id?: string
           updated_at?: string
           website?: string | null
@@ -1122,6 +1131,615 @@ export type Database = {
           },
         ]
       }
+      fin_accounts: {
+        Row: {
+          created_at: string
+          currency: string
+          id: string
+          institution: string | null
+          is_active: boolean
+          kind: string
+          name: string
+          tenant_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          currency?: string
+          id?: string
+          institution?: string | null
+          is_active?: boolean
+          kind?: string
+          name: string
+          tenant_id?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          currency?: string
+          id?: string
+          institution?: string | null
+          is_active?: boolean
+          kind?: string
+          name?: string
+          tenant_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fin_accounts_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      fin_categories: {
+        Row: {
+          created_at: string
+          id: string
+          kind: string
+          name: string
+          slug: string
+          sort: number
+          tenant_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          kind: string
+          name: string
+          slug: string
+          sort?: number
+          tenant_id?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          kind?: string
+          name?: string
+          slug?: string
+          sort?: number
+          tenant_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fin_categories_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      fin_entries: {
+        Row: {
+          account_id: string | null
+          amount_cents: number
+          category_id: string | null
+          client_id: string | null
+          created_at: string
+          currency: string
+          date_accrual: string
+          date_cash: string
+          description: string
+          external_ref: string | null
+          id: string
+          notes: string | null
+          project_id: string | null
+          reconciled: boolean
+          supplier_id: string | null
+          tenant_id: string
+          updated_at: string
+        }
+        Insert: {
+          account_id?: string | null
+          amount_cents: number
+          category_id?: string | null
+          client_id?: string | null
+          created_at?: string
+          currency?: string
+          date_accrual: string
+          date_cash: string
+          description: string
+          external_ref?: string | null
+          id?: string
+          notes?: string | null
+          project_id?: string | null
+          reconciled?: boolean
+          supplier_id?: string | null
+          tenant_id?: string
+          updated_at?: string
+        }
+        Update: {
+          account_id?: string | null
+          amount_cents?: number
+          category_id?: string | null
+          client_id?: string | null
+          created_at?: string
+          currency?: string
+          date_accrual?: string
+          date_cash?: string
+          description?: string
+          external_ref?: string | null
+          id?: string
+          notes?: string | null
+          project_id?: string | null
+          reconciled?: boolean
+          supplier_id?: string | null
+          tenant_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fin_entries_account_id_fkey"
+            columns: ["account_id"]
+            isOneToOne: false
+            referencedRelation: "fin_accounts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fin_entries_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "fin_categories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fin_entries_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fin_entries_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "portal_client"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fin_entries_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fin_entries_supplier_id_fkey"
+            columns: ["supplier_id"]
+            isOneToOne: false
+            referencedRelation: "fin_suppliers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fin_entries_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      fin_fx_rates: {
+        Row: {
+          base: string
+          created_at: string
+          day: string
+          id: string
+          quote: string
+          rate: number
+          source: string | null
+          tenant_id: string
+        }
+        Insert: {
+          base?: string
+          created_at?: string
+          day: string
+          id?: string
+          quote?: string
+          rate: number
+          source?: string | null
+          tenant_id?: string
+        }
+        Update: {
+          base?: string
+          created_at?: string
+          day?: string
+          id?: string
+          quote?: string
+          rate?: number
+          source?: string | null
+          tenant_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fin_fx_rates_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      fin_import_lines: {
+        Row: {
+          amount_cents: number
+          confirmed_at: string | null
+          created_at: string
+          date: string
+          description: string
+          entry_id: string | null
+          external_ref: string | null
+          id: string
+          import_id: string
+          match_kind: string
+          match_reasons: string[]
+          matched_id: string | null
+          matched_kind: string | null
+          tenant_id: string
+        }
+        Insert: {
+          amount_cents: number
+          confirmed_at?: string | null
+          created_at?: string
+          date: string
+          description: string
+          entry_id?: string | null
+          external_ref?: string | null
+          id?: string
+          import_id: string
+          match_kind?: string
+          match_reasons?: string[]
+          matched_id?: string | null
+          matched_kind?: string | null
+          tenant_id?: string
+        }
+        Update: {
+          amount_cents?: number
+          confirmed_at?: string | null
+          created_at?: string
+          date?: string
+          description?: string
+          entry_id?: string | null
+          external_ref?: string | null
+          id?: string
+          import_id?: string
+          match_kind?: string
+          match_reasons?: string[]
+          matched_id?: string | null
+          matched_kind?: string | null
+          tenant_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fin_import_lines_entry_id_fkey"
+            columns: ["entry_id"]
+            isOneToOne: false
+            referencedRelation: "fin_entries"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fin_import_lines_import_id_fkey"
+            columns: ["import_id"]
+            isOneToOne: false
+            referencedRelation: "fin_imports"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fin_import_lines_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      fin_imports: {
+        Row: {
+          account_id: string | null
+          created_at: string
+          filename: string
+          format: string
+          id: string
+          imported_by: string | null
+          line_count: number
+          period_end: string | null
+          period_start: string | null
+          tenant_id: string
+        }
+        Insert: {
+          account_id?: string | null
+          created_at?: string
+          filename: string
+          format?: string
+          id?: string
+          imported_by?: string | null
+          line_count?: number
+          period_end?: string | null
+          period_start?: string | null
+          tenant_id?: string
+        }
+        Update: {
+          account_id?: string | null
+          created_at?: string
+          filename?: string
+          format?: string
+          id?: string
+          imported_by?: string | null
+          line_count?: number
+          period_end?: string | null
+          period_start?: string | null
+          tenant_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fin_imports_account_id_fkey"
+            columns: ["account_id"]
+            isOneToOne: false
+            referencedRelation: "fin_accounts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fin_imports_imported_by_fkey"
+            columns: ["imported_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fin_imports_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      fin_payables: {
+        Row: {
+          amount_cents: number
+          category_id: string | null
+          created_at: string
+          currency: string
+          date_accrual: string
+          description: string
+          due_on: string
+          id: string
+          notes: string | null
+          paid_on: string | null
+          project_id: string | null
+          status: string
+          supplier_id: string | null
+          tenant_id: string
+          updated_at: string
+        }
+        Insert: {
+          amount_cents: number
+          category_id?: string | null
+          created_at?: string
+          currency?: string
+          date_accrual: string
+          description: string
+          due_on: string
+          id?: string
+          notes?: string | null
+          paid_on?: string | null
+          project_id?: string | null
+          status?: string
+          supplier_id?: string | null
+          tenant_id?: string
+          updated_at?: string
+        }
+        Update: {
+          amount_cents?: number
+          category_id?: string | null
+          created_at?: string
+          currency?: string
+          date_accrual?: string
+          description?: string
+          due_on?: string
+          id?: string
+          notes?: string | null
+          paid_on?: string | null
+          project_id?: string | null
+          status?: string
+          supplier_id?: string | null
+          tenant_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fin_payables_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "fin_categories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fin_payables_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fin_payables_supplier_id_fkey"
+            columns: ["supplier_id"]
+            isOneToOne: false
+            referencedRelation: "fin_suppliers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fin_payables_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      fin_receivables: {
+        Row: {
+          amount_cents: number
+          client_id: string | null
+          contract_id: string | null
+          created_at: string
+          currency: string
+          date_accrual: string
+          description: string
+          due_on: string
+          id: string
+          invoice_ref: string | null
+          invoice_status: string
+          notes: string | null
+          paid_on: string | null
+          project_id: string | null
+          status: string
+          tenant_id: string
+          updated_at: string
+        }
+        Insert: {
+          amount_cents: number
+          client_id?: string | null
+          contract_id?: string | null
+          created_at?: string
+          currency?: string
+          date_accrual: string
+          description: string
+          due_on: string
+          id?: string
+          invoice_ref?: string | null
+          invoice_status?: string
+          notes?: string | null
+          paid_on?: string | null
+          project_id?: string | null
+          status?: string
+          tenant_id?: string
+          updated_at?: string
+        }
+        Update: {
+          amount_cents?: number
+          client_id?: string | null
+          contract_id?: string | null
+          created_at?: string
+          currency?: string
+          date_accrual?: string
+          description?: string
+          due_on?: string
+          id?: string
+          invoice_ref?: string | null
+          invoice_status?: string
+          notes?: string | null
+          paid_on?: string | null
+          project_id?: string | null
+          status?: string
+          tenant_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fin_receivables_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fin_receivables_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "portal_client"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fin_receivables_contract_id_fkey"
+            columns: ["contract_id"]
+            isOneToOne: false
+            referencedRelation: "contracts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fin_receivables_contract_id_fkey"
+            columns: ["contract_id"]
+            isOneToOne: false
+            referencedRelation: "portal_contract"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fin_receivables_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fin_receivables_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      fin_suppliers: {
+        Row: {
+          category: string | null
+          created_at: string
+          default_amount_cents: number | null
+          doc_number: string | null
+          doc_type: string | null
+          id: string
+          name: string
+          note_status: string
+          notes: string | null
+          pay_day: number | null
+          pix_key: string | null
+          tenant_id: string
+          updated_at: string
+        }
+        Insert: {
+          category?: string | null
+          created_at?: string
+          default_amount_cents?: number | null
+          doc_number?: string | null
+          doc_type?: string | null
+          id?: string
+          name: string
+          note_status?: string
+          notes?: string | null
+          pay_day?: number | null
+          pix_key?: string | null
+          tenant_id?: string
+          updated_at?: string
+        }
+        Update: {
+          category?: string | null
+          created_at?: string
+          default_amount_cents?: number | null
+          doc_number?: string | null
+          doc_type?: string | null
+          id?: string
+          name?: string
+          note_status?: string
+          notes?: string | null
+          pay_day?: number | null
+          pix_key?: string | null
+          tenant_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fin_suppliers_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       media_assets: {
         Row: {
           access_note: string | null
@@ -1646,6 +2264,185 @@ export type Database = {
         }
         Relationships: []
       }
+      project_costs: {
+        Row: {
+          amount_cents: number | null
+          created_at: string
+          description: string
+          id: string
+          percent_passed: number | null
+          project_id: string
+          supplier_id: string | null
+          tenant_id: string
+          updated_at: string
+        }
+        Insert: {
+          amount_cents?: number | null
+          created_at?: string
+          description: string
+          id?: string
+          percent_passed?: number | null
+          project_id: string
+          supplier_id?: string | null
+          tenant_id?: string
+          updated_at?: string
+        }
+        Update: {
+          amount_cents?: number | null
+          created_at?: string
+          description?: string
+          id?: string
+          percent_passed?: number | null
+          project_id?: string
+          supplier_id?: string | null
+          tenant_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "project_costs_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "project_costs_supplier_id_fkey"
+            columns: ["supplier_id"]
+            isOneToOne: false
+            referencedRelation: "fin_suppliers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "project_costs_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      project_members: {
+        Row: {
+          created_at: string
+          project_id: string
+          role_on_project: string | null
+          tenant_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          project_id: string
+          role_on_project?: string | null
+          tenant_id?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          project_id?: string
+          role_on_project?: string | null
+          tenant_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "project_members_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "project_members_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      projects: {
+        Row: {
+          client_id: string | null
+          contract_url: string | null
+          created_at: string
+          currency: string
+          ends_on: string | null
+          id: string
+          name: string
+          payment_terms: string | null
+          proposal_url: string | null
+          scope: string | null
+          service_value_cents: number | null
+          slug: string
+          starts_on: string | null
+          status: string
+          tenant_id: string
+          type: string
+          updated_at: string
+        }
+        Insert: {
+          client_id?: string | null
+          contract_url?: string | null
+          created_at?: string
+          currency?: string
+          ends_on?: string | null
+          id?: string
+          name: string
+          payment_terms?: string | null
+          proposal_url?: string | null
+          scope?: string | null
+          service_value_cents?: number | null
+          slug: string
+          starts_on?: string | null
+          status?: string
+          tenant_id?: string
+          type: string
+          updated_at?: string
+        }
+        Update: {
+          client_id?: string | null
+          contract_url?: string | null
+          created_at?: string
+          currency?: string
+          ends_on?: string | null
+          id?: string
+          name?: string
+          payment_terms?: string | null
+          proposal_url?: string | null
+          scope?: string | null
+          service_value_cents?: number | null
+          slug?: string
+          starts_on?: string | null
+          status?: string
+          tenant_id?: string
+          type?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "projects_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "projects_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "portal_client"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "projects_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       published_posts: {
         Row: {
           created_at: string
@@ -1970,9 +2767,11 @@ export type Database = {
           cycle_id: string | null
           description: string | null
           due_at: string | null
+          follow_up_id: string | null
           id: string
           is_template: boolean
           priority: Database["public"]["Enums"]["task_priority"]
+          project_id: string | null
           status: Database["public"]["Enums"]["task_status"]
           tenant_id: string
           title: string
@@ -1987,9 +2786,11 @@ export type Database = {
           cycle_id?: string | null
           description?: string | null
           due_at?: string | null
+          follow_up_id?: string | null
           id?: string
           is_template?: boolean
           priority?: Database["public"]["Enums"]["task_priority"]
+          project_id?: string | null
           status?: Database["public"]["Enums"]["task_status"]
           tenant_id?: string
           title: string
@@ -2004,9 +2805,11 @@ export type Database = {
           cycle_id?: string | null
           description?: string | null
           due_at?: string | null
+          follow_up_id?: string | null
           id?: string
           is_template?: boolean
           priority?: Database["public"]["Enums"]["task_priority"]
+          project_id?: string | null
           status?: Database["public"]["Enums"]["task_status"]
           tenant_id?: string
           title?: string
@@ -2046,6 +2849,20 @@ export type Database = {
             columns: ["cycle_id"]
             isOneToOne: false
             referencedRelation: "cycles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tasks_follow_up_id_fkey"
+            columns: ["follow_up_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tasks_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
             referencedColumns: ["id"]
           },
           {

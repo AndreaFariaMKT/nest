@@ -26,7 +26,7 @@ export default async function EditProjectPage({
 
   const [{ data: project }, { data: clientData }, { data: memberData }, people] =
     await Promise.all([
-      pending(supabase)
+      supabase
         .from("projects")
         .select("*")
         .eq("id", id)
@@ -39,7 +39,7 @@ export default async function EditProjectPage({
         .neq("status", "archived")
         .order("name", { ascending: true })
         .limit(OPTION_LIST_CAP),
-      pending(supabase)
+      supabase
         .from("project_members")
         .select("user_id")
         .eq("project_id", id),

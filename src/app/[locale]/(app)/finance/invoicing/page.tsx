@@ -11,7 +11,8 @@ import {
   INVOICE_DEADLINE_BUSINESS_DAYS,
   invoiceQueue,
 } from "@/lib/invoicing";
-import { fin, type ReceivableRow } from "@/lib/finance-db";
+import {
+  type ReceivableRow } from "@/lib/finance-db";
 import { setInvoiceStatusAction } from "./actions";
 
 export const dynamic = "force-dynamic";
@@ -30,8 +31,7 @@ export default async function InvoicingPage({
   const today = todayIso();
 
   const [{ data: receivableData }, { data: clientData }] = await Promise.all([
-    fin(supabase)
-      .from("fin_receivables")
+    supabase.from("fin_receivables")
       .select(
         "id, client_id, project_id, description, amount_cents, currency, due_on, paid_on, date_accrual, status, invoice_status",
       )
@@ -46,13 +46,7 @@ export default async function InvoicingPage({
       .limit(OPTION_LIST_CAP),
   ]);
 
-  // `country` arrives with 048; until it is applied the generated types do not
-  // know it. Goes with @/lib/projects-db.
-  const clients = (clientData ?? []) as unknown as Array<{
-    id: string;
-    name: string;
-    country: string | null;
-  }>;
+  const clients = clientData ?? [];
   const clientById = new Map(clients.map((c) => [c.id, c]));
 
   const rows = ((receivableData ?? []) as ReceivableRow[]).map((r) => ({

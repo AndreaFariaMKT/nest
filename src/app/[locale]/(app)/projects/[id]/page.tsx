@@ -9,7 +9,10 @@ import { Pill } from "@/components/ui/Pill";
 import { Link } from "@/i18n/routing";
 import { todayIso } from "@/lib/social";
 import { isLate, projectProgress } from "@/lib/projects";
-import { pending, type ProjectRow } from "@/lib/projects-db";
+import {
+  pending,
+  type ProjectRowWithFlow as ProjectRow,
+} from "@/lib/projects-db";
 import { planFlow, type FlowStep } from "@/lib/project-flow";
 import { applyProjectFlowAction } from "../actions";
 import {
@@ -49,7 +52,7 @@ export default async function ProjectPage({
   const tenantId = await currentTenantId();
 
   const [{ data: projectData }, { data: taskData }, people] = await Promise.all([
-    pending(supabase)
+    supabase
       .from("projects")
       .select("*")
       .eq("id", id)
@@ -61,9 +64,7 @@ export default async function ProjectPage({
         "id, title, status, priority, due_at, assignee:profiles!tasks_assignee_id_fkey(full_name, email)",
       )
       .eq("tenant_id", tenantId)
-      // `project_id` arrives with 048; until it is applied the generated types
-      // do not know the column. Remove the cast with @/lib/projects-db.
-      .eq("project_id" as "client_id", id)
+      .eq("project_id", id)
       .eq("is_template", false)
       .order("due_at", { ascending: true, nullsFirst: false })
       .limit(OPTION_LIST_CAP),
@@ -71,7 +72,7 @@ export default async function ProjectPage({
   ]);
 
   if (!projectData) notFound();
-  const project = projectData as ProjectRow;
+  const project = projectData as unknown as ProjectRow;
 
   let clientName: string | null = null;
   if (project.client_id) {

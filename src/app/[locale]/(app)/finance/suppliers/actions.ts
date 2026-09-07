@@ -7,7 +7,6 @@ import { log } from "@/lib/log";
 import { createClient as createSupabaseClient } from "@/lib/supabase/server";
 import { currentTenantId } from "@/lib/tenant-server";
 import { parseBrlToCents } from "@/lib/money";
-import { fin } from "@/lib/finance-db";
 
 export type SupplierFormState = {
   error?: string;
@@ -63,13 +62,11 @@ export async function saveSupplierAction(
   };
 
   const { error } = id
-    ? await fin(supabase)
-        .from("fin_suppliers")
+    ? await supabase.from("fin_suppliers")
         .update(payload)
         .eq("id", id)
         .eq("tenant_id", tenantId)
-    : await fin(supabase)
-        .from("fin_suppliers")
+    : await supabase.from("fin_suppliers")
         .insert({ ...payload, tenant_id: tenantId });
 
   if (error) {
@@ -94,8 +91,7 @@ export async function deleteSupplierAction(formData: FormData): Promise<void> {
   // Entries and payables point here with `on delete set null`, so history
   // survives — removing a supplier removes the contact, not the record that
   // they were paid.
-  const { error } = await fin(supabase)
-    .from("fin_suppliers")
+  const { error } = await supabase.from("fin_suppliers")
     .delete()
     .eq("id", id)
     .eq("tenant_id", tenantId);

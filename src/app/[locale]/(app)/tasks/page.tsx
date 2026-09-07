@@ -79,14 +79,14 @@ export default async function TasksAndProjectsPage({
             .limit(8)
         : null,
       profile
-        ? pending(supabase)
+        ? supabase
             .from("project_members")
             .select("project_id")
             .eq("user_id", profile.id)
         : null,
       supabase
         .from("tasks")
-        .select("project_id, status" as "status")
+        .select("project_id, status")
         .eq("tenant_id", tenantId)
         .eq("is_template", false)
         .limit(OPTION_LIST_CAP),
@@ -109,7 +109,7 @@ export default async function TasksAndProjectsPage({
   // empty state and the link to all of them, which is honest — the alternative
   // is a "my projects" panel listing projects that are not theirs.
   const { data: projectData } = myProjectIds.length
-    ? await pending(supabase)
+    ? await supabase
         .from("projects")
         .select("*")
         .eq("tenant_id", tenantId)
@@ -120,10 +120,7 @@ export default async function TasksAndProjectsPage({
   const myProjects = (projectData ?? []) as ProjectRow[];
 
   const statusesByProject = new Map<string, string[]>();
-  for (const row of (taskStatusRows?.data ?? []) as unknown as Array<{
-    project_id: string | null;
-    status: string;
-  }>) {
+  for (const row of taskStatusRows?.data ?? []) {
     if (!row.project_id) continue;
     const list = statusesByProject.get(row.project_id) ?? [];
     list.push(row.status);

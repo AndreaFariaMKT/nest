@@ -20,6 +20,17 @@ const statusTone = {
   cancelled: "muted",
 } as const;
 
+/**
+ * `status` is a CHECK on a text column, so the generated type is `string`
+ * rather than the union. Narrowed here so a value the database allows but this
+ * screen has no styling for renders plainly instead of crashing the list.
+ */
+function toneFor(status: string): (typeof statusTone)[keyof typeof statusTone] {
+  return status in statusTone
+    ? statusTone[status as keyof typeof statusTone]
+    : "muted";
+}
+
 export default async function ProjectsPage({
   params,
 }: {
@@ -35,7 +46,7 @@ export default async function ProjectsPage({
 
   const [{ data: projectData }, { data: clientData }, { data: taskData }] =
     await Promise.all([
-      pending(supabase)
+      supabase
         .from("projects")
         .select(
           "id, client_id, name, slug, type, status, starts_on, ends_on, scope, tenant_id, created_at, updated_at",
@@ -53,7 +64,7 @@ export default async function ProjectsPage({
       // expensive way to draw a progress bar on a list.
       supabase
         .from("tasks")
-        .select("project_id, status" as "status")
+        .select("project_id, status")
         .eq("tenant_id", tenantId)
         .eq("is_template", false)
         .limit(OPTION_LIST_CAP),
@@ -65,12 +76,7 @@ export default async function ProjectsPage({
   );
 
   const statusesByProject = new Map<string, string[]>();
-  // `project_id` arrives with 048; the generated types do not know it yet, so
-  // the select types as an error rather than a row. Goes with @/lib/projects-db.
-  for (const row of (taskData ?? []) as unknown as Array<{
-    project_id: string | null;
-    status: string;
-  }>) {
+  for (const row of taskData ?? []) {
     if (!row.project_id) continue;
     const list = statusesByProject.get(row.project_id) ?? [];
     list.push(row.status);
@@ -128,7 +134,7 @@ export default async function ProjectsPage({
                           {t(`form.types.${project.type}`)}
                         </div>
                       </div>
-                      <Pill tone={statusTone[project.status] ?? "muted"}>
+                      <Pill tone={toneFor(project.status)}>
                         {t(`form.statuses.${project.status}`)}
                       </Pill>
                     </div>

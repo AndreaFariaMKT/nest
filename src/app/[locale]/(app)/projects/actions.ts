@@ -56,6 +56,9 @@ function readForm(formData: FormData) {
 
 type Form = ReturnType<typeof readForm>;
 
+/** A form that has been through validate(): `type` is settled. */
+type ValidForm = Form & { type: NonNullable<Form["type"]> };
+
 function validate(form: Form): ProjectFormState | null {
   if (form.name.length < 2) return { fieldErrors: { name: "tooShort" } };
   if (form.name.length > 120) return { fieldErrors: { name: "tooLong" } };
@@ -86,7 +89,7 @@ async function setMembers(
   tenantId: string,
   memberIds: string[],
 ) {
-  await pending(supabase).from("project_members").delete().eq("project_id", projectId);
+  await supabase.from("project_members").delete().eq("project_id", projectId);
   if (memberIds.length === 0) return null;
 
   const rows = memberIds.map((userId) => ({
@@ -94,7 +97,7 @@ async function setMembers(
     user_id: userId,
     tenant_id: tenantId,
   }));
-  const { error } = await pending(supabase).from("project_members").insert(rows);
+  const { error } = await supabase.from("project_members").insert(rows);
   return error;
 }
 
@@ -105,13 +108,16 @@ export async function createProjectAction(
   const form = readForm(formData);
   const invalid = validate(form);
   if (invalid) return invalid;
+  // validate() refuses a null type, so this narrowing is a statement of what
+  // already holds rather than an assumption.
+  const valid = form as ValidForm;
 
   const supabase = await createSupabaseClient();
   const tenantId = await currentTenantId();
 
   // Unique per tenant, not globally — two houses may both run a "Rebranding".
   const slug = await uniqueSlug(slugify(form.name), "projeto", async (s) => {
-    const { data } = await pending(supabase)
+    const { data } = await supabase
       .from("projects")
       .select("id")
       .eq("tenant_id", tenantId)
@@ -121,15 +127,15 @@ export async function createProjectAction(
     return !!data;
   });
 
-  const { data, error } = await pending(supabase)
+  const { data, error } = await supabase
     .from("projects")
     .insert({
       tenant_id: tenantId,
       client_id: form.clientId,
       name: form.name,
       slug,
-      type: form.type,
-      status: form.status,
+      type: valid.type,
+      status: valid.status,
       scope: form.scope,
       starts_on: form.startsOn,
       ends_on: form.endsOn,
@@ -175,17 +181,18 @@ export async function updateProjectAction(
   const form = readForm(formData);
   const invalid = validate(form);
   if (invalid) return invalid;
+  const valid = form as ValidForm;
 
   const supabase = await createSupabaseClient();
   const tenantId = await currentTenantId();
 
-  const { error } = await pending(supabase)
+  const { error } = await supabase
     .from("projects")
     .update({
       client_id: form.clientId,
       name: form.name,
-      type: form.type,
-      status: form.status,
+      type: valid.type,
+      status: valid.status,
       scope: form.scope,
       starts_on: form.startsOn,
       ends_on: form.endsOn,
@@ -225,7 +232,7 @@ export async function deleteProjectAction(formData: FormData): Promise<void> {
 
   // Tasks point here with `on delete set null`, so they survive as unfiled
   // work rather than disappearing with the engagement.
-  const { error } = await pending(supabase)
+  const { error } = await supabase
     .from("projects")
     .delete()
     .eq("id", id)
@@ -258,12 +265,18 @@ export async function applyProjectFlowAction(formData: FormData): Promise<void> 
   const supabase = await createSupabaseClient();
   const tenantId = await currentTenantId();
 
-  const { data: project } = await pending(supabase)
+  // `flow_applied_at` arrives with 052; until it is applied the generated
+  // types do not know the column. Goes with ProjectRowWithFlow.
+  const { data: projectData } = await supabase
     .from("projects")
-    .select("id, type, starts_on, flow_applied_at, client_id")
+    .select("id, type, starts_on, client_id")
     .eq("id", id)
     .eq("tenant_id", tenantId)
     .maybeSingle();
+
+  const project = projectData as
+    | (NonNullable<typeof projectData> & { flow_applied_at: string | null })
+    | null;
 
   if (!project || project.flow_applied_at) return;
 
@@ -274,7 +287,7 @@ export async function applyProjectFlowAction(formData: FormData): Promise<void> 
         .select("id, title, description, role, offset_days, priority, sort")
         .eq("tenant_id", tenantId)
         .eq("project_type", project.type),
-      pending(supabase)
+      supabase
         .from("project_members")
         .select("user_id, role_on_project")
         .eq("project_id", id),
@@ -318,9 +331,9 @@ export async function applyProjectFlowAction(formData: FormData): Promise<void> 
     return;
   }
 
-  await pending(supabase)
+  await supabase
     .from("projects")
-    .update({ flow_applied_at: new Date().toISOString() })
+    .update({ flow_applied_at: new Date().toISOString() } as never)
     .eq("id", id)
     .eq("tenant_id", tenantId);
 

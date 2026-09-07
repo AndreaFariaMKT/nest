@@ -9,7 +9,6 @@ import { currentTenantId } from "@/lib/tenant-server";
 import { getCurrentProfile } from "@/lib/auth";
 import { parseStatement } from "@/lib/bank-parse";
 import { dropAlreadyImported, reconcile, type Expected } from "@/lib/reconcile";
-import { fin } from "@/lib/finance-db";
 
 export type ImportState = {
   error?: string;
@@ -46,8 +45,7 @@ export async function importStatementAction(
   const profile = await getCurrentProfile();
 
   // Already-staged references, so pulling the month twice does not double it.
-  const { data: knownLines } = await fin(supabase)
-    .from("fin_import_lines")
+  const { data: knownLines } = await supabase.from("fin_import_lines")
     .select("external_ref")
     .eq("tenant_id", tenantId)
     .not("external_ref", "is", null);
@@ -64,14 +62,12 @@ export async function importStatementAction(
 
   // What the studio was expecting: everything still open, on both sides.
   const [{ data: receivables }, { data: payables }] = await Promise.all([
-    fin(supabase)
-      .from("fin_receivables")
+    supabase.from("fin_receivables")
       .select("id, amount_cents, due_on, description, client_id, status, paid_on")
       .eq("tenant_id", tenantId)
       .is("paid_on", null)
       .neq("status", "cancelled"),
-    fin(supabase)
-      .from("fin_payables")
+    supabase.from("fin_payables")
       .select("id, amount_cents, due_on, description, supplier_id, status, paid_on")
       .eq("tenant_id", tenantId)
       .is("paid_on", null)
@@ -80,7 +76,7 @@ export async function importStatementAction(
 
   const [{ data: clients }, { data: suppliers }] = await Promise.all([
     supabase.from("clients").select("id, name").eq("tenant_id", tenantId),
-    fin(supabase).from("fin_suppliers").select("id, name").eq("tenant_id", tenantId),
+    supabase.from("fin_suppliers").select("id, name").eq("tenant_id", tenantId),
   ]);
   const clientName = new Map((clients ?? []).map((c) => [c.id, c.name]));
   const supplierName = new Map(
@@ -128,8 +124,7 @@ export async function importStatementAction(
 
   const matches = reconcile(fresh, expected);
 
-  const { data: importRow, error: importError } = await fin(supabase)
-    .from("fin_imports")
+  const { data: importRow, error: importError } = await supabase.from("fin_imports")
     .insert({
       tenant_id: tenantId,
       account_id: accountId,
@@ -148,8 +143,7 @@ export async function importStatementAction(
     return { error: dbError(importError) };
   }
 
-  const { error: linesError } = await fin(supabase)
-    .from("fin_import_lines")
+  const { error: linesError } = await supabase.from("fin_import_lines")
     .insert(
       matches.map((m) => ({
         tenant_id: tenantId,
@@ -192,8 +186,7 @@ export async function confirmLineAction(formData: FormData): Promise<void> {
   const supabase = await createSupabaseClient();
   const tenantId = await currentTenantId();
 
-  const { data: line } = await fin(supabase)
-    .from("fin_import_lines")
+  const { data: line } = await supabase.from("fin_import_lines")
     .select("*")
     .eq("id", id)
     .eq("tenant_id", tenantId)
@@ -201,8 +194,7 @@ export async function confirmLineAction(formData: FormData): Promise<void> {
 
   if (!line || line.confirmed_at) return;
 
-  const { data: entry, error } = await fin(supabase)
-    .from("fin_entries")
+  const { data: entry, error } = await supabase.from("fin_entries")
     .insert({
       tenant_id: tenantId,
       account_id: accountId,
@@ -226,22 +218,19 @@ export async function confirmLineAction(formData: FormData): Promise<void> {
     return;
   }
 
-  await fin(supabase)
-    .from("fin_import_lines")
+  await supabase.from("fin_import_lines")
     .update({ confirmed_at: new Date().toISOString(), entry_id: entry.id })
     .eq("id", id)
     .eq("tenant_id", tenantId);
 
   // Close the thing it matched, when it matched one.
   if (line.matched_id && line.matched_kind === "receivable") {
-    await fin(supabase)
-      .from("fin_receivables")
+    await supabase.from("fin_receivables")
       .update({ paid_on: line.date, status: "paid" })
       .eq("id", line.matched_id)
       .eq("tenant_id", tenantId);
   } else if (line.matched_id && line.matched_kind === "payable") {
-    await fin(supabase)
-      .from("fin_payables")
+    await supabase.from("fin_payables")
       .update({ paid_on: line.date, status: "paid" })
       .eq("id", line.matched_id)
       .eq("tenant_id", tenantId);
@@ -261,8 +250,7 @@ export async function discardLineAction(formData: FormData): Promise<void> {
 
   // Staged only: a discarded line never became an entry, so there is nothing
   // in the ledger to undo.
-  await fin(supabase)
-    .from("fin_import_lines")
+  await supabase.from("fin_import_lines")
     .delete()
     .eq("id", id)
     .eq("tenant_id", tenantId)

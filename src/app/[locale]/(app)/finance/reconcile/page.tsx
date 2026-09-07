@@ -7,7 +7,6 @@ import { PageHeader } from "@/components/ui/PageHeader";
 import { Pill } from "@/components/ui/Pill";
 import { formatCentsAsBrl } from "@/lib/money";
 import {
-  fin,
   type AccountRow,
   type CategoryRow,
   type ImportLineRow,
@@ -23,6 +22,18 @@ const kindTone = {
   unmatched: "danger",
 } as const;
 
+/**
+ * `match_kind` is a CHECK on a text column, so the generated type is `string`
+ * rather than the union — narrow it here instead of casting at the point of
+ * use, so a value the database somehow allows that this screen has no styling
+ * for renders as a plain badge rather than crashing the page.
+ */
+function toneFor(kind: string): (typeof kindTone)[keyof typeof kindTone] | "muted" {
+  return kind in kindTone
+    ? kindTone[kind as keyof typeof kindTone]
+    : "muted";
+}
+
 export default async function ReconcilePage({
   params,
 }: {
@@ -37,21 +48,18 @@ export default async function ReconcilePage({
 
   const [{ data: lineData }, { data: accountData }, { data: categoryData }] =
     await Promise.all([
-      fin(supabase)
-        .from("fin_import_lines")
+      supabase.from("fin_import_lines")
         .select("*")
         .eq("tenant_id", tenantId)
         .is("confirmed_at", null)
         .order("date", { ascending: true })
         .limit(OPTION_LIST_CAP),
-      fin(supabase)
-        .from("fin_accounts")
+      supabase.from("fin_accounts")
         .select("id, tenant_id, name, institution, currency, kind, is_active")
         .eq("tenant_id", tenantId)
         .eq("is_active", true)
         .order("name", { ascending: true }),
-      fin(supabase)
-        .from("fin_categories")
+      supabase.from("fin_categories")
         .select("id, name, slug, kind, sort")
         .eq("tenant_id", tenantId)
         .order("sort", { ascending: true }),
@@ -116,7 +124,7 @@ export default async function ReconcilePage({
                       <span className="text-xs tabular-nums text-muted-foreground">
                         {line.date}
                       </span>
-                      <Pill tone={kindTone[line.match_kind]}>
+                      <Pill tone={toneFor(line.match_kind)}>
                         {t(`kinds.${line.match_kind}`)}
                       </Pill>
                       {/* Why it is not `auto`, said in words. An unexplained

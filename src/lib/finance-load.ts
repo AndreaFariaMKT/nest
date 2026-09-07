@@ -16,7 +16,6 @@ import {
   type FxRate,
 } from "@/lib/finance";
 import {
-  fin,
   balancesByAccount,
   type AccountRow,
   type CategoryRow,
@@ -41,43 +40,37 @@ export async function loadFinance(month?: string) {
 
   const [accountsRes, categoriesRes, entriesRes, receivablesRes, payablesRes, fxRes] =
     await Promise.all([
-      fin(supabase)
-        .from("fin_accounts")
+      supabase.from("fin_accounts")
         .select("id, tenant_id, name, institution, currency, kind, is_active")
         .eq("tenant_id", tenantId)
         .eq("is_active", true)
         .order("name", { ascending: true }),
-      fin(supabase)
-        .from("fin_categories")
+      supabase.from("fin_categories")
         .select("id, name, slug, kind, sort")
         .eq("tenant_id", tenantId)
         .order("sort", { ascending: true }),
-      fin(supabase)
-        .from("fin_entries")
+      supabase.from("fin_entries")
         .select(
           "id, account_id, category_id, description, amount_cents, currency, date_cash, date_accrual, client_id, project_id, supplier_id, reconciled, external_ref",
         )
         .eq("tenant_id", tenantId)
         .order("date_cash", { ascending: false })
         .limit(OPTION_LIST_CAP),
-      fin(supabase)
-        .from("fin_receivables")
+      supabase.from("fin_receivables")
         .select(
           "id, client_id, project_id, description, amount_cents, currency, due_on, paid_on, date_accrual, status, invoice_status",
         )
         .eq("tenant_id", tenantId)
         .order("due_on", { ascending: true })
         .limit(OPTION_LIST_CAP),
-      fin(supabase)
-        .from("fin_payables")
+      supabase.from("fin_payables")
         .select(
           "id, supplier_id, category_id, description, amount_cents, currency, due_on, paid_on, date_accrual, status",
         )
         .eq("tenant_id", tenantId)
         .order("due_on", { ascending: true })
         .limit(OPTION_LIST_CAP),
-      fin(supabase)
-        .from("fin_fx_rates")
+      supabase.from("fin_fx_rates")
         .select("day, base, quote, rate")
         .eq("tenant_id", tenantId)
         .order("day", { ascending: false })

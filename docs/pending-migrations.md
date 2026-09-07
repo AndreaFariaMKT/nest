@@ -1,6 +1,26 @@
-# Migrations 048–052 — o que aplicar, e por que não pelo `db push`
+# Migrations — estado
 
-**Estado:** escritas, testadas contra o código, **não aplicadas**.
+**048, 049, 050 e 051 estão aplicadas** (07/09/2026). Os tipos foram
+regenerados e os contornos temporários saíram: `finance-db.ts` e
+`projects-db.ts` agora só reexportam os tipos gerados, e os casts pontuais
+das telas foram removidos.
+
+**A 052 não aplicou.** Nem a tabela `project_flow_steps`, nem a coluna
+`projects.flow_applied_at` aparecem no schema regenerado — provavelmente o
+arquivo não chegou a rodar. O flow automático de projeto está construído e
+testado, mas não funciona até ela subir.
+
+O que ainda depende dela:
+
+| onde | o quê |
+|---|---|
+| `src/lib/projects-db.ts` | `pending()` e `ProjectRowWithFlow` |
+| `projects/actions.ts` | `applyProjectFlowAction`, e um `as never` no update |
+| `projects/[id]/page.tsx` | a prévia do flow |
+
+Depois de aplicar a 052: `npm run types:gen`, apagar `pending()` e
+`ProjectRowWithFlow` de `projects-db.ts`, e trocar as duas leituras de
+`pending(supabase).from("project_flow_steps")` pelo cliente normal.
 
 O app compila, os testes passam e o build gera 123 rotas — mas tudo que toca
 essas tabelas passa por três arquivos de contorno temporários. Enquanto as
