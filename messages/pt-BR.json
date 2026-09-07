@@ -55,7 +55,7 @@
   },
   "finance": {
     "title": "Financeiro",
-    "subtitle": "Contratos ativos e receita recorrente.",
+    "subtitle": "Onde o dinheiro está hoje e o que muda até o fim do mês.",
     "mrr": "MRR ativo",
     "activeContracts": "Contratos ativos",
     "onRetainer": "Clientes em retainer",
@@ -66,6 +66,46 @@
       "contract": "Contrato",
       "period": "Período",
       "monthly": "Mensal"
+    },
+    "contractsLink": "Contratos",
+    "months": "meses",
+    "measures": {
+      "receivable": "A receber · aberto",
+      "receivableHint": "O que os clientes ainda devem.",
+      "payable": "A pagar · aberto",
+      "payableHint": "O que o studio ainda deve.",
+      "balance": "Balanço do mês",
+      "balanceHint": "Caixa: o que entrou menos o que saiu.",
+      "profit": "Lucro do mês",
+      "profitHint": "Competência · margem de {margin}%",
+      "working": "Capital de giro",
+      "workingHint": "Cobre {months} de custo.",
+      "reserve": "Reserva",
+      "reserveHint": "Fora da operação · cobre {months}."
+    },
+    "accounts": "Onde está o dinheiro",
+    "noAccounts": "Nenhuma conta cadastrada ainda.",
+    "kindOperating": "operacional",
+    "kindReserve": "reserva",
+    "rateToday": "Câmbio de hoje: {rate}",
+    "noRateToday": "Sem câmbio de hoje — valores em dólar não entram nos totais.",
+    "noRate": "{count} em moeda sem câmbio registrado.",
+    "spendByCategory": "Saída por categoria",
+    "noSpend": "Nenhuma saída neste mês.",
+    "receivables": "A receber",
+    "noReceivables": "Nada em aberto.",
+    "noClient": "Sem cliente",
+    "late": "Atrasado",
+    "overdueCount": "{count} em atraso.",
+    "invoice": {
+      "pending": "NF a solicitar",
+      "requested": "NF solicitada",
+      "issued": "NF emitida",
+      "export": "Exportação"
+    },
+    "contracts": {
+      "title": "Contratos",
+      "subtitle": "Contratos ativos e receita recorrente."
     }
   },
   "overview": {

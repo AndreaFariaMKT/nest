@@ -55,7 +55,7 @@
   },
   "finance": {
     "title": "Finance",
-    "subtitle": "Active contracts and recurring revenue.",
+    "subtitle": "Where the money is today, and what changes by month end.",
     "mrr": "Active MRR",
     "activeContracts": "Active contracts",
     "onRetainer": "Clients on retainer",
@@ -66,6 +66,46 @@
       "contract": "Contract",
       "period": "Period",
       "monthly": "Monthly"
+    },
+    "contractsLink": "Contracts",
+    "months": "months",
+    "measures": {
+      "receivable": "Receivable · open",
+      "receivableHint": "What clients still owe.",
+      "payable": "Payable · open",
+      "payableHint": "What the studio still owes.",
+      "balance": "Month balance",
+      "balanceHint": "Cash: what came in minus what went out.",
+      "profit": "Month profit",
+      "profitHint": "Accrual · {margin}% margin",
+      "working": "Working capital",
+      "workingHint": "Covers {months} of cost.",
+      "reserve": "Reserve",
+      "reserveHint": "Outside operations · covers {months}."
+    },
+    "accounts": "Where the money is",
+    "noAccounts": "No accounts yet.",
+    "kindOperating": "operating",
+    "kindReserve": "reserve",
+    "rateToday": "Today's rate: {rate}",
+    "noRateToday": "No rate for today — dollar amounts are left out of the totals.",
+    "noRate": "{count} in a currency with no recorded rate.",
+    "spendByCategory": "Spend by category",
+    "noSpend": "No spend this month.",
+    "receivables": "Receivables",
+    "noReceivables": "Nothing open.",
+    "noClient": "No client",
+    "late": "Late",
+    "overdueCount": "{count} overdue.",
+    "invoice": {
+      "pending": "Invoice to request",
+      "requested": "Invoice requested",
+      "issued": "Invoice issued",
+      "export": "Export"
+    },
+    "contracts": {
+      "title": "Contracts",
+      "subtitle": "Active contracts and recurring revenue."
     }
   },
   "overview": {
