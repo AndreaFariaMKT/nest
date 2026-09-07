@@ -684,6 +684,49 @@ Não pertencem a nenhuma sprint específica — vão acontecendo em paralelo.
 
 ---
 
+## 4.9 Hub NEST — ajustes da Andréa (set/2026) · **feito**
+
+Os oito itens do e-mail de 5 de setembro, mais o módulo financeiro do
+protótipo HTML feito com a Aline. Migrations **048–052 escritas e ainda não
+aplicadas** — ver [docs/pending-migrations.md](./docs/pending-migrations.md).
+
+- [x] **1. Tela de início** — bloco Liderança com design próprio (projetos
+  ativos, em negociação, receita esperada, receita em caixa) e o olho que
+  esconde os dois valores. A data saía "Quinta-Feira, 27 De Agosto": era
+  `capitalize`, que é por palavra. O "corrigir o é" já estava resolvido pelo
+  `08145c1`, que trocou a fonte que não sabia escrever português.
+- [x] **2. Tarefas e projetos** — uma tela com três blocos (minhas tarefas,
+  notificações, meus projetos), não abas. O kanban geral foi para
+  `/tasks/board`; cada projeto abre o seu. Prazo sem hora, "cliente" virou
+  "projeto", e o responsável agora são dois: execução e acompanhamento.
+- [x] **3. Emoji nas mensagens** — sem dependência nova, inserindo no cursor.
+- [x] **4. Conteúdo → Operação** — os dois grupos se fundiram.
+- [x] **5. Projetos** — entidade nova (048): sete tipos, escopo editável,
+  equipe, cliente ou interno. Comercial em 050: contrato, proposta, valor,
+  formas de pagamento e `project_costs` (fornecedor + % repassada).
+- [x] **6. Tirar as funções de conteúdo do menu** — alcançadas pelo projeto.
+- [x] **7. Tela equipe** — cargo e departamento (047).
+- [x] **8. Financeiro + fornecedores no Diretório**
+
+### O módulo financeiro (049, 051)
+
+- [x] Contas, categorias, fornecedores, lançamentos, a receber, a pagar, câmbio
+- [x] Dashboard com as seis medidas, contas e saída por categoria
+- [x] Fluxo de caixa mês e ano
+- [x] Conciliação bancária — OFX e CSV, com o casamento em três níveis
+- [x] Fila de nota fiscal com as três regras do manual
+- [x] Flow automático por tipo de projeto (052)
+
+**A decisão que sustenta o módulo:** todo lançamento tem duas datas — caixa
+(quando o dinheiro se moveu) e competência (a que mês pertence). Balanço sai da
+primeira, lucro da segunda, e os dois **não** batem de propósito.
+
+- [ ] Pacote mensal para a contabilidade (envio + retorno)
+- [ ] Árvore de documentos do Manual Financeiro
+- [ ] Fatura de cartão detalhada em itens
+
+---
+
 ## 5. Post-v1 (v1.5 e além)
 
 Não entram antes da v1 em produção. Prioridade aproximada:
