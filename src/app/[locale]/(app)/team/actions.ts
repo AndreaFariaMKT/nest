@@ -99,12 +99,7 @@ export async function inviteMemberAction(
   if (jobTitle || department) {
     const { error: profileError } = await admin
       .from("profiles")
-      // `as never` until migration 047 reaches the database that
-      // `npm run types:gen` reads from — it generates against the live schema,
-      // so job_title/department are absent from database.gen.ts until then.
-      // Remove this cast (and the one in team/page.tsx) after:
-      //   supabase db push && npm run types:gen
-      .update({ job_title: jobTitle, department } as never)
+      .update({ job_title: jobTitle, department })
       .eq("id", invitedId);
     if (profileError) {
       log.error("team.invite", "profile_details_failed", {

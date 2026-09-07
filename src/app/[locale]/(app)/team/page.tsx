@@ -53,12 +53,8 @@ export default async function TeamPage({
         .select("id, email, full_name, job_title, department")
         .in("id", ids)
     : { data: [] };
-  // `as unknown as` for the same reason as the cast in ./actions.ts: 047 adds
-  // job_title/department, and database.gen.ts is generated from the live
-  // schema, so the select types as an error until the migration is applied.
-  // Remove after: supabase db push && npm run types:gen
   const byId = new Map(
-    ((profileData ?? []) as unknown as Profile[]).map((p) => [p.id, p]),
+    ((profileData ?? []) as Profile[]).map((p) => [p.id, p]),
   );
 
   const rows = members
