@@ -10,6 +10,8 @@ import { Link } from "@/i18n/routing";
 import { todayIso } from "@/lib/social";
 import { isLate, projectProgress } from "@/lib/projects";
 import { pending, type ProjectRow } from "@/lib/projects-db";
+import { planFlow, type FlowStep } from "@/lib/project-flow";
+import { applyProjectFlowAction } from "../actions";
 import {
   KanbanBoard,
   type KanbanTask,
@@ -98,6 +100,21 @@ export default async function ProjectPage({
     },
   );
 
+  // What the flow would create, computed but not written. Showing the plan
+  // before the button rather than after it is the difference between a feature
+  // people try and one they avoid.
+  const { data: stepData } = await pending(supabase)
+    .from("project_flow_steps")
+    .select("id, title, description, role, offset_days, priority, sort")
+    .eq("tenant_id", tenantId)
+    .eq("project_type", project.type);
+
+  const steps = (stepData ?? []) as FlowStep[];
+  const flowPreview =
+    steps.length > 0 && !project.flow_applied_at
+      ? planFlow(steps, project.starts_on ?? todayIso(), [], [])
+      : [];
+
   const progress = projectProgress(tasks.map((task) => task.status));
   const late = isLate(project, todayIso());
 
@@ -163,6 +180,37 @@ export default async function ProjectPage({
           </section>
         ) : null}
       </header>
+
+      {flowPreview.length > 0 ? (
+        <section className="mb-5 rounded-2xl border border-brand/25 bg-brand-soft/30 p-5">
+          <h2 className="mb-1 text-[11px] font-medium uppercase tracking-wide text-brand-soft-foreground">
+            {t("flow.title")}
+          </h2>
+          <p className="mb-3 text-sm text-muted-foreground">
+            {t("flow.hint", { count: flowPreview.length })}
+          </p>
+          <ol className="mb-4 space-y-1 text-sm">
+            {flowPreview.map((step, i) => (
+              <li key={i} className="flex justify-between gap-3">
+                <span className="min-w-0 truncate">{step.title}</span>
+                <span className="shrink-0 text-xs tabular-nums text-muted-foreground">
+                  {step.due_on}
+                </span>
+              </li>
+            ))}
+          </ol>
+          <form action={applyProjectFlowAction}>
+            <input type="hidden" name="id" value={project.id} />
+            <input type="hidden" name="locale" value={locale} />
+            <button
+              type="submit"
+              className="inline-flex h-10 items-center justify-center rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
+            >
+              {t("flow.apply")}
+            </button>
+          </form>
+        </section>
+      ) : null}
 
       <KanbanBoard
         locale={locale}

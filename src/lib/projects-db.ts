@@ -35,6 +35,9 @@ export type ProjectRow = {
   service_value_cents: number | null;
   currency: string;
   payment_terms: string | null;
+  // 052 — set once the type's standard flow has been run, so it cannot be run
+  // twice and double the board.
+  flow_applied_at: string | null;
   created_at: string;
   updated_at: string;
 };
@@ -48,7 +51,7 @@ export type ProjectMemberRow = {
 };
 
 /** The two tables 048 adds, addressable before the generated types know them. */
-type PendingTables = "projects" | "project_members";
+type PendingTables = "projects" | "project_members" | "project_flow_steps";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type LooseClient = { from: (table: PendingTables) => any };

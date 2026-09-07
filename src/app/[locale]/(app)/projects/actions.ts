@@ -9,6 +9,8 @@ import { createClient as createSupabaseClient } from "@/lib/supabase/server";
 import { currentTenantId } from "@/lib/tenant-server";
 import { slugify, uniqueSlug } from "@/lib/slug";
 import { parseBrlToCents } from "@/lib/money";
+import { studioDayInstant, todayIso } from "@/lib/social";
+import { planFlow, type FlowStep } from "@/lib/project-flow";
 import { isProjectStatus, isProjectType } from "@/lib/projects";
 // Temporary while 048 is unapplied — see the file for why.
 import { pending } from "@/lib/projects-db";
@@ -233,4 +235,95 @@ export async function deleteProjectAction(formData: FormData): Promise<void> {
 
   revalidatePath(`/${locale}/projects`);
   redirect(localePath(locale, "/projects"));
+}
+
+/**
+ * Run a project type's flow, creating its tasks.
+ *
+ * Guarded by `flow_applied_at`: running it twice would double the board, and
+ * the second run is always an accident. Re-running deliberately means clearing
+ * that column, which is a decision rather than a double-click.
+ *
+ * Dates come out as business days from the project's start — see
+ * @/lib/project-flow — and each task is assigned to whoever holds the step's
+ * role on this project, falling back to the tenant. A step whose role nobody
+ * holds is still created, unassigned: work that is visible and unowned beats
+ * work that was silently dropped.
+ */
+export async function applyProjectFlowAction(formData: FormData): Promise<void> {
+  const id = (formData.get("id") ?? "").toString();
+  const locale = (formData.get("locale") ?? "pt-BR").toString();
+  if (!id) return;
+
+  const supabase = await createSupabaseClient();
+  const tenantId = await currentTenantId();
+
+  const { data: project } = await pending(supabase)
+    .from("projects")
+    .select("id, type, starts_on, flow_applied_at, client_id")
+    .eq("id", id)
+    .eq("tenant_id", tenantId)
+    .maybeSingle();
+
+  if (!project || project.flow_applied_at) return;
+
+  const [{ data: stepData }, { data: memberData }, { data: tenantMembers }] =
+    await Promise.all([
+      pending(supabase)
+        .from("project_flow_steps")
+        .select("id, title, description, role, offset_days, priority, sort")
+        .eq("tenant_id", tenantId)
+        .eq("project_type", project.type),
+      pending(supabase)
+        .from("project_members")
+        .select("user_id, role_on_project")
+        .eq("project_id", id),
+      supabase
+        .from("tenant_members")
+        .select("user_id, role")
+        .eq("tenant_id", tenantId),
+    ]);
+
+  const steps = (stepData ?? []) as FlowStep[];
+  if (steps.length === 0) return;
+
+  const planned = planFlow(
+    steps,
+    // A project with no start date runs from today rather than refusing: the
+    // flow is more useful slightly wrong about dates than not run at all.
+    project.starts_on ?? todayIso(),
+    ((memberData ?? []) as Array<{ user_id: string; role_on_project: string | null }>)
+      .map((m) => ({ user_id: m.user_id, role: m.role_on_project })),
+    ((tenantMembers ?? []) as Array<{ user_id: string; role: string }>)
+      .map((m) => ({ user_id: m.user_id, role: m.role })),
+  );
+
+  const { error } = await supabase.from("tasks").insert(
+    planned.map((task) => ({
+      tenant_id: tenantId,
+      title: task.title,
+      description: task.description,
+      status: "todo" as const,
+      priority: task.priority as "low" | "medium" | "high" | "urgent",
+      due_at: studioDayInstant(task.due_on),
+      assignee_id: task.assignee_id,
+      client_id: project.client_id,
+      is_template: false,
+      ...({ project_id: id } as Record<string, string>),
+    })),
+  );
+
+  if (error) {
+    log.error("projects.flow", "insert_failed", { code: error.code });
+    return;
+  }
+
+  await pending(supabase)
+    .from("projects")
+    .update({ flow_applied_at: new Date().toISOString() })
+    .eq("id", id)
+    .eq("tenant_id", tenantId);
+
+  revalidatePath(`/${locale}/projects/${id}`);
+  revalidatePath(`/${locale}/tasks`);
 }

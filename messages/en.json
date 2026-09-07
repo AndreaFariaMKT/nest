@@ -746,6 +746,11 @@
       "proposalUrl": "Proposal link",
       "paymentTerms": "Payment terms and dates",
       "paymentTermsHint": "As the contract words it. Dated charges live in finance, where they can be chased."
+    },
+    "flow": {
+      "title": "Project flow",
+      "hint": "This project type has a standard flow of {count} steps. Applying creates the tasks with due dates in business days from the start, assigned to whoever holds each role.",
+      "apply": "Apply the flow"
     }
   },
   "tasks": {

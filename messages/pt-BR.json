@@ -746,6 +746,11 @@
       "proposalUrl": "Link da proposta",
       "paymentTerms": "Formas e datas de pagamento",
       "paymentTermsHint": "Como está escrito no contrato. As cobranças com data entram no financeiro, onde podem ser acompanhadas."
+    },
+    "flow": {
+      "title": "Flow do projeto",
+      "hint": "Este tipo de projeto tem um fluxo padrão de {count} etapas. Aplicar cria as tarefas com prazo em dias úteis a partir do início, atribuídas a quem ocupa cada papel.",
+      "apply": "Aplicar o flow"
     }
   },
   "tasks": {
