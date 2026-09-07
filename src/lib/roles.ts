@@ -74,6 +74,7 @@ export const NAV: Record<string, NavItem> = {
   meetings: { key: "meetings", href: "/meetings", label: "meetings", icon: MeetingsIcon },
   settings: { key: "settings", href: "/settings", label: "settings", icon: SettingsIcon },
   finance: { key: "finance", href: "/finance", label: "finance", icon: CoinIcon },
+  cashflow: { key: "cashflow", href: "/finance/cashflow", label: "cashflow", icon: ChartIcon },
   commercial: { key: "commercial", href: "/commercial", label: "commercial", icon: FunnelIcon },
   marketing: { key: "marketing", href: "/marketing", label: "marketing", icon: MegaphoneIcon },
   // The content engine's own board. /production-queue pointed at the same
@@ -122,7 +123,7 @@ export interface NavGroup {
 export const NAV_BY_ROLE: Record<AppRole, NavGroup[]> = {
   founder: [
     { group: "daily", keys: ["home", "tasks", "calendar", "meetings", "messages"] },
-    { group: "leadership", keys: ["admin", "finance", "commercial", "marketing"] },
+    { group: "leadership", keys: ["admin", "finance", "cashflow", "commercial", "marketing"] },
     { group: "insights", keys: ["reports", "socialReport"] },
     // "Área conteúdo trocar nome para operação", and the studio already had an
     // Operação group — so they merge rather than sitting one above the other

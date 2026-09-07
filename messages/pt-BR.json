@@ -52,7 +52,8 @@
     "performance": "Performance",
     "waitingOnYou": "Esperando você",
     "errors": "Erros",
-    "suppliers": "Fornecedores"
+    "suppliers": "Fornecedores",
+    "cashflow": "Fluxo de caixa"
   },
   "finance": {
     "title": "Financeiro",
@@ -134,6 +135,40 @@
       "errors": {
         "tooShort": "Nome muito curto.",
         "invalid": "Valor inválido."
+      }
+    },
+    "cashflow": {
+      "title": "Fluxo de caixa",
+      "subtitleMonth": "Tudo do mês em uma página.",
+      "subtitleYear": "Os doze meses de caixa e lucro.",
+      "tabs": {
+        "month": "Mês",
+        "year": "Ano"
+      },
+      "inflow": "Entrou",
+      "outflow": "Saiu",
+      "balance": "Balanço",
+      "profit": "Lucro",
+      "toProfit": "Da receita ao lucro",
+      "revenue": "Receita",
+      "cost": "Custo operacional",
+      "margin": "margem de {margin}%",
+      "twoDates": "O balanço é caixa: o que entrou e saiu na conta. O lucro é apurado pela data da nota, que é o critério da contabilidade. Os dois convivem e não precisam bater.",
+      "entries": "Lançamentos de {month}",
+      "noEntries": "Nenhum lançamento neste período.",
+      "differentMonth": "A competência é de outro mês — é daqui que vem a diferença entre balanço e lucro.",
+      "yearTitle": "Mês a mês · {year}",
+      "yes": "Sim",
+      "pendingWord": "Pendente",
+      "th": {
+        "cash": "Caixa",
+        "accrual": "Competência",
+        "description": "Descrição",
+        "category": "Categoria",
+        "account": "Conta",
+        "amount": "Valor",
+        "reconciled": "Conciliado",
+        "month": "Mês"
       }
     }
   },

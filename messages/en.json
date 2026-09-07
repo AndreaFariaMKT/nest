@@ -52,7 +52,8 @@
     "performance": "Performance",
     "waitingOnYou": "Waiting on you",
     "errors": "Errors",
-    "suppliers": "Suppliers"
+    "suppliers": "Suppliers",
+    "cashflow": "Cash flow"
   },
   "finance": {
     "title": "Finance",
@@ -134,6 +135,40 @@
       "errors": {
         "tooShort": "Name is too short.",
         "invalid": "Invalid amount."
+      }
+    },
+    "cashflow": {
+      "title": "Cash flow",
+      "subtitleMonth": "The whole month on one page.",
+      "subtitleYear": "Twelve months of cash and profit.",
+      "tabs": {
+        "month": "Month",
+        "year": "Year"
+      },
+      "inflow": "In",
+      "outflow": "Out",
+      "balance": "Balance",
+      "profit": "Profit",
+      "toProfit": "From revenue to profit",
+      "revenue": "Revenue",
+      "cost": "Operating cost",
+      "margin": "{margin}% margin",
+      "twoDates": "The balance is cash: what entered and left the account. Profit is measured by the invoice date, which is the accountant's basis. The two coexist and are not meant to agree.",
+      "entries": "Entries for {month}",
+      "noEntries": "No entries in this period.",
+      "differentMonth": "Accrual falls in another month — this is where the gap between balance and profit comes from.",
+      "yearTitle": "Month by month · {year}",
+      "yes": "Yes",
+      "pendingWord": "Pending",
+      "th": {
+        "cash": "Cash",
+        "accrual": "Accrual",
+        "description": "Description",
+        "category": "Category",
+        "account": "Account",
+        "amount": "Amount",
+        "reconciled": "Reconciled",
+        "month": "Month"
       }
     }
   },
