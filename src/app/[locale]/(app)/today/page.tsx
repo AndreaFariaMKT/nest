@@ -3,12 +3,15 @@ import { setRequestLocale, getTranslations } from "next-intl/server";
 import { Link } from "@/i18n/routing";
 import type { Route } from "next";
 import { Pill } from "@/components/ui/Pill";
-import { HideableStat } from "./_components/HideableStat";
+import { LeadershipBlock } from "./_components/LeadershipBlock";
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentProfile } from "@/lib/auth";
 import { getCurrentRole } from "@/lib/roles-server";
 import { currentTenantId } from "@/lib/tenant-server";
 import { formatCentsAsBrl, sumCents } from "@/lib/money";
+import { loadFinance } from "@/lib/finance-load";
+// Aliased: this file already has a local `pending` for the approvals list.
+import { pending as pendingTables } from "@/lib/projects-db";
 import type { MeetingStatus, TaskPriority, TaskStatus } from "@/types/database";
 
 type PendingApproval = {
@@ -171,6 +174,37 @@ export default async function TodayPage({
   const mrrCents = sumCents(
     (contractRows?.data ?? []).map((c) => c.monthly_value_cents),
   );
+  // The leadership block. Owner-only and loaded after the wave above rather
+  // than inside it: a non-founder issues none of these reads at all, which is
+  // the same shape the three owner stats already use.
+  let leadership: {
+    activeProjects: number;
+    negotiatingProjects: number;
+    expectedRevenue: string;
+    cashRevenue: string;
+  } | null = null;
+
+  if (ownerView) {
+    const [{ data: projectRows }, finance] = await Promise.all([
+      pendingTables(supabase)
+        .from("projects")
+        .select("status")
+        .eq("tenant_id", tenantId),
+      loadFinance(),
+    ]);
+    const statuses = ((projectRows ?? []) as Array<{ status: string }>).map(
+      (p) => p.status,
+    );
+    leadership = {
+      activeProjects: statuses.filter((s) => s === "active").length,
+      negotiatingProjects: statuses.filter((s) => s === "negotiating").length,
+      // The same month measured two ways — see LeadershipBlock and
+      // @/lib/finance for why they differ and why both are shown.
+      expectedRevenue: formatCentsAsBrl(finance.monthAccrual.revenue),
+      cashRevenue: formatCentsAsBrl(finance.monthCash.inflow),
+    };
+  }
+
   const tasks = (taskRows?.data ?? []) as TodayTask[];
   const meetings = (meetingsData?.data ?? []) as unknown as TodayMeeting[];
   const pending = (awaitingClient?.data ?? []) as unknown as PendingApproval[];
@@ -192,6 +226,10 @@ export default async function TodayPage({
         <p className="mt-1 text-sm text-muted-foreground">{t("subtitle")}</p>
       </header>
 
+      {ownerView && leadership ? (
+        <LeadershipBlock figures={leadership} />
+      ) : null}
+
       {ownerView ? (
         <div className="mb-6 grid grid-cols-2 gap-4 lg:grid-cols-3">
           <Stat label={t("stats.activeClients")} value={String(activeClients)} />
@@ -199,7 +237,7 @@ export default async function TodayPage({
             label={t("stats.activeServices")}
             value={String(activeServices)}
           />
-          <HideableStat
+          <Stat
             label={t("stats.monthlyRevenue")}
             value={formatCentsAsBrl(mrrCents)}
           />

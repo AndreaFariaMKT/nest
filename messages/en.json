@@ -439,6 +439,15 @@
         "title": "Pending approvals",
         "empty": "Nothing with a client right now. When a piece goes out for approval it appears here."
       }
+    },
+    "leadership": {
+      "title": "Leadership",
+      "activeProjects": "Active projects",
+      "negotiating": "In negotiation",
+      "expected": "Expected revenue",
+      "expectedHint": "What the month earned",
+      "cash": "Cash revenue",
+      "cashHint": "What reached the account"
     }
   },
   "clients": {

@@ -439,6 +439,15 @@
         "title": "Aprovações pendentes",
         "empty": "Nada com cliente agora. Quando uma peça for enviada para aprovação, ela aparece aqui."
       }
+    },
+    "leadership": {
+      "title": "Liderança",
+      "activeProjects": "Projetos ativos",
+      "negotiating": "Em negociação",
+      "expected": "Receita esperada",
+      "expectedHint": "O que o mês faturou",
+      "cash": "Receita em caixa",
+      "cashHint": "O que entrou na conta"
     }
   },
   "clients": {
