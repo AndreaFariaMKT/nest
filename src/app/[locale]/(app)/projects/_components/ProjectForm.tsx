@@ -178,6 +178,84 @@ export function ProjectForm({
         </div>
       </fieldset>
 
+      {/* The commercials. "Financeiro: Contrato, Proposta, ... valor do
+          serviço, formas e datas dos pagamentos acordados." The fiscal data
+          from the same sentence lives on the client — see the note above. */}
+      <fieldset className="space-y-4 rounded-2xl border border-border p-4">
+        <legend className="px-1 text-sm font-medium">{t("finance")}</legend>
+
+        <div className="grid gap-4 sm:grid-cols-2">
+          <div className="space-y-1.5">
+            <Label htmlFor="service_value">{t("serviceValue")}</Label>
+            <Input
+              id="service_value"
+              name="service_value"
+              inputMode="decimal"
+              placeholder="0,00"
+              defaultValue={
+                initial?.service_value_cents != null
+                  ? (initial.service_value_cents / 100).toLocaleString("pt-BR", {
+                      minimumFractionDigits: 2,
+                    })
+                  : ""
+              }
+            />
+            {state.fieldErrors?.value ? (
+              <FormError error={t(`errors.${state.fieldErrors.value}`)} />
+            ) : null}
+          </div>
+          <div className="space-y-1.5">
+            <Label htmlFor="currency">{t("currency")}</Label>
+            <select
+              id="currency"
+              name="currency"
+              defaultValue={initial?.currency ?? "BRL"}
+              className="h-10 w-full rounded-md border border-input bg-background px-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+            >
+              <option value="BRL">BRL</option>
+              <option value="USD">USD</option>
+            </select>
+          </div>
+        </div>
+
+        <div className="grid gap-4 sm:grid-cols-2">
+          <div className="space-y-1.5">
+            <Label htmlFor="contract_url">{t("contractUrl")}</Label>
+            <Input
+              id="contract_url"
+              name="contract_url"
+              type="url"
+              maxLength={500}
+              defaultValue={initial?.contract_url ?? ""}
+            />
+          </div>
+          <div className="space-y-1.5">
+            <Label htmlFor="proposal_url">{t("proposalUrl")}</Label>
+            <Input
+              id="proposal_url"
+              name="proposal_url"
+              type="url"
+              maxLength={500}
+              defaultValue={initial?.proposal_url ?? ""}
+            />
+          </div>
+        </div>
+
+        <div className="space-y-1.5">
+          <Label htmlFor="payment_terms">{t("paymentTerms")}</Label>
+          <Textarea
+            id="payment_terms"
+            name="payment_terms"
+            rows={3}
+            maxLength={1000}
+            defaultValue={initial?.payment_terms ?? ""}
+          />
+          <p className="text-xs text-muted-foreground">
+            {t("paymentTermsHint")}
+          </p>
+        </div>
+      </fieldset>
+
       <div className="space-y-1.5">
         <Label htmlFor="scope">{t("scope")}</Label>
         <Textarea

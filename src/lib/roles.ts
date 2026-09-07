@@ -91,6 +91,10 @@ export const NAV: Record<string, NavItem> = {
   overview: { key: "overview", href: "/overview", label: "overview", icon: EyeIcon },
   clients: { key: "clients", href: "/clients", label: "clients", icon: ClientsIcon },
   people: { key: "people", href: "/team", label: "people", icon: TeamIcon },
+  // "8- Diretório: adicionar campo fornecedores." Beside people and services,
+  // because that is what the Diretório group is: who and what the studio works
+  // with. The screen itself lives under /finance, where its data does.
+  suppliers: { key: "suppliers", href: "/finance/suppliers", label: "suppliers", icon: CoinIcon },
   social: { key: "social", href: "/social", label: "socialMedia", icon: MegaphoneIcon },
   reports: { key: "reports", href: "/reports", label: "reports", icon: ChartIcon },
   feedback: { key: "feedback", href: "/feedback", label: "feedback", icon: MeetingsIcon },
@@ -126,7 +130,7 @@ export const NAV_BY_ROLE: Record<AppRole, NavGroup[]> = {
     // are reached from the project they belong to now, which is what "elas
     // estarão dentro da aba operação" asks for.
     { group: "operation", keys: ["overview", "clients", "projects", "social", "content", "schedule"] },
-    { group: "directory", keys: ["people", "services"] },
+    { group: "directory", keys: ["people", "services", "suppliers"] },
     { group: "system", keys: ["errors", "settings"] },
   ],
   manager: [

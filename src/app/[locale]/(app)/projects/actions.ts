@@ -8,13 +8,14 @@ import type { Route } from "next";
 import { createClient as createSupabaseClient } from "@/lib/supabase/server";
 import { currentTenantId } from "@/lib/tenant-server";
 import { slugify, uniqueSlug } from "@/lib/slug";
+import { parseBrlToCents } from "@/lib/money";
 import { isProjectStatus, isProjectType } from "@/lib/projects";
 // Temporary while 048 is unapplied — see the file for why.
 import { pending } from "@/lib/projects-db";
 
 export type ProjectFormState = {
   error?: string;
-  fieldErrors?: Partial<Record<"name" | "type" | "dates", string>>;
+  fieldErrors?: Partial<Record<"name" | "type" | "dates" | "value", string>>;
 };
 
 function localePath(locale: string, path: string): Route {
@@ -42,6 +43,11 @@ function readForm(formData: FormData) {
     endsOn: optional(formData, "ends_on"),
     // Multi-select: everyone who works on this engagement.
     memberIds: formData.getAll("member_ids").map((v) => v.toString()),
+    rawValue: optional(formData, "service_value"),
+    currency: (formData.get("currency") ?? "BRL").toString() === "USD" ? "USD" : "BRL",
+    contractUrl: optional(formData, "contract_url"),
+    proposalUrl: optional(formData, "proposal_url"),
+    paymentTerms: optional(formData, "payment_terms"),
     locale: (formData.get("locale") ?? "pt-BR").toString(),
   };
 }
@@ -56,6 +62,11 @@ function validate(form: Form): ProjectFormState | null {
   // the person sees it on the field instead of as a failed save.
   if (form.startsOn && form.endsOn && form.endsOn < form.startsOn) {
     return { fieldErrors: { dates: "endsBeforeStarts" } };
+  }
+  // parseBrlToCents refuses a lone dot that reads as thousands, among other
+  // shapes — a null here is a typo, not an empty field.
+  if (form.rawValue && parseBrlToCents(form.rawValue) === null) {
+    return { fieldErrors: { value: "invalidValue" } };
   }
   return null;
 }
@@ -120,6 +131,11 @@ export async function createProjectAction(
       scope: form.scope,
       starts_on: form.startsOn,
       ends_on: form.endsOn,
+      service_value_cents: form.rawValue ? parseBrlToCents(form.rawValue) : null,
+      currency: form.currency,
+      contract_url: form.contractUrl,
+      proposal_url: form.proposalUrl,
+      payment_terms: form.paymentTerms,
     })
     .select("id")
     .single();
@@ -171,6 +187,11 @@ export async function updateProjectAction(
       scope: form.scope,
       starts_on: form.startsOn,
       ends_on: form.endsOn,
+      service_value_cents: form.rawValue ? parseBrlToCents(form.rawValue) : null,
+      currency: form.currency,
+      contract_url: form.contractUrl,
+      proposal_url: form.proposalUrl,
+      payment_terms: form.paymentTerms,
     })
     .eq("id", id)
     .eq("tenant_id", tenantId);

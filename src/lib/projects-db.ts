@@ -29,6 +29,12 @@ export type ProjectRow = {
   status: ProjectStatus;
   starts_on: string | null;
   ends_on: string | null;
+  // 050 — the commercials.
+  contract_url: string | null;
+  proposal_url: string | null;
+  service_value_cents: number | null;
+  currency: string;
+  payment_terms: string | null;
   created_at: string;
   updated_at: string;
 };

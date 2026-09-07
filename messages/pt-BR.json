@@ -51,7 +51,8 @@
     "sharedLogins": "Acessos compartilhados",
     "performance": "Performance",
     "waitingOnYou": "Esperando você",
-    "errors": "Erros"
+    "errors": "Erros",
+    "suppliers": "Fornecedores"
   },
   "finance": {
     "title": "Financeiro",
@@ -106,6 +107,34 @@
     "contracts": {
       "title": "Contratos",
       "subtitle": "Contratos ativos e receita recorrente."
+    },
+    "suppliers": {
+      "title": "Fornecedores",
+      "subtitle": "Quem o studio paga, com que documento e em que dia.",
+      "add": "Adicionar fornecedor",
+      "save": "Salvar",
+      "delete": "Excluir",
+      "empty": "Nenhum fornecedor cadastrado ainda.",
+      "name": "Nome",
+      "category": "Categoria",
+      "docType": "Documento",
+      "docNumber": "Número",
+      "pix": "Chave PIX",
+      "defaultAmount": "Valor padrão",
+      "payDay": "Dia de pagamento",
+      "payDayShort": "dia {day}",
+      "noteStatus": "Nota fiscal",
+      "note": {
+        "pending": "Nota pendente",
+        "collected": "Nota recolhida",
+        "not_required": "Não se aplica"
+      },
+      "missingNotes": "{count} sem nota recolhida.",
+      "cpfWarning": "{count} pessoa física em pagamento recorrente — pode gerar retenção de INSS e IRRF. Confirmar o tratamento com a contabilidade.",
+      "errors": {
+        "tooShort": "Nome muito curto.",
+        "invalid": "Valor inválido."
+      }
     }
   },
   "overview": {
@@ -614,8 +643,16 @@
         "tooShort": "Nome muito curto.",
         "tooLong": "Nome muito longo.",
         "required": "Escolha um tipo.",
-        "endsBeforeStarts": "A entrega não pode ser antes do início."
-      }
+        "endsBeforeStarts": "A entrega não pode ser antes do início.",
+        "invalidValue": "Valor inválido."
+      },
+      "finance": "Financeiro do projeto",
+      "serviceValue": "Valor do serviço",
+      "currency": "Moeda",
+      "contractUrl": "Link do contrato",
+      "proposalUrl": "Link da proposta",
+      "paymentTerms": "Formas e datas de pagamento",
+      "paymentTermsHint": "Como está escrito no contrato. As cobranças com data entram no financeiro, onde podem ser acompanhadas."
     }
   },
   "tasks": {

@@ -51,7 +51,8 @@
     "sharedLogins": "Shared logins",
     "performance": "Performance",
     "waitingOnYou": "Waiting on you",
-    "errors": "Errors"
+    "errors": "Errors",
+    "suppliers": "Suppliers"
   },
   "finance": {
     "title": "Finance",
@@ -106,6 +107,34 @@
     "contracts": {
       "title": "Contracts",
       "subtitle": "Active contracts and recurring revenue."
+    },
+    "suppliers": {
+      "title": "Suppliers",
+      "subtitle": "Who the studio pays, on what document and on which day.",
+      "add": "Add supplier",
+      "save": "Save",
+      "delete": "Delete",
+      "empty": "No suppliers yet.",
+      "name": "Name",
+      "category": "Category",
+      "docType": "Document",
+      "docNumber": "Number",
+      "pix": "PIX key",
+      "defaultAmount": "Default amount",
+      "payDay": "Pay day",
+      "payDayShort": "day {day}",
+      "noteStatus": "Invoice",
+      "note": {
+        "pending": "Invoice pending",
+        "collected": "Invoice collected",
+        "not_required": "Not applicable"
+      },
+      "missingNotes": "{count} without a collected invoice.",
+      "cpfWarning": "{count} individual on recurring payment — may carry INSS and IRRF withholding. Confirm the treatment with the accountant.",
+      "errors": {
+        "tooShort": "Name is too short.",
+        "invalid": "Invalid amount."
+      }
     }
   },
   "overview": {
@@ -614,8 +643,16 @@
         "tooShort": "Name is too short.",
         "tooLong": "Name is too long.",
         "required": "Pick a type.",
-        "endsBeforeStarts": "Due date cannot be before the start."
-      }
+        "endsBeforeStarts": "Due date cannot be before the start.",
+        "invalidValue": "Invalid amount."
+      },
+      "finance": "Project finance",
+      "serviceValue": "Service value",
+      "currency": "Currency",
+      "contractUrl": "Contract link",
+      "proposalUrl": "Proposal link",
+      "paymentTerms": "Payment terms and dates",
+      "paymentTermsHint": "As the contract words it. Dated charges live in finance, where they can be chased."
     }
   },
   "tasks": {
