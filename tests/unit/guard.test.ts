@@ -62,7 +62,7 @@ describe("guardRedirect", () => {
 
   it("allows internal routes + sub-routes for staff", () => {
     expect(guardRedirect("/clients", "social")).toBeNull();
-    expect(guardRedirect("/projects/abc/edit", "developer")).toBeNull();
+    expect(guardRedirect("/tasks/abc/edit", "developer")).toBeNull();
     expect(guardRedirect("/content-engine/drafts/x/edit", "social")).toBeNull();
   });
 

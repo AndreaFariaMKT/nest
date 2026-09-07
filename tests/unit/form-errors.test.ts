@@ -70,7 +70,7 @@ describe("writes that used to fail silently", () => {
 
   it("the board reports a refused drag", () => {
     const board = readFileSync(
-      `${process.cwd()}/src/app/[locale]/(app)/projects/_components/KanbanBoard.tsx`,
+      `${process.cwd()}/src/app/[locale]/(app)/tasks/_components/KanbanBoard.tsx`,
       "utf8",
     );
     expect(board).toContain("const result = await updateTaskStatusAction(fd)");

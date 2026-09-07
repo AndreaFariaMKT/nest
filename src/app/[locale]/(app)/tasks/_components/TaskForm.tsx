@@ -197,7 +197,7 @@ export function TaskForm({
 
       <div className="flex items-center justify-end gap-2 pt-2">
         <Link
-          href="/projects"
+          href="/tasks"
           className="inline-flex h-10 items-center rounded-md px-4 text-sm text-muted-foreground hover:text-foreground"
         >
           {tCommon("cancel")}

@@ -121,7 +121,7 @@ export default async function ProjectsPage({
             there. */}
         <Link
           href={
-            (showingTemplates ? "/projects" : "/projects?templates=1") as Route
+            (showingTemplates ? "/tasks" : "/tasks?templates=1") as Route
           }
           className="inline-flex h-10 items-center rounded-md border border-input bg-background px-3 text-sm text-muted-foreground hover:bg-muted"
         >

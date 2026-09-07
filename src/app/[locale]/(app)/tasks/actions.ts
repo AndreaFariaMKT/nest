@@ -137,12 +137,12 @@ export async function createTaskAction(
       tenantId,
       type: "task.assigned",
       title: `Nova tarefa: ${form.title}`,
-      link: `/projects/${data.id}/edit`,
+      link: `/tasks/${data.id}/edit`,
     });
   }
 
-  revalidatePath(`/${form.locale}/projects`);
-  redirect(localePath(form.locale, `/projects/${data.id}/edit`));
+  revalidatePath(`/${form.locale}/tasks`);
+  redirect(localePath(form.locale, `/tasks/${data.id}/edit`));
 }
 
 export async function updateTaskAction(
@@ -211,13 +211,13 @@ export async function updateTaskAction(
       tenantId,
       type: "task.assigned",
       title: `Tarefa atribuída: ${form.title}`,
-      link: `/projects/${id}/edit`,
+      link: `/tasks/${id}/edit`,
     });
   }
 
-  revalidatePath(`/${form.locale}/projects`);
-  revalidatePath(`/${form.locale}/projects/${id}/edit`);
-  redirect(localePath(form.locale, "/projects"));
+  revalidatePath(`/${form.locale}/tasks`);
+  revalidatePath(`/${form.locale}/tasks/${id}/edit`);
+  redirect(localePath(form.locale, "/tasks"));
 }
 
 export async function deleteTaskAction(formData: FormData): Promise<void> {
@@ -226,7 +226,7 @@ export async function deleteTaskAction(formData: FormData): Promise<void> {
   if (!id) return;
   const supabase = await createSupabaseClient();
   await supabase.from("tasks").delete().eq("id", id);
-  revalidatePath(`/${locale}/projects`);
+  revalidatePath(`/${locale}/tasks`);
 }
 
 export type TaskStatusResult = { ok: boolean; error?: string };
@@ -276,7 +276,7 @@ export async function updateTaskStatusAction(
   // an RLS refusal is indistinguishable from success without this.
   if (!data?.length) return { ok: false, error: "dbDenied" };
 
-  revalidatePath(`/${locale}/projects`);
-  revalidatePath("/projects");
+  revalidatePath(`/${locale}/tasks`);
+  revalidatePath("/tasks");
   return { ok: true };
 }

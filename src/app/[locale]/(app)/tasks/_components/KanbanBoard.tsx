@@ -92,7 +92,7 @@ export function KanbanBoard({
     startTransitionBase(() => {
       router.replace(
         // next-intl router accepts a href object; "query" must be plain object
-        { pathname: pathname as "/projects", query: Object.fromEntries(params) },
+        { pathname: pathname as "/tasks", query: Object.fromEntries(params) },
       );
     });
   }
@@ -120,7 +120,7 @@ export function KanbanBoard({
           />
         </div>
         <Link
-          href="/projects/new"
+          href="/tasks/new"
           className="inline-flex h-10 items-center justify-center rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
         >
           {t("new")}
@@ -238,7 +238,7 @@ function TaskCard({ locale, task }: { locale: string; task: KanbanTask }) {
 
   return (
     <Link
-      href={`/projects/${task.id}/edit`}
+      href={`/tasks/${task.id}/edit`}
       draggable
       onDragStart={onDragStart}
       data-testid="kanban-task"

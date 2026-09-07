@@ -54,7 +54,7 @@ export default async function EditTaskPage({
       <div className="mb-8 flex items-start justify-between gap-4">
         <div>
           <Link
-            href="/projects"
+            href="/tasks"
             className="text-sm text-muted-foreground hover:text-foreground"
           >
             ← {t("title")}

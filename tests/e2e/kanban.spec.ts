@@ -1,7 +1,7 @@
 import { expect, test } from "@playwright/test";
 
 /**
- * Smoke: /projects renders a Kanban board with 5 columns and a new
+ * Smoke: /tasks renders a Kanban board with 5 columns and a new
  * task lands in the "To do" column. HTML5 drag-and-drop is hard to
  * simulate in Playwright reliably — we cover that path via the CRUD
  * smoke (which flips status through the edit form).
@@ -20,12 +20,12 @@ test("kanban board renders columns and a new task in To do", async ({
   const stamp = Date.now();
   const title = `Kanban smoke ${stamp}`;
 
-  await page.goto("/en/projects/new");
+  await page.goto("/en/tasks/new");
   await page.locator("#title").fill(title);
   await page.getByRole("button", { name: /create task|criar tarefa/i }).click();
-  await expect(page).toHaveURL(/\/projects\/[0-9a-f-]+\/edit$/);
+  await expect(page).toHaveURL(/\/tasks\/[0-9a-f-]+\/edit$/);
 
-  await page.goto("/en/projects");
+  await page.goto("/en/tasks");
   // All 5 columns must be present
   for (const status of ["todo", "in_progress", "blocked", "review", "done"]) {
     await expect(page.getByTestId(`kanban-column-${status}`)).toBeVisible();

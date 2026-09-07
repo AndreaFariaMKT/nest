@@ -215,7 +215,7 @@ export default async function TodayPage({
               {tasks.map((task) => (
                 <li key={task.id} data-testid="today-task">
                   <Link
-                    href={`/projects/${task.id}/edit`}
+                    href={`/tasks/${task.id}/edit`}
                     className="group flex items-center justify-between gap-2 py-3 text-sm"
                   >
                     <div className="min-w-0 flex-1">

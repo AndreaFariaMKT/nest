@@ -82,7 +82,7 @@ export default async function OverviewPage({
           {tasks.map((task) => (
             <li key={task.id}>
               <Link
-                href={`/projects/${task.id}/edit`}
+                href={`/tasks/${task.id}/edit`}
                 className="flex items-center gap-3 px-4 py-3 text-sm hover:bg-muted/40"
               >
                 <span className="min-w-0 flex-1 truncate text-foreground">

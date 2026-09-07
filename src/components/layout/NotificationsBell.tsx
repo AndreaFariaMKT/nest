@@ -99,7 +99,7 @@ export function NotificationsBell({
                   <li key={n.id} className="px-3 py-2 text-sm hover:bg-muted">
                     {n.link ? (
                       <Link
-                        href={n.link as "/projects"}
+                        href={n.link as "/tasks"}
                         onClick={() => setOpen(false)}
                       >
                         {content}

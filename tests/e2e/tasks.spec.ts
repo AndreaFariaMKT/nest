@@ -12,17 +12,17 @@ test("owner creates a task and it shows up in the list", async ({ page }) => {
   const stamp = Date.now();
   const taskTitle = `Smoke task ${stamp}`;
 
-  await page.goto("/en/projects/new");
+  await page.goto("/en/tasks/new");
   await page.locator("#title").fill(taskTitle);
   await page.locator("#priority").selectOption("high");
   await page.getByRole("button", { name: /create task|criar tarefa/i }).click();
 
   // Lands on the edit page for the just-created task
-  await expect(page).toHaveURL(/\/projects\/[0-9a-f-]+\/edit$/);
+  await expect(page).toHaveURL(/\/tasks\/[0-9a-f-]+\/edit$/);
   await expect(page.locator("#title")).toHaveValue(taskTitle);
 
   // Back on the kanban, the new task appears in the To-do column
-  await page.goto("/en/projects");
+  await page.goto("/en/tasks");
   await expect(
     page
       .getByTestId("kanban-column-todo")

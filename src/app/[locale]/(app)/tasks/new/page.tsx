@@ -39,7 +39,7 @@ export default async function NewTaskPage({
     <div className="mx-auto max-w-2xl">
       <div className="mb-8">
         <Link
-          href="/projects"
+          href="/tasks"
           className="text-sm text-muted-foreground hover:text-foreground"
         >
           ← {t("title")}

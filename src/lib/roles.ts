@@ -55,7 +55,7 @@ export interface NavItem {
 
 export const NAV: Record<string, NavItem> = {
   home: { key: "home", href: "/today", label: "home", icon: HomeIcon },
-  tasks: { key: "tasks", href: "/projects", label: "tasks", icon: ProjectsIcon },
+  tasks: { key: "tasks", href: "/tasks", label: "tasks", icon: ProjectsIcon },
   calendar: { key: "calendar", href: "/calendar", label: "calendar", icon: CalendarIcon },
   messages: { key: "messages", href: "/messages", label: "messages", icon: MessageIcon },
   admin: { key: "admin", href: "/administration", label: "administration", icon: FolderIcon },
