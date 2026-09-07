@@ -54,7 +54,8 @@
     "errors": "Erros",
     "suppliers": "Fornecedores",
     "cashflow": "Fluxo de caixa",
-    "reconcile": "Conciliação"
+    "reconcile": "Conciliação",
+    "invoicing": "Notas fiscais"
   },
   "finance": {
     "title": "Financeiro",
@@ -207,6 +208,26 @@
         "tooLarge": "Arquivo grande demais.",
         "noLines": "Nenhuma transação legível no arquivo."
       }
+    },
+    "invoicing": {
+      "title": "Notas fiscais",
+      "subtitle": "O que já foi recebido e ainda deve nota.",
+      "rulesTitle": "As regras que o sistema aplica",
+      "rule1": "A nota vem depois do pagamento — o pedido só abre com recebimento confirmado.",
+      "rule2": "{days} dias úteis para enviar, contados da confirmação. Não é tarefa de fim de mês.",
+      "rule3": "Cliente internacional não recebe nota brasileira — é exportação, e vai só o invoice.",
+      "queue": "Fila",
+      "queueEmpty": "Nada devendo nota agora.",
+      "noClient": "Sem cliente",
+      "paidOn": "recebido em {date}",
+      "dueOn": "até {date}",
+      "late": "Atrasada",
+      "markRequested": "Marcar como solicitada",
+      "markIssued": "Marcar como emitida",
+      "ref": "Número",
+      "exportsTitle": "Exportação",
+      "exportBadge": "Exportação",
+      "exportsHint": "Aparecem aqui de propósito: some da lista quem foi esquecido, não quem não deve nota."
     }
   },
   "overview": {

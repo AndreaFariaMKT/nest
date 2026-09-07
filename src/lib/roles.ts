@@ -76,6 +76,7 @@ export const NAV: Record<string, NavItem> = {
   finance: { key: "finance", href: "/finance", label: "finance", icon: CoinIcon },
   cashflow: { key: "cashflow", href: "/finance/cashflow", label: "cashflow", icon: ChartIcon },
   reconcile: { key: "reconcile", href: "/finance/reconcile", label: "reconcile", icon: FolderIcon },
+  invoicing: { key: "invoicing", href: "/finance/invoicing", label: "invoicing", icon: FileIcon },
   commercial: { key: "commercial", href: "/commercial", label: "commercial", icon: FunnelIcon },
   marketing: { key: "marketing", href: "/marketing", label: "marketing", icon: MegaphoneIcon },
   // The content engine's own board. /production-queue pointed at the same
@@ -124,7 +125,7 @@ export interface NavGroup {
 export const NAV_BY_ROLE: Record<AppRole, NavGroup[]> = {
   founder: [
     { group: "daily", keys: ["home", "tasks", "calendar", "meetings", "messages"] },
-    { group: "leadership", keys: ["admin", "finance", "cashflow", "reconcile", "commercial", "marketing"] },
+    { group: "leadership", keys: ["admin", "finance", "cashflow", "reconcile", "invoicing", "commercial", "marketing"] },
     { group: "insights", keys: ["reports", "socialReport"] },
     // "Área conteúdo trocar nome para operação", and the studio already had an
     // Operação group — so they merge rather than sitting one above the other
@@ -163,7 +164,21 @@ export const NAV_BY_ROLE: Record<AppRole, NavGroup[]> = {
   ],
   accountant: [
     { group: "daily", keys: ["home", "messages"] },
-    { group: "finance", keys: ["finance", "admin"] },
+    // The finance work is this persona's whole job, and until now the menu
+    // offered them one screen of it. Every screen listed here is one their RLS
+    // already grants — 049 gives founder and accountant the same reach across
+    // fin_* — so the menu was the only thing keeping them out.
+    {
+      group: "finance",
+      keys: [
+        "finance",
+        "cashflow",
+        "reconcile",
+        "invoicing",
+        "suppliers",
+        "admin",
+      ],
+    },
   ],
   client: [
     {

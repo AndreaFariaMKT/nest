@@ -54,7 +54,8 @@
     "errors": "Errors",
     "suppliers": "Suppliers",
     "cashflow": "Cash flow",
-    "reconcile": "Reconciliation"
+    "reconcile": "Reconciliation",
+    "invoicing": "Invoices"
   },
   "finance": {
     "title": "Finance",
@@ -207,6 +208,26 @@
         "tooLarge": "File is too large.",
         "noLines": "No readable transactions in the file."
       }
+    },
+    "invoicing": {
+      "title": "Invoices",
+      "subtitle": "What has been received and still owes a nota fiscal.",
+      "rulesTitle": "The rules the system applies",
+      "rule1": "The nota comes after the payment — the request only opens on confirmed receipt.",
+      "rule2": "{days} business days to send it, counted from confirmation. Not a month-end task.",
+      "rule3": "An international client gets no Brazilian nota — it is an export, and only the invoice goes.",
+      "queue": "Queue",
+      "queueEmpty": "Nothing owing a nota right now.",
+      "noClient": "No client",
+      "paidOn": "received {date}",
+      "dueOn": "by {date}",
+      "late": "Late",
+      "markRequested": "Mark as requested",
+      "markIssued": "Mark as issued",
+      "ref": "Number",
+      "exportsTitle": "Exports",
+      "exportBadge": "Export",
+      "exportsHint": "Shown on purpose: what disappears from a list looks forgotten, not exempt."
     }
   },
   "overview": {
