@@ -88,14 +88,39 @@ async function setMembers(
   tenantId: string,
   memberIds: string[],
 ) {
-  await supabase.from("project_members").delete().eq("project_id", projectId);
+  // Scoped to the tenant, not just the project id. Without it, submitting the
+  // edit form with another tenant's project id wiped that project's member
+  // list: the UPDATE on `projects` matched zero rows and returned no error —
+  // Postgres does not complain about updating nothing — while this delete went
+  // through, because `project_id` alone identifies a row in any tenant.
+  await supabase
+    .from("project_members")
+    .delete()
+    .eq("project_id", projectId)
+    .eq("tenant_id", tenantId);
+
   if (memberIds.length === 0) return null;
 
-  const rows = memberIds.map((userId) => ({
-    project_id: projectId,
-    user_id: userId,
-    tenant_id: tenantId,
-  }));
+  // The ids come off a form, so they are a claim rather than a fact. Filtering
+  // against real membership stops an arbitrary auth.users id being filed onto
+  // a project — which matters because applyProjectFlowAction resolves
+  // assignees from this table, and would otherwise hand tasks to that account.
+  const { data: allowed } = await supabase
+    .from("tenant_members")
+    .select("user_id")
+    .eq("tenant_id", tenantId)
+    .in("user_id", memberIds);
+
+  const valid = new Set((allowed ?? []).map((m) => m.user_id));
+  const rows = memberIds
+    .filter((userId) => valid.has(userId))
+    .map((userId) => ({
+      project_id: projectId,
+      user_id: userId,
+      tenant_id: tenantId,
+    }));
+
+  if (rows.length === 0) return null;
   const { error } = await supabase.from("project_members").insert(rows);
   return error;
 }

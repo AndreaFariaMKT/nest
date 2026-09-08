@@ -206,7 +206,8 @@
       "errors": {
         "noFile": "Selecione um arquivo.",
         "tooLarge": "Arquivo grande demais.",
-        "noLines": "Nenhuma transação legível no arquivo."
+        "noLines": "Nenhuma transação legível no arquivo.",
+        "tooManyLines": "Arquivo com linhas demais para um extrato."
       }
     },
     "invoicing": {

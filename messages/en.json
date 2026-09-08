@@ -206,7 +206,8 @@
       "errors": {
         "noFile": "Pick a file.",
         "tooLarge": "File is too large.",
-        "noLines": "No readable transactions in the file."
+        "noLines": "No readable transactions in the file.",
+        "tooManyLines": "Too many lines for a statement."
       }
     },
     "invoicing": {

@@ -11,6 +11,7 @@ import { parseStatement } from "@/lib/bank-parse";
 import { dropAlreadyImported, reconcile, type Expected } from "@/lib/reconcile";
 
 export type ImportState = {
+  /** Key under finance.reconcile.errors. */
   error?: string;
   imported?: number;
   skipped?: number;
@@ -18,6 +19,13 @@ export type ImportState = {
 };
 
 const MAX_BYTES = 4 * 1024 * 1024;
+
+/**
+ * A statement is tens to hundreds of lines. Four megabytes of CSV is on the
+ * order of 10^5 rows, and every one of them would be parsed into memory and
+ * written as a single insert — so the byte cap alone does not bound the work.
+ */
+const MAX_LINES = 2000;
 
 export async function importStatementAction(
   _prev: ImportState,
@@ -39,6 +47,22 @@ export async function importStatementAction(
   if (parsed.lines.length === 0) {
     return { error: "noLines", unreadable: parsed.skipped };
   }
+  if (parsed.lines.length > MAX_LINES) {
+    return { error: "tooManyLines" };
+  }
+
+  // The bank's own reference is only unique per file for well-behaved
+  // exporters. A file that repeats a FITID would collide on
+  // fin_import_lines_ref_key and fail the whole batch insert, so the duplicate
+  // is dropped here with the same reasoning as dropAlreadyImported: the second
+  // occurrence is the same movement.
+  const seen = new Set<string>();
+  const deduped = parsed.lines.filter((l) => {
+    if (!l.external_ref) return true;
+    if (seen.has(l.external_ref)) return false;
+    seen.add(l.external_ref);
+    return true;
+  });
 
   const supabase = await createSupabaseClient();
   const tenantId = await currentTenantId();
@@ -54,7 +78,7 @@ export async function importStatementAction(
       (l) => l.external_ref,
     ),
   );
-  const { fresh, skipped } = dropAlreadyImported(parsed.lines, knownRefs);
+  const { fresh, skipped } = dropAlreadyImported(deduped, knownRefs);
 
   if (fresh.length === 0) {
     return { imported: 0, skipped, unreadable: parsed.skipped };
