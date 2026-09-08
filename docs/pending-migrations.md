@@ -1,92 +1,44 @@
-# Migrations — estado
+# Migrations 047–052 — aplicadas
 
-**048, 049, 050 e 051 estão aplicadas** (07/09/2026). Os tipos foram
-regenerados e os contornos temporários saíram: `finance-db.ts` e
-`projects-db.ts` agora só reexportam os tipos gerados, e os casts pontuais
-das telas foram removidos.
+**Todas aplicadas** (setembro de 2026), tipos regenerados, `npm run types:check`
+sem drift. Nenhum contorno temporário sobrou no código.
 
-**A 052 não aplicou.** Nem a tabela `project_flow_steps`, nem a coluna
-`projects.flow_applied_at` aparecem no schema regenerado — provavelmente o
-arquivo não chegou a rodar. O flow automático de projeto está construído e
-testado, mas não funciona até ela subir.
-
-O que ainda depende dela:
-
-| onde | o quê |
+| # | o que trouxe |
 |---|---|
-| `src/lib/projects-db.ts` | `pending()` e `ProjectRowWithFlow` |
-| `projects/actions.ts` | `applyProjectFlowAction`, e um `as never` no update |
-| `projects/[id]/page.tsx` | a prévia do flow |
+| 047 | `profiles.job_title`, `profiles.department` |
+| 048 | `projects`, `project_members`, dados fiscais no cliente, `tasks.project_id` e `tasks.follow_up_id` |
+| 049 | contas, categorias, fornecedores, lançamentos, a receber, a pagar, câmbio |
+| 050 | comercial do projeto e `project_costs` |
+| 051 | `fin_imports` e `fin_import_lines` (conciliação) |
+| 052 | `project_flow_steps` e `projects.flow_applied_at` |
 
-Depois de aplicar a 052: `npm run types:gen`, apagar `pending()` e
-`ProjectRowWithFlow` de `projects-db.ts`, e trocar as duas leituras de
-`pending(supabase).from("project_flow_steps")` pelo cliente normal.
+## O que continua valendo: `db push` não é seguro aqui
 
-O app compila, os testes passam e o build gera 123 rotas — mas tudo que toca
-essas tabelas passa por três arquivos de contorno temporários. Enquanto as
-migrations não subirem, as telas novas leem tabelas que não existem.
+Este documento nasceu porque `supabase migration list --linked` reportava
+**001–013 aplicadas e 014 em diante ausentes**, enquanto o banco tinha os
+objetos de todas elas. É o **histórico** que está incompleto, não o schema —
+e por isso a 047 em diante foram aplicadas à mão.
 
-## Por que não `supabase db push`
+Enquanto o histórico não for reparado, um `supabase db push` tentaria reaplicar
+dezenas de migrations sobre tabelas existentes. A maioria falharia no
+`create table`, mas várias carregam `drop policy` e `revoke`, **que rodam antes
+de qualquer erro aparecer**. O modo de falha não é "o push aborta" — é
+"políticas de RLS caem em produção e aí o push aborta".
 
-`supabase migration list --linked` reporta **001–013 aplicadas e 014–052
-ausentes**, e o banco tem os objetos das ausentes: `company_documents`,
-`messages`, os tenant floors, tudo. É o **histórico** que está incompleto, não
-o schema.
-
-Rodar `db push` nesse estado faria o CLI tentar reaplicar 39 migrations sobre
-tabelas que já existem. A maioria falharia no `create table`, mas várias
-carregam `drop policy` e `revoke` que **rodam antes** de qualquer erro
-aparecer — ou seja, o push pode derrubar políticas de RLS em produção e só
-então abortar.
-
-Foi por isso que a 047 acabou indo à mão.
-
-## Dois caminhos
-
-### A. Reparar o histórico primeiro (recomendado)
-
-`migration repair` só escreve na tabela de histórico; não toca no schema.
+### Reparar (só escreve na tabela de histórico)
 
 ```bash
 supabase migration repair --status applied 014 015 016 017 018 019 020 021 022 \
   023 024 025 026 027 028 029 030 031 032 033 034 035 036 037 038 039 040 041 \
-  042 043 044 045 046 047
-supabase migration list --linked   # confirmar 001–047 aplicadas, 048–052 pendentes
-supabase db push                    # agora sobe só as cinco novas
-npm run types:gen
+  042 043 044 045 046 047 048 049 050 051 052
+supabase migration list --linked   # deve mostrar tudo aplicado
 ```
 
-### B. Aplicar à mão, como foi com a 047
+Depois disso o `db push` volta a ser o caminho normal para a 053 em diante.
 
-Rodar o conteúdo de cada arquivo no SQL Editor, **na ordem** — 048 antes de
-049 (finanças referenciam `projects`), 049 antes de 050 e 051 (`project_costs`
-e a conciliação referenciam `fin_suppliers` e `fin_entries`).
+## Uma armadilha do `types:gen`, já corrigida
 
-Depois: `npm run types:gen`.
-
-## Depois de aplicar: apagar os contornos
-
-Três arquivos existem só enquanto os tipos não conhecem as tabelas novas, e
-saem inteiros:
-
-| arquivo | o que contorna |
-|---|---|
-| `src/lib/projects-db.ts` | `projects`, `project_members`, `project_flow_steps` |
-| `src/lib/finance-db.ts` | as sete `fin_*` mais as duas de importação |
-| `projectColumns()` em `tasks/actions.ts` | `project_id` e `follow_up_id` |
-
-Mais os casts pontuais marcados com comentário em:
-`projects/page.tsx`, `projects/[id]/page.tsx`, `tasks/page.tsx`,
-`finance/invoicing/page.tsx`.
-
-`grep -rn "projects-db\|finance-db\|projectColumns" src` acha todos.
-
-## Ordem de dependência
-
-```
-048 projects ──┬── 050 project_finance   (project_costs → fin_suppliers)
-               ├── 052 project_flows
-               └── 049 finance ── 051 bank_import  (→ fin_entries)
-```
-
-049 depende de 048 (`fin_entries.project_id`), e 050 depende das duas.
+O script era `supabase gen types ... > src/types/database.gen.ts`, e o `>`
+trunca **antes** do comando rodar. Quando o CLI falhava, sobrava uma linha de
+erro JSON no lugar de 2500 linhas de schema, sem aviso. Agora escreve em
+temporário e só move em caso de sucesso.

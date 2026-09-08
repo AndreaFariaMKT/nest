@@ -10,8 +10,7 @@ import { Link } from "@/i18n/routing";
 import { todayIso } from "@/lib/social";
 import { isLate, projectProgress } from "@/lib/projects";
 import {
-  pending,
-  type ProjectRowWithFlow as ProjectRow,
+  type ProjectRow,
 } from "@/lib/projects-db";
 import { planFlow, type FlowStep } from "@/lib/project-flow";
 import { applyProjectFlowAction } from "../actions";
@@ -104,7 +103,7 @@ export default async function ProjectPage({
   // What the flow would create, computed but not written. Showing the plan
   // before the button rather than after it is the difference between a feature
   // people try and one they avoid.
-  const { data: stepData } = await pending(supabase)
+  const { data: stepData } = await supabase
     .from("project_flow_steps")
     .select("id, title, description, role, offset_days, priority, sort")
     .eq("tenant_id", tenantId)

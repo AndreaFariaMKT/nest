@@ -6,41 +6,16 @@ import type { Database } from "@/types/database";
  * Row aliases for the project tables, plus the picker query shared by the two
  * task forms.
  *
- * 048's tables are applied, so `projects` and `project_members` come from the
- * generated types and every call site uses the normal client.
- *
- * `project_flow_steps` (052) is NOT applied yet, and is the only reason the
- * loose accessor below still exists. It goes when 052 lands and `types:gen`
- * runs — see docs/pending-migrations.md.
+ * 048 and 052 are applied, so every row here is generated and every call site
+ * uses the normal client. The loose accessor that used to live here — and the
+ * one in finance-db.ts — existed only while the migrations were written but
+ * unapplied, and are gone.
  */
 type T = Database["public"]["Tables"];
 
 export type ProjectRow = T["projects"]["Row"];
 export type ProjectMemberRow = T["project_members"]["Row"];
-
-/** Still pending: 052. */
-type PendingTables = "project_flow_steps";
-
-/**
- * A project row as it will be once 052 is applied.
- *
- * 052 adds `flow_applied_at`, so the generated row does not carry it yet.
- * Every read that needs it goes through this alias, which means removing the
- * shim is deleting this type and its four uses — not hunting casts.
- */
-export type ProjectRowWithFlow = ProjectRow & {
-  flow_applied_at: string | null;
-};
-
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-type LooseClient = { from: (table: PendingTables) => any };
-
-export function pending(
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  supabase: SupabaseClient<any, any, any>,
-): LooseClient {
-  return supabase as unknown as LooseClient;
-}
+export type FlowStepRow = T["project_flow_steps"]["Row"];
 
 /**
  * The projects a task can be filed under, labelled the way the picker shows

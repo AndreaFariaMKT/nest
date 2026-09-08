@@ -6,7 +6,7 @@ import { createClient } from "@/lib/supabase/server";
 import { currentTenantId } from "@/lib/tenant-server";
 import { listAssignablePeople } from "@/lib/people";
 import { PageHeader } from "@/components/ui/PageHeader";
-import { pending, type ProjectRow } from "@/lib/projects-db";
+import type { ProjectRow } from "@/lib/projects-db";
 import { ProjectForm } from "../../_components/ProjectForm";
 import { updateProjectAction, deleteProjectAction } from "../../actions";
 

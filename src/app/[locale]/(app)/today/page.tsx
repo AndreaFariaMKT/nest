@@ -10,8 +10,6 @@ import { getCurrentRole } from "@/lib/roles-server";
 import { currentTenantId } from "@/lib/tenant-server";
 import { formatCentsAsBrl, sumCents } from "@/lib/money";
 import { loadFinance } from "@/lib/finance-load";
-// Aliased: this file already has a local `pending` for the approvals list.
-import { pending as pendingTables } from "@/lib/projects-db";
 import type { MeetingStatus, TaskPriority, TaskStatus } from "@/types/database";
 
 type PendingApproval = {

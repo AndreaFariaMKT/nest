@@ -2322,6 +2322,56 @@ export type Database = {
           },
         ]
       }
+      project_flow_steps: {
+        Row: {
+          created_at: string
+          description: string | null
+          id: string
+          offset_days: number
+          priority: string
+          project_type: string
+          role: string | null
+          sort: number
+          tenant_id: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          offset_days?: number
+          priority?: string
+          project_type: string
+          role?: string | null
+          sort?: number
+          tenant_id?: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          offset_days?: number
+          priority?: string
+          project_type?: string
+          role?: string | null
+          sort?: number
+          tenant_id?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "project_flow_steps_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       project_members: {
         Row: {
           created_at: string
@@ -2368,6 +2418,7 @@ export type Database = {
           created_at: string
           currency: string
           ends_on: string | null
+          flow_applied_at: string | null
           id: string
           name: string
           payment_terms: string | null
@@ -2387,6 +2438,7 @@ export type Database = {
           created_at?: string
           currency?: string
           ends_on?: string | null
+          flow_applied_at?: string | null
           id?: string
           name: string
           payment_terms?: string | null
@@ -2406,6 +2458,7 @@ export type Database = {
           created_at?: string
           currency?: string
           ends_on?: string | null
+          flow_applied_at?: string | null
           id?: string
           name?: string
           payment_terms?: string | null

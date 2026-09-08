@@ -8,7 +8,7 @@ import { Pill } from "@/components/ui/Pill";
 import { Link } from "@/i18n/routing";
 import { todayIso } from "@/lib/social";
 import { isLate, projectProgress } from "@/lib/projects";
-import { pending, type ProjectRow } from "@/lib/projects-db";
+import type { ProjectRow } from "@/lib/projects-db";
 
 export const dynamic = "force-dynamic";
 

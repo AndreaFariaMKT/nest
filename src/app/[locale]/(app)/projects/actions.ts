@@ -13,7 +13,6 @@ import { studioDayInstant, todayIso } from "@/lib/social";
 import { planFlow, type FlowStep } from "@/lib/project-flow";
 import { isProjectStatus, isProjectType } from "@/lib/projects";
 // Temporary while 048 is unapplied — see the file for why.
-import { pending } from "@/lib/projects-db";
 
 export type ProjectFormState = {
   error?: string;
@@ -265,24 +264,18 @@ export async function applyProjectFlowAction(formData: FormData): Promise<void> 
   const supabase = await createSupabaseClient();
   const tenantId = await currentTenantId();
 
-  // `flow_applied_at` arrives with 052; until it is applied the generated
-  // types do not know the column. Goes with ProjectRowWithFlow.
-  const { data: projectData } = await supabase
+  const { data: project } = await supabase
     .from("projects")
-    .select("id, type, starts_on, client_id")
+    .select("id, type, starts_on, client_id, flow_applied_at")
     .eq("id", id)
     .eq("tenant_id", tenantId)
     .maybeSingle();
-
-  const project = projectData as
-    | (NonNullable<typeof projectData> & { flow_applied_at: string | null })
-    | null;
 
   if (!project || project.flow_applied_at) return;
 
   const [{ data: stepData }, { data: memberData }, { data: tenantMembers }] =
     await Promise.all([
-      pending(supabase)
+      supabase
         .from("project_flow_steps")
         .select("id, title, description, role, offset_days, priority, sort")
         .eq("tenant_id", tenantId)
@@ -333,7 +326,7 @@ export async function applyProjectFlowAction(formData: FormData): Promise<void> 
 
   await supabase
     .from("projects")
-    .update({ flow_applied_at: new Date().toISOString() } as never)
+    .update({ flow_applied_at: new Date().toISOString() })
     .eq("id", id)
     .eq("tenant_id", tenantId);
 
