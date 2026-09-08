@@ -79,8 +79,26 @@ export function parseOfx(text: string): ParseResult {
   return { lines, skipped };
 }
 
+/**
+ * Which character separates the fields.
+ *
+ * Treating "," and ";" as delimiters at the same time is the trap: a pt-BR
+ * export is semicolon-separated AND uses the comma as its decimal point, so
+ * `21/08/2026;-1.350,50;PIX` split on both yields ["21/08/2026", "-1.350",
+ * "50", "PIX"] — the amount reads as -1.350 and fifty centavos vanish without
+ * being counted as skipped. Exactly the "nearly balances" error the cents
+ * parser was written to avoid.
+ *
+ * Decided per file from the header, where a decimal comma cannot appear.
+ */
+export function detectDelimiter(headerLine: string): "," | ";" {
+  const semis = (headerLine.match(/;/g) ?? []).length;
+  const commas = (headerLine.match(/,/g) ?? []).length;
+  return semis > commas ? ";" : ",";
+}
+
 /** Split a CSV line, respecting double quotes. */
-export function splitCsvLine(line: string): string[] {
+export function splitCsvLine(line: string, delimiter: "," | ";" = ","): string[] {
   const out: string[] = [];
   let cur = "";
   let inQuotes = false;
@@ -94,7 +112,7 @@ export function splitCsvLine(line: string): string[] {
       } else {
         inQuotes = !inQuotes;
       }
-    } else if ((ch === "," || ch === ";") && !inQuotes) {
+    } else if (ch === delimiter && !inQuotes) {
       out.push(cur);
       cur = "";
     } else {
@@ -129,14 +147,48 @@ export function parseCsv(text: string): ParseResult {
     .filter(Boolean);
   if (rows.length < 2) return { lines: [], skipped: 0 };
 
-  const header = splitCsvLine(rows[0]).map((h) => h.toLowerCase());
-  const find = (...names: string[]) =>
-    header.findIndex((h) => names.some((n) => h.includes(n)));
+  const delimiter = detectDelimiter(rows[0]);
+  const header = splitCsvLine(rows[0], delimiter).map((h) => h.toLowerCase());
+
+  /**
+   * Find a column by header, preferring the most specific match.
+   *
+   * Two real exports break the obvious `includes`:
+   *
+   * - Wise ships both "Source fee amount" and "Target amount". A plain
+   *   substring match takes whichever comes first in the file, which is the
+   *   FEE — so every transaction is read as its own fee.
+   * - `includes("id")` matches "Cidade", turning a city into the bank
+   *   reference, after which every later line from that city is discarded as
+   *   an already-imported duplicate.
+   *
+   * So: exact header first; then the name as a whole WORD (which "cidade"
+   * fails and "target amount" passes); and among several word matches the
+   * shortest header wins, because the extra words are what makes
+   * "source fee amount" the wrong one.
+   */
+  const find = (...names: string[]) => {
+    for (const n of names) {
+      const exact = header.findIndex((h) => h === n);
+      if (exact >= 0) return exact;
+    }
+    for (const n of names) {
+      const word = new RegExp(`(^|[^a-z0-9])${n}([^a-z0-9]|$)`);
+      const hits = header
+        .map((h, i) => ({ h, i }))
+        .filter(({ h }) => word.test(h));
+      if (hits.length === 0) continue;
+      hits.sort((a, b) => a.h.length - b.h.length);
+      return hits[0].i;
+    }
+    return -1;
+  };
 
   const iDate = find("data", "date");
   const iDesc = find("descri", "description", "memo", "histor");
   const iAmount = find("valor", "amount", "value");
-  const iRef = find("id", "identificador", "reference");
+  // "identificador" first: a bare "id" is the substring that matched "Cidade".
+  const iRef = find("identificador", "reference", "id");
 
   if (iDate < 0 || iAmount < 0) return { lines: [], skipped: rows.length - 1 };
 
@@ -144,7 +196,7 @@ export function parseCsv(text: string): ParseResult {
   let skipped = 0;
 
   for (const row of rows.slice(1)) {
-    const cells = splitCsvLine(row);
+    const cells = splitCsvLine(row, delimiter);
     const date = csvDate(cells[iDate] ?? "");
     const amount = decimalToCents(
       (cells[iAmount] ?? "").replace(/[R$\s]/g, "").replace(/\.(?=\d{3}\b)/g, ""),

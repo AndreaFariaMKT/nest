@@ -16,10 +16,10 @@ import {
   type FxRate,
 } from "@/lib/finance";
 import {
-  balancesByAccount,
+  accountBalances,
+  type EntryWithBase,
   type AccountRow,
   type CategoryRow,
-  type EntryRow,
   type PayableRow,
   type ReceivableRow,
 } from "@/lib/finance-db";
@@ -38,6 +38,21 @@ export async function loadFinance(month?: string) {
   const today = todayIso();
   const currentMonth = month ?? today.slice(0, 7);
 
+  // Entries are read by DATE RANGE, not by "the most recent N".
+  //
+  // The window used to be the 500 newest rows, and every figure on every
+  // finance screen was derived from it — so once the ledger passed 500 entries
+  // the account balances, working capital, runway and the whole year table
+  // silently understated, always in the same direction. A cap is right for a
+  // list; it is wrong for anything that reports a total.
+  //
+  // The year is the widest thing any screen shows, and both axes are covered:
+  // the month view filters on date_cash, the profit figures on date_accrual,
+  // and an entry can sit in December's cash and January's competência.
+  const year = currentMonth.slice(0, 4);
+  const rangeStart = `${Number(year) - 1}-12-01`;
+  const rangeEnd = `${Number(year) + 1}-01-31`;
+
   const [accountsRes, categoriesRes, entriesRes, receivablesRes, payablesRes, fxRes] =
     await Promise.all([
       supabase.from("fin_accounts")
@@ -51,11 +66,12 @@ export async function loadFinance(month?: string) {
         .order("sort", { ascending: true }),
       supabase.from("fin_entries")
         .select(
-          "id, account_id, category_id, description, amount_cents, currency, date_cash, date_accrual, client_id, project_id, supplier_id, reconciled, external_ref",
+          "id, account_id, category_id, description, amount_cents, amount_brl_cents, currency, date_cash, date_accrual, client_id, project_id, supplier_id, reconciled, external_ref",
         )
         .eq("tenant_id", tenantId)
-        .order("date_cash", { ascending: false })
-        .limit(OPTION_LIST_CAP),
+        .gte("date_cash", rangeStart)
+        .lte("date_cash", rangeEnd)
+        .order("date_cash", { ascending: false }),
       supabase.from("fin_receivables")
         .select(
           "id, client_id, project_id, description, amount_cents, currency, due_on, paid_on, date_accrual, status, invoice_status",
@@ -79,7 +95,7 @@ export async function loadFinance(month?: string) {
 
   const accounts = (accountsRes.data ?? []) as AccountRow[];
   const categories = (categoriesRes.data ?? []) as CategoryRow[];
-  const entries = (entriesRes.data ?? []) as EntryRow[];
+  const entries = (entriesRes.data ?? []) as unknown as EntryWithBase[];
   const receivables = (receivablesRes.data ?? []) as ReceivableRow[];
   const payables = (payablesRes.data ?? []) as PayableRow[];
   const rates = ((fxRes.data ?? []) as FxRate[]).map((r) => ({
@@ -90,10 +106,14 @@ export async function loadFinance(month?: string) {
   const rateFor = (day: string) => rateOnOrBefore(rates, day);
   const todayRate = rateFor(today);
 
-  const balances = balancesByAccount(entries);
+  // From the whole ledger, in SQL — see fin_account_balances in 054. Summing
+  // `entries` here would sum only the range read above.
+  const { data: balanceRows } = await accountBalances(supabase, tenantId);
+  const balances = new Map((balanceRows ?? []).map((b) => [b.account_id, b]));
   const withBalance = accounts.map((a) => ({
     ...a,
-    balance_cents: balances.get(a.id) ?? 0,
+    balance_cents: balances.get(a.id)?.balance_cents ?? 0,
+    unconverted: balances.get(a.id)?.unconverted ?? 0,
   }));
 
   const operating = operatingBalance(withBalance, todayRate);
@@ -115,6 +135,19 @@ export async function loadFinance(month?: string) {
   const monthCash = cashFlow(enriched, currentMonth);
   const monthAccrual = monthResult(enriched, currentMonth);
 
+  // The month before the one being viewed, which is closed and therefore a
+  // whole number. Falls back to the current month only when there is no prior
+  // month in the ledger at all — a first month is better than nothing, and
+  // monthsOfRunway already returns null when the cost is zero.
+  const prevMonth = (() => {
+    const [y, m] = currentMonth.split("-").map(Number);
+    const d = new Date(Date.UTC(y, m - 2, 1));
+    return `${d.getUTCFullYear()}-${String(d.getUTCMonth() + 1).padStart(2, "0")}`;
+  })();
+  const prevAccrual = monthResult(enriched, prevMonth);
+  const referenceCost =
+    prevAccrual.cost > 0 ? prevAccrual.cost : monthAccrual.cost;
+
   return {
     today,
     currentMonth,
@@ -134,11 +167,12 @@ export async function loadFinance(month?: string) {
       receivable_cents: receivable.total_cents,
       payable_cents: payable.total_cents,
     }),
-    // Runway is measured against the month's real operating cost, not an
-    // average — an average over a ledger that starts this month is the same
-    // number wearing a hat.
-    runway: monthsOfRunway(operating, monthAccrual.cost),
-    reserveRunway: monthsOfRunway(reserve, monthAccrual.cost),
+    // Measured against the last CLOSED month, never the running one. On the
+    // 2nd, cost-to-date might be R$ 5.000 against a real R$ 50.000 — the
+    // dashboard would read 20 meses instead of 2, and it would be most
+    // optimistic exactly when the month has barely started.
+    runway: monthsOfRunway(operating, referenceCost),
+    reserveRunway: monthsOfRunway(reserve, referenceCost),
     monthCash,
     monthAccrual,
   };

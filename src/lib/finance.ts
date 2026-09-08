@@ -146,11 +146,34 @@ export function monthsOfRunway(
 
 export type Entry = {
   amount_cents: number;
+  /**
+   * The row in BRL cents at its own date's rate — 054. Null when no rate was
+   * on file, and every aggregation below skips it and counts it rather than
+   * treating it as zero.
+   *
+   * This column exists because the aggregations used to sum `amount_cents`
+   * across currencies without reading `currency` at all: a USD 4.110,00
+   * receipt added 411000 to the month and rendered as R$ 4.110,00 instead of
+   * R$ 22.070,70. An 81% understatement, silent.
+   */
+  amount_brl_cents: number | null;
   currency: string;
   date_cash: string;
   date_accrual: string;
   category_kind?: string | null;
 };
+
+/** Rows that carry a converted amount, and the count of those that do not. */
+function converted(rows: readonly Entry[]): {
+  rows: Array<Entry & { amount_brl_cents: number }>;
+  unconverted: number;
+} {
+  const ok = rows.filter(
+    (e): e is Entry & { amount_brl_cents: number } =>
+      e.amount_brl_cents !== null,
+  );
+  return { rows: ok, unconverted: rows.length - ok.length };
+}
 
 /** Rows whose cash date falls in an ISO month ("2026-08"). */
 export function inCashMonth(entries: readonly Entry[], month: string): Entry[] {
@@ -175,17 +198,17 @@ export function inAccrualMonth(
 export function cashFlow(
   entries: readonly Entry[],
   month: string,
-): { inflow: number; outflow: number; balance: number } {
-  const rows = inCashMonth(entries, month).filter(
-    (e) => e.category_kind !== "transfer",
+): { inflow: number; outflow: number; balance: number; unconverted: number } {
+  const { rows, unconverted } = converted(
+    inCashMonth(entries, month).filter((e) => e.category_kind !== "transfer"),
   );
   const inflow = sumCents(
-    rows.filter((e) => e.amount_cents > 0).map((e) => e.amount_cents),
+    rows.filter((e) => e.amount_brl_cents > 0).map((e) => e.amount_brl_cents),
   );
   const outflow = sumCents(
-    rows.filter((e) => e.amount_cents < 0).map((e) => -e.amount_cents),
+    rows.filter((e) => e.amount_brl_cents < 0).map((e) => -e.amount_brl_cents),
   );
-  return { inflow, outflow, balance: inflow - outflow };
+  return { inflow, outflow, balance: inflow - outflow, unconverted };
 }
 
 /**
@@ -195,15 +218,21 @@ export function cashFlow(
 export function monthResult(
   entries: readonly Entry[],
   month: string,
-): { revenue: number; cost: number; profit: number; margin: number } {
-  const rows = inAccrualMonth(entries, month).filter(
-    (e) => e.category_kind !== "transfer",
+): {
+  revenue: number;
+  cost: number;
+  profit: number;
+  margin: number;
+  unconverted: number;
+} {
+  const { rows, unconverted } = converted(
+    inAccrualMonth(entries, month).filter((e) => e.category_kind !== "transfer"),
   );
   const revenue = sumCents(
-    rows.filter((e) => e.amount_cents > 0).map((e) => e.amount_cents),
+    rows.filter((e) => e.amount_brl_cents > 0).map((e) => e.amount_brl_cents),
   );
   const cost = sumCents(
-    rows.filter((e) => e.amount_cents < 0).map((e) => -e.amount_cents),
+    rows.filter((e) => e.amount_brl_cents < 0).map((e) => -e.amount_brl_cents),
   );
   const profit = revenue - cost;
   return {
@@ -213,6 +242,7 @@ export function monthResult(
     // Percent of revenue. Zero revenue gives a zero margin, not a division by
     // zero — a month with costs and no income has no margin to report.
     margin: revenue === 0 ? 0 : Math.round((profit / revenue) * 100),
+    unconverted,
   };
 }
 
@@ -271,9 +301,10 @@ export function byCategory(
   // inAccrualMonth narrows to Entry, which drops the slug — filter here so the
   // extra field survives.
   for (const row of rows.filter((r) => r.date_accrual.startsWith(month))) {
-    if (row.amount_cents >= 0 || row.category_kind === "transfer") continue;
+    const brl = row.amount_brl_cents;
+    if (brl === null || brl >= 0 || row.category_kind === "transfer") continue;
     const slug = row.category_slug ?? "sem-categoria";
-    totals.set(slug, (totals.get(slug) ?? 0) + -row.amount_cents);
+    totals.set(slug, (totals.get(slug) ?? 0) + -brl);
   }
   return [...totals.entries()]
     .map(([slug, total_cents]) => ({ slug, total_cents }))

@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import {
   csvDate,
+  detectDelimiter,
   decimalToCents,
   parseCsv,
   parseOfx,
@@ -68,8 +69,12 @@ describe("splitCsvLine", () => {
     expect(splitCsvLine('a,"say ""hi""",b')).toEqual(["a", 'say "hi"', "b"]);
   });
 
-  it("accepts semicolons, which is what a pt-BR export uses", () => {
-    expect(splitCsvLine("a;b;c")).toEqual(["a", "b", "c"]);
+  it("splits on the delimiter it is told to, not on both", () => {
+    expect(splitCsvLine("a;b;c", ";")).toEqual(["a", "b", "c"]);
+    // The same line under a comma delimiter is one field, which is what a
+    // pt-BR decimal needs.
+    expect(splitCsvLine("-1.350,50", ",")).toEqual(["-1.350", "50"]);
+    expect(splitCsvLine("-1.350,50", ";")).toEqual(["-1.350,50"]);
   });
 });
 
@@ -150,5 +155,54 @@ describe("parseStatement", () => {
     const csv = "Data,Valor\n05/08/2026,-135.00";
     expect(parseStatement("extrato.csv", csv).lines).toHaveLength(1);
     expect(parseStatement("extrato.ofx", csv).lines).toHaveLength(0);
+  });
+});
+
+describe("real-world CSV shapes", () => {
+  /**
+   * A pt-BR export is semicolon-separated AND uses the comma as its decimal
+   * point. Treating both as delimiters at once read `-1.350,50` as `-1.350`
+   * and lost fifty centavos — not counted as skipped, and then the line no
+   * longer matched the payable it was meant to settle.
+   */
+  it("keeps the centavos in a semicolon-separated Brazilian export", () => {
+    const csv = [
+      "Data;Valor;Descrição",
+      "21/08/2026;-1.350,50;PIX ENVIADO PETRA",
+    ].join("\n");
+    const { lines, skipped } = parseCsv(csv);
+    expect(skipped).toBe(0);
+    expect(lines[0].amount_cents).toBe(-135050);
+  });
+
+  it("picks the header it was named, not the first one containing it", () => {
+    expect(detectDelimiter("Data;Valor")).toBe(";");
+    expect(detectDelimiter("Date,Amount")).toBe(",");
+  });
+
+  /**
+   * Wise ships both "Source fee amount" and "Target amount". Substring-first
+   * matching picked the FEE column, so every transaction was read as its own
+   * fee.
+   */
+  it("does not read a Wise fee column as the transaction amount", () => {
+    const csv = [
+      "Date,Source fee amount,Target amount,Description",
+      "2026-08-21,12.50,4110.00,THE SOS AGENCY",
+    ].join("\n");
+    expect(parseCsv(csv).lines[0].amount_cents).toBe(411000);
+  });
+
+  /**
+   * `includes("id")` matched "Cidade", turning a city into the bank reference —
+   * after which every later line from the same city was silently dropped as an
+   * already-imported duplicate.
+   */
+  it("does not mistake a Cidade column for the bank reference", () => {
+    const csv = [
+      "Data,Cidade,Valor,Descrição",
+      "05/08/2026,Belo Horizonte,-1350.00,PIX",
+    ].join("\n");
+    expect(parseCsv(csv).lines[0].external_ref).toBeNull();
   });
 });

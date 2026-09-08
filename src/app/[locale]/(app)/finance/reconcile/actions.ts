@@ -211,26 +211,89 @@ export async function confirmLineAction(formData: FormData): Promise<void> {
   const tenantId = await currentTenantId();
 
   const { data: line } = await supabase.from("fin_import_lines")
-    .select("*")
+    .select("*, import:fin_imports(account_id)")
     .eq("id", id)
     .eq("tenant_id", tenantId)
     .maybeSingle();
 
   if (!line || line.confirmed_at) return;
 
+  // The import already knows which account the statement came from. The form
+  // is an override, not the source: its select defaults to "—", so confirming
+  // without touching it wrote account_id = null, and a null-account entry is
+  // skipped by the balance sum entirely — a month reconciled that way left
+  // every balance at zero while the entries still counted in the month totals.
+  const importedAccount =
+    (line as { import?: { account_id: string | null } | null }).import
+      ?.account_id ?? null;
+  const resolvedAccount = accountId ?? importedAccount;
+
+  // The currency of the account the money moved through, not a constant. This
+  // was hardcoded "BRL", so importing a Wise statement turned every dollar into
+  // a real before anything downstream had a chance to convert it.
+  const { data: account } = resolvedAccount
+    ? await supabase
+        .from("fin_accounts")
+        .select("currency")
+        .eq("id", resolvedAccount)
+        .eq("tenant_id", tenantId)
+        .maybeSingle()
+    : { data: null };
+  const currency = account?.currency ?? "BRL";
+
+  // The month this belongs to comes from the obligation it settles, when it
+  // settles one. August's retainer paid on 5 September is September's cash and
+  // August's revenue — writing the cash date into both is precisely the
+  // conflation the two-date model exists to prevent, and it moved R$ 4.000 of
+  // revenue into the wrong month.
+  let accrual = line.date;
+  if (line.matched_id && line.matched_kind === "receivable") {
+    const { data } = await supabase
+      .from("fin_receivables")
+      .select("date_accrual")
+      .eq("id", line.matched_id)
+      .eq("tenant_id", tenantId)
+      .maybeSingle();
+    accrual = data?.date_accrual ?? line.date;
+  } else if (line.matched_id && line.matched_kind === "payable") {
+    const { data } = await supabase
+      .from("fin_payables")
+      .select("date_accrual")
+      .eq("id", line.matched_id)
+      .eq("tenant_id", tenantId)
+      .maybeSingle();
+    accrual = data?.date_accrual ?? line.date;
+  }
+
+  // Converted at the movement's own date. A rate looked up later is a
+  // different number — the studio is not owed today's rate on August's money.
+  const { data: rateRows } = await supabase
+    .from("fin_fx_rates")
+    .select("day, base, quote, rate")
+    .eq("tenant_id", tenantId)
+    .lte("day", line.date)
+    .order("day", { ascending: false })
+    .limit(1);
+
+  const rate = rateRows?.[0] ? Number(rateRows[0].rate) : null;
+  const amountBrl =
+    currency === "BRL"
+      ? line.amount_cents
+      : rate === null
+        ? null
+        : Math.round(line.amount_cents * rate);
+
   const { data: entry, error } = await supabase.from("fin_entries")
     .insert({
       tenant_id: tenantId,
-      account_id: accountId,
+      account_id: resolvedAccount,
       category_id: categoryId,
       description: line.description,
       amount_cents: line.amount_cents,
-      currency: "BRL",
+      ...({ amount_brl_cents: amountBrl } as Record<string, number | null>),
+      currency,
       date_cash: line.date,
-      // Competência defaults to the cash date and is corrected on the entry
-      // itself. Guessing it from a matched receivable would be right more
-      // often than not, and wrong silently the rest of the time.
-      date_accrual: line.date,
+      date_accrual: accrual,
       reconciled: true,
       external_ref: line.external_ref,
     })

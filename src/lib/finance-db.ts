@@ -39,3 +39,27 @@ export function balancesByAccount(
   }
   return totals;
 }
+
+/**
+ * TEMPORARY — pending migration 054, then delete and re-run `types:gen`.
+ *
+ * 054 adds `fin_entries.amount_brl_cents` and the `fin_account_balances(uuid)`
+ * function, so neither is in the generated types yet. Confined here rather
+ * than cast at each call site, the same arrangement 048–052 used.
+ */
+export type EntryWithBase = EntryRow & { amount_brl_cents: number | null };
+
+export type AccountBalance = {
+  account_id: string;
+  balance_cents: number;
+  unconverted: number;
+};
+
+/** `supabase.rpc` typed for 054's function. */
+export function accountBalances(
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  supabase: any,
+  tenantId: string,
+): Promise<{ data: AccountBalance[] | null }> {
+  return supabase.rpc("fin_account_balances", { p_tenant: tenantId });
+}

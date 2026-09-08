@@ -125,6 +125,7 @@ describe("cash against accrual", () => {
   const entries: Entry[] = [
     {
       amount_cents: 400000,
+      amount_brl_cents: 400000,
       currency: "BRL",
       date_cash: "2026-09-05",
       date_accrual: "2026-08-31",
@@ -132,6 +133,7 @@ describe("cash against accrual", () => {
     },
     {
       amount_cents: -155000,
+      amount_brl_cents: -155000,
       currency: "BRL",
       date_cash: "2026-08-05",
       date_accrual: "2026-08-05",
@@ -160,6 +162,7 @@ describe("cash against accrual", () => {
     const costOnly: Entry[] = [
       {
         amount_cents: -1000,
+        amount_brl_cents: -1000,
         currency: "BRL",
         date_cash: "2026-08-01",
         date_accrual: "2026-08-01",
@@ -179,6 +182,7 @@ describe("transfers", () => {
   const withTransfer: Entry[] = [
     {
       amount_cents: -1000000,
+      amount_brl_cents: -1000000,
       currency: "BRL",
       date_cash: "2026-08-17",
       date_accrual: "2026-08-17",
@@ -186,6 +190,7 @@ describe("transfers", () => {
     },
     {
       amount_cents: -155000,
+      amount_brl_cents: -155000,
       currency: "BRL",
       date_cash: "2026-08-05",
       date_accrual: "2026-08-05",
@@ -244,9 +249,9 @@ describe("open receivables and payables", () => {
 describe("byCategory", () => {
   it("totals spend per category, largest first", () => {
     const rows = [
-      { amount_cents: -155000, currency: "BRL", date_cash: "2026-08-05", date_accrual: "2026-08-05", category_kind: "expense", category_slug: "equipe" },
-      { amount_cents: -135000, currency: "BRL", date_cash: "2026-08-05", date_accrual: "2026-08-05", category_kind: "expense", category_slug: "fornecedores" },
-      { amount_cents: -37500, currency: "BRL", date_cash: "2026-08-27", date_accrual: "2026-08-27", category_kind: "expense", category_slug: "equipe" },
+      { amount_cents: -155000, amount_brl_cents: -155000, currency: "BRL", date_cash: "2026-08-05", date_accrual: "2026-08-05", category_kind: "expense", category_slug: "equipe" },
+      { amount_cents: -135000, amount_brl_cents: -135000, currency: "BRL", date_cash: "2026-08-05", date_accrual: "2026-08-05", category_kind: "expense", category_slug: "fornecedores" },
+      { amount_cents: -37500, amount_brl_cents: -37500, currency: "BRL", date_cash: "2026-08-27", date_accrual: "2026-08-27", category_kind: "expense", category_slug: "equipe" },
     ];
     expect(byCategory(rows, "2026-08")).toEqual([
       { slug: "equipe", total_cents: 192500 },
@@ -256,10 +261,83 @@ describe("byCategory", () => {
 
   it("files an uncategorised expense rather than dropping it", () => {
     const rows = [
-      { amount_cents: -20325, currency: "BRL", date_cash: "2026-08-17", date_accrual: "2026-08-17", category_kind: "expense", category_slug: null },
+      { amount_cents: -20325, amount_brl_cents: -20325, currency: "BRL", date_cash: "2026-08-17", date_accrual: "2026-08-17", category_kind: "expense", category_slug: null },
     ];
     expect(byCategory(rows, "2026-08")).toEqual([
       { slug: "sem-categoria", total_cents: 20325 },
+    ]);
+  });
+});
+
+describe("aggregations across currencies", () => {
+  /**
+   * The bug this guards: `cashFlow`, `monthResult` and `byCategory` used to sum
+   * `amount_cents` while ignoring `currency` entirely. A USD 4.110,00 receipt
+   * added 411000 to the month and rendered as R$ 4.110,00 rather than
+   * R$ 22.070,70 — an 81% understatement with nothing on screen to suggest it.
+   * Every fixture in the original suite was BRL, so nothing failed.
+   */
+  const mixed: Entry[] = [
+    {
+      amount_cents: 350000,
+      amount_brl_cents: 350000,
+      currency: "BRL",
+      date_cash: "2026-08-10",
+      date_accrual: "2026-08-10",
+      category_kind: "income",
+    },
+    {
+      amount_cents: 411000,
+      amount_brl_cents: 2207070, // USD 4.110 at 5.37
+      currency: "USD",
+      date_cash: "2026-08-21",
+      date_accrual: "2026-08-21",
+      category_kind: "income",
+    },
+  ];
+
+  it("sums the converted amount, not the nominal one", () => {
+    expect(cashFlow(mixed, "2026-08").inflow).toBe(350000 + 2207070);
+    expect(monthResult(mixed, "2026-08").revenue).toBe(350000 + 2207070);
+  });
+
+  /**
+   * A row with no rate on file is skipped and COUNTED, never folded in as
+   * zero — the same contract `openTotal` already honoured. A receivable that
+   * silently becomes zero is discovered when the money does not arrive.
+   */
+  it("skips an unconverted row and reports it rather than counting zero", () => {
+    const withGap: Entry[] = [
+      ...mixed,
+      {
+        amount_cents: 100000,
+        amount_brl_cents: null,
+        currency: "USD",
+        date_cash: "2026-08-25",
+        date_accrual: "2026-08-25",
+        category_kind: "income",
+      },
+    ];
+    const flow = cashFlow(withGap, "2026-08");
+    expect(flow.inflow).toBe(350000 + 2207070);
+    expect(flow.unconverted).toBe(1);
+    expect(monthResult(withGap, "2026-08").unconverted).toBe(1);
+  });
+
+  it("uses the converted amount in the category breakdown too", () => {
+    const spend: Array<Entry & { category_slug?: string | null }> = [
+      {
+        amount_cents: -3785,
+        amount_brl_cents: -20325, // USD 37,85 at 5.37
+        currency: "USD",
+        date_cash: "2026-08-17",
+        date_accrual: "2026-08-17",
+        category_kind: "expense",
+        category_slug: "ferramentas",
+      },
+    ];
+    expect(byCategory(spend, "2026-08")).toEqual([
+      { slug: "ferramentas", total_cents: 20325 },
     ]);
   });
 });

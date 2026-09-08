@@ -49,7 +49,7 @@ export default async function ReconcilePage({
   const [{ data: lineData }, { data: accountData }, { data: categoryData }] =
     await Promise.all([
       supabase.from("fin_import_lines")
-        .select("*")
+        .select("*, import:fin_imports(account_id)")
         .eq("tenant_id", tenantId)
         .is("confirmed_at", null)
         .order("date", { ascending: true })
@@ -176,8 +176,16 @@ export default async function ReconcilePage({
                   </label>
                   <label className="text-xs text-muted-foreground">
                     {t("account")}
+                    {/* Pre-selected from the statement's own account. Left
+                        blank, confirming wrote a null account and the entry
+                        dropped out of every balance while still counting in
+                        the month's totals. */}
                     <select
                       name="account_id"
+                      defaultValue={
+                        (line as { import?: { account_id: string | null } | null })
+                          .import?.account_id ?? ""
+                      }
                       className="mt-1 block h-9 rounded-md border border-input bg-background px-2 text-sm"
                     >
                       <option value="">—</option>

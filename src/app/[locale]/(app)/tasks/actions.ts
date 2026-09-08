@@ -45,8 +45,6 @@ function readForm(formData: FormData) {
   const dueAt = studioDayInstant(rawDue);
   const assigneeId =
     (formData.get("assignee_id") ?? "").toString().trim() || null;
-  const clientId =
-    (formData.get("client_id") ?? "").toString().trim() || null;
   const projectId =
     (formData.get("project_id") ?? "").toString().trim() || null;
   // The second responsible person from 048: assignee executes, this one
@@ -64,12 +62,39 @@ function readForm(formData: FormData) {
     dueAt,
     rawDue,
     assigneeId,
-    clientId,
     projectId,
     followUpId,
     locale,
     isTemplate,
   };
+}
+
+/**
+ * The client a task belongs to, derived from its project.
+ *
+ * The form stopped asking for a client — "um cliente pode ter vários projetos",
+ * so the project is the thing you pick and the client follows from it. But the
+ * action kept reading a `client_id` field that no longer posts, which meant
+ * every create wrote null and, worse, **every edit overwrote the existing
+ * client with null** — taking `cycle_id` with it, because the cycle is
+ * resolved from the client.
+ *
+ * A task with no project is internal work and genuinely has no client, which
+ * is the same meaning `tasks.client_id` has always carried.
+ */
+async function clientOfProject(
+  supabase: Awaited<ReturnType<typeof createSupabaseClient>>,
+  projectId: string | null,
+  tenantId: string,
+): Promise<string | null> {
+  if (!projectId) return null;
+  const { data } = await supabase
+    .from("projects")
+    .select("client_id")
+    .eq("id", projectId)
+    .eq("tenant_id", tenantId)
+    .maybeSingle();
+  return data?.client_id ?? null;
 }
 
 async function resolveCurrentCycle(
@@ -104,11 +129,13 @@ export async function createTaskAction(
     data: { user },
   } = await supabase.auth.getUser();
 
+  const clientId = await clientOfProject(supabase, form.projectId, tenantId);
+
   // Templates never get a cycle: they live outside the cycle system and
   // the cycles cron clones them into real tasks when a new cycle is created.
   const cycleId = form.isTemplate
     ? null
-    : await resolveCurrentCycle(supabase, form.clientId);
+    : await resolveCurrentCycle(supabase, clientId);
 
   const { error, data } = await supabase
     .from("tasks")
@@ -122,7 +149,7 @@ export async function createTaskAction(
       priority: form.priority,
       due_at: form.dueAt,
       assignee_id: form.assigneeId,
-      client_id: form.clientId,
+      client_id: clientId,
       cycle_id: cycleId,
       is_template: form.isTemplate,
       created_by: user?.id ?? null,
@@ -160,7 +187,7 @@ export async function updateTaskAction(
   formData: FormData,
 ): Promise<TaskFormState> {
   const id = (formData.get("id") ?? "").toString();
-  if (!id) return { error: "Missing task id." };
+  if (!id) return { error: "missingId" };
   const form = readForm(formData);
   if (form.title.length < 2) return { fieldErrors: { title: "tooShort" } };
   if (form.rawDue && !form.dueAt) {
@@ -168,6 +195,7 @@ export async function updateTaskAction(
   }
 
   const supabase = await createSupabaseClient();
+  const tenantId = await currentTenantId();
   const {
     data: { user },
   } = await supabase.auth.getUser();
@@ -175,13 +203,16 @@ export async function updateTaskAction(
     .from("tasks")
     .select("status, completed_at, client_id, assignee_id")
     .eq("id", id)
+    .eq("tenant_id", tenantId)
     .maybeSingle();
-  if (!existing) return { error: "Task not found." };
+  if (!existing) return { error: "taskNotFound" };
+
+  const clientId = await clientOfProject(supabase, form.projectId, tenantId);
 
   // Re-resolve cycle only when client changed
   let cycleId: string | null | undefined = undefined;
-  if (existing.client_id !== form.clientId) {
-    cycleId = await resolveCurrentCycle(supabase, form.clientId);
+  if (existing.client_id !== clientId) {
+    cycleId = await resolveCurrentCycle(supabase, clientId);
   }
 
   let completedAt = existing.completed_at;
@@ -200,7 +231,7 @@ export async function updateTaskAction(
     priority: form.priority,
     due_at: form.dueAt,
     assignee_id: form.assigneeId,
-    client_id: form.clientId,
+    client_id: clientId,
     is_template: form.isTemplate,
     completed_at: form.isTemplate ? null : completedAt,
   };
@@ -208,8 +239,6 @@ export async function updateTaskAction(
 
   const { error } = await supabase.from("tasks").update(update).eq("id", id);
   if (error) return { error: dbError(error) };
-
-  const tenantId = await currentTenantId();
 
   // Notify on assignee handoff (skip for self-assign and templates).
   if (
@@ -237,7 +266,13 @@ export async function deleteTaskAction(formData: FormData): Promise<void> {
   const locale = (formData.get("locale") ?? "pt-BR").toString();
   if (!id) return;
   const supabase = await createSupabaseClient();
-  await supabase.from("tasks").delete().eq("id", id);
+  const tenantId = await currentTenantId();
+  const { error } = await supabase
+    .from("tasks")
+    .delete()
+    .eq("id", id)
+    .eq("tenant_id", tenantId);
+  if (error) log.error("tasks.delete", "delete_failed", { code: error.code });
   revalidatePath(`/${locale}/tasks`);
 }
 
