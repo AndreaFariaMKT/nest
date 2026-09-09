@@ -7,7 +7,7 @@ import { PageHeader } from "@/components/ui/PageHeader";
 import { Pill } from "@/components/ui/Pill";
 import { Link } from "@/i18n/routing";
 import type { Route } from "next";
-import { formatCentsAsBrl } from "@/lib/money";
+import { formatCents, formatCentsAsBrl } from "@/lib/money";
 import { cashFlow, monthResult, byCategory } from "@/lib/finance";
 import { loadFinance } from "@/lib/finance-load";
 
@@ -42,15 +42,6 @@ export default async function CashflowPage({
   const f = await loadFinance(requested);
   const month = f.currentMonth;
   const year = Number(month.slice(0, 4));
-
-  const supabase = await createClient();
-  const tenantId = await currentTenantId();
-  const { data: accountRows } = await supabase
-    .from("clients")
-    .select("id, name")
-    .eq("tenant_id", tenantId)
-    .limit(OPTION_LIST_CAP);
-  const clientName = new Map((accountRows ?? []).map((c) => [c.id, c.name]));
 
   const categoryName = new Map(f.categories.map((c) => [c.slug, c.name]));
   const accountName = new Map(f.accounts.map((a) => [a.id, a.name]));
@@ -244,9 +235,7 @@ export default async function CashflowPage({
                               : ""
                           }`}
                         >
-                          {e.currency === "BRL"
-                            ? money(e.amount_cents)
-                            : `${e.currency} ${(e.amount_cents / 100).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}`}
+                          {formatCents(e.amount_cents, e.currency)}
                         </td>
                         <td className="py-2 text-right">
                           <Pill tone={e.reconciled ? "success" : "warning"}>

@@ -16,14 +16,26 @@
 export type InvoiceCandidate = {
   paid_on: string | null;
   invoice_status: string;
-  /** From clients.country — 'BR' or 'US'. */
+  /** From clients.country — 'BR' or 'US'. Null when there is no client. */
   country: string | null;
 };
 
 export const INVOICE_DEADLINE_BUSINESS_DAYS = 5;
 
-/** An export produces no Brazilian nota, whatever else is true of it. */
-export function isExport(country: string | null): boolean {
+/**
+ * An export produces no Brazilian nota, whatever else is true of it.
+ *
+ * Decided by the client's country OR by the row already being marked as one:
+ * keying on country alone let a receivable with `invoice_status = 'export'`
+ * and a BR-or-unknown client fall out of the queue AND out of the export list
+ * — vanishing from both, which is exactly the disappearance the two-list split
+ * exists to prevent.
+ */
+export function isExport(
+  country: string | null,
+  invoiceStatus?: string,
+): boolean {
+  if (invoiceStatus === "export") return true;
   return country !== null && country !== "BR";
 }
 
@@ -35,7 +47,7 @@ export function isExport(country: string | null): boolean {
  */
 export function needsInvoice(row: InvoiceCandidate): boolean {
   if (row.paid_on === null) return false;
-  if (isExport(row.country)) return false;
+  if (isExport(row.country, row.invoice_status)) return false;
   return row.invoice_status === "pending" || row.invoice_status === "requested";
 }
 
@@ -79,7 +91,7 @@ export function invoiceQueue<T extends InvoiceCandidate>(
   todayIso: string,
 ): { due: Array<T & { due_on: string; late: boolean }>; exports: T[] } {
   const exports = rows.filter(
-    (r) => r.paid_on !== null && isExport(r.country),
+    (r) => r.paid_on !== null && isExport(r.country, r.invoice_status),
   );
 
   const due = rows

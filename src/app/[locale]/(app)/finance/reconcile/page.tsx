@@ -4,7 +4,7 @@ import { OPTION_LIST_CAP } from "@/lib/pagination";
 import { createClient } from "@/lib/supabase/server";
 import { currentTenantId } from "@/lib/tenant-server";
 import { PageHeader } from "@/components/ui/PageHeader";
-import { Pill } from "@/components/ui/Pill";
+import { Pill, toneOf, type Tone } from "@/components/ui/Pill";
 import { formatCentsAsBrl } from "@/lib/money";
 import {
   type AccountRow,
@@ -20,19 +20,8 @@ const kindTone = {
   auto: "success",
   suggested: "warning",
   unmatched: "danger",
-} as const;
+} as const satisfies Record<string, Tone>;
 
-/**
- * `match_kind` is a CHECK on a text column, so the generated type is `string`
- * rather than the union — narrow it here instead of casting at the point of
- * use, so a value the database somehow allows that this screen has no styling
- * for renders as a plain badge rather than crashing the page.
- */
-function toneFor(kind: string): (typeof kindTone)[keyof typeof kindTone] | "muted" {
-  return kind in kindTone
-    ? kindTone[kind as keyof typeof kindTone]
-    : "muted";
-}
 
 export default async function ReconcilePage({
   params,
@@ -124,7 +113,7 @@ export default async function ReconcilePage({
                       <span className="text-xs tabular-nums text-muted-foreground">
                         {line.date}
                       </span>
-                      <Pill tone={toneFor(line.match_kind)}>
+                      <Pill tone={toneOf(kindTone, line.match_kind)}>
                         {t(`kinds.${line.match_kind}`)}
                       </Pill>
                       {/* Why it is not `auto`, said in words. An unexplained

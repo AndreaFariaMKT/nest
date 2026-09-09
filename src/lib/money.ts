@@ -56,3 +56,28 @@ export function sumCents(
   }
   return total;
 }
+
+/**
+ * Format cents in whichever currency they are.
+ *
+ * This existed inline four times — in the accounts list, the receivables list,
+ * the entries table and the invoice queue — each written as
+ * `currency === "BRL" ? formatCentsAsBrl(c) : \`${currency} ${...}\``, and the
+ * non-BRL half spelled differently from `formatCentsAsBrl` (a manual prefix
+ * rather than `style: "currency"`). Four copies of a ternary is how two
+ * spellings of the same amount end up on adjacent screens.
+ */
+export function formatCents(
+  cents: number | bigint | null | undefined,
+  currency: string,
+): string {
+  if (cents === null || cents === undefined) return "—";
+  const numeric = typeof cents === "bigint" ? Number(cents) : cents;
+  if (!Number.isFinite(numeric)) return "—";
+  // pt-BR throughout: the studio reads its own money in Brazilian formatting
+  // whatever the currency, so USD 4.110,00 rather than USD 4,110.00.
+  return (numeric / 100).toLocaleString("pt-BR", {
+    style: "currency",
+    currency: currency === "USD" ? "USD" : "BRL",
+  });
+}

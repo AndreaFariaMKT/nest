@@ -8,8 +8,8 @@ import { PageHeader } from "@/components/ui/PageHeader";
 import { Pill } from "@/components/ui/Pill";
 import { Link } from "@/i18n/routing";
 import { todayIso, studioDayOf } from "@/lib/social";
-import { isLate, projectProgress } from "@/lib/projects";
-import type { ProjectRow } from "@/lib/projects-db";
+import { isLate, progressOf } from "@/lib/projects";
+import { projectProgressRows, type ProjectRow } from "@/lib/projects-db";
 import type { TaskPriority, TaskStatus } from "@/types/database";
 
 export const dynamic = "force-dynamic";
@@ -55,9 +55,9 @@ export default async function TasksAndProjectsPage({
   const profile = await getCurrentProfile();
   const today = todayIso();
 
-  // One wave. None of these four reads consumes another's result, and the
-  // pattern is the one today/page.tsx already uses for the same reason.
-  const [taskRows, notificationRows, membershipRows, taskStatusRows] =
+  // One wave. None of these reads consumes another's result, and the pattern
+  // is the one today/page.tsx already uses for the same reason.
+  const [taskRows, notificationRows, membershipRows, progressRes] =
     await Promise.all([
       profile
         ? supabase
@@ -83,13 +83,10 @@ export default async function TasksAndProjectsPage({
             .from("project_members")
             .select("project_id")
             .eq("user_id", profile.id)
+            .eq("tenant_id", tenantId)
+            .limit(OPTION_LIST_CAP)
         : null,
-      supabase
-        .from("tasks")
-        .select("project_id, status")
-        .eq("tenant_id", tenantId)
-        .eq("is_template", false)
-        .limit(OPTION_LIST_CAP),
+      projectProgressRows(supabase, tenantId),
     ]);
 
   const myTasks = (taskRows?.data ?? []) as MyTask[];
@@ -119,13 +116,10 @@ export default async function TasksAndProjectsPage({
 
   const myProjects = (projectData ?? []) as ProjectRow[];
 
-  const statusesByProject = new Map<string, string[]>();
-  for (const row of taskStatusRows?.data ?? []) {
-    if (!row.project_id) continue;
-    const list = statusesByProject.get(row.project_id) ?? [];
-    list.push(row.status);
-    statusesByProject.set(row.project_id, list);
-  }
+  // Grouped in SQL over the whole board — see 055.
+  const progressByProject = new Map(
+    (progressRes?.data ?? []).map((r) => [r.project_id, r] as const),
+  );
 
   return (
     <div>
@@ -242,9 +236,7 @@ export default async function TasksAndProjectsPage({
         ) : (
           <ul className="divide-y divide-border">
             {myProjects.map((project) => {
-              const progress = projectProgress(
-                statusesByProject.get(project.id) ?? [],
-              );
+              const progress = progressOf(progressByProject.get(project.id));
               return (
                 <li key={project.id}>
                   <Link

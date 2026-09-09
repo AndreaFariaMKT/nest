@@ -1,6 +1,6 @@
 import { cn } from "@/lib/utils";
 
-type Tone = "default" | "brand" | "success" | "warning" | "muted" | "danger";
+export type Tone = "default" | "brand" | "success" | "warning" | "muted" | "danger";
 
 const tones: Record<Tone, string> = {
   default: "bg-accent text-accent-foreground",
@@ -26,4 +26,24 @@ export function Pill({
       {...rest}
     />
   );
+}
+
+/**
+ * Pick a tone for a value that arrives as a bare `string`.
+ *
+ * Most status columns in this schema are CHECK-constrained text rather than
+ * enums — a deliberate choice, since an enum needs ALTER TYPE to grow — so the
+ * generated types give `string` and indexing a tone map with it does not
+ * typecheck. Three near-identical narrowing helpers appeared in one session
+ * (projects, reconcile, suppliers) before this existed.
+ *
+ * Falls back rather than throwing: a value the database allows but a screen
+ * has no styling for should render as a plain badge, not crash the list.
+ */
+export function toneOf(
+  map: Readonly<Record<string, Tone>>,
+  key: string | null | undefined,
+  fallback: Tone = "muted",
+): Tone {
+  return key && key in map ? map[key] : fallback;
 }

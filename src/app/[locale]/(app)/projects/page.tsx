@@ -4,11 +4,11 @@ import { OPTION_LIST_CAP } from "@/lib/pagination";
 import { createClient } from "@/lib/supabase/server";
 import { currentTenantId } from "@/lib/tenant-server";
 import { PageHeader } from "@/components/ui/PageHeader";
-import { Pill } from "@/components/ui/Pill";
+import { Pill, toneOf, type Tone } from "@/components/ui/Pill";
 import { Link } from "@/i18n/routing";
 import { todayIso } from "@/lib/social";
-import { isLate, projectProgress } from "@/lib/projects";
-import type { ProjectRow } from "@/lib/projects-db";
+import { isLate, progressOf } from "@/lib/projects";
+import { projectProgressRows, type ProjectRow } from "@/lib/projects-db";
 
 export const dynamic = "force-dynamic";
 
@@ -18,18 +18,8 @@ const statusTone = {
   paused: "muted",
   done: "muted",
   cancelled: "muted",
-} as const;
+} as const satisfies Record<string, Tone>;
 
-/**
- * `status` is a CHECK on a text column, so the generated type is `string`
- * rather than the union. Narrowed here so a value the database allows but this
- * screen has no styling for renders plainly instead of crashing the list.
- */
-function toneFor(status: string): (typeof statusTone)[keyof typeof statusTone] {
-  return status in statusTone
-    ? statusTone[status as keyof typeof statusTone]
-    : "muted";
-}
 
 export default async function ProjectsPage({
   params,
@@ -44,7 +34,7 @@ export default async function ProjectsPage({
   const tenantId = await currentTenantId();
   const today = todayIso();
 
-  const [{ data: projectData }, { data: clientData }, { data: taskData }] =
+  const [{ data: projectData }, { data: clientData }, { data: progressData }] =
     await Promise.all([
       supabase
         .from("projects")
@@ -59,15 +49,10 @@ export default async function ProjectsPage({
         .select("id, name")
         .eq("tenant_id", tenantId)
         .limit(OPTION_LIST_CAP),
-      // Statuses only. The bar needs a count of done against total, and
-      // pulling whole task rows to compute two integers would be the most
-      // expensive way to draw a progress bar on a list.
-      supabase
-        .from("tasks")
-        .select("project_id, status")
-        .eq("tenant_id", tenantId)
-        .eq("is_template", false)
-        .limit(OPTION_LIST_CAP),
+      // Grouped in SQL over the whole board — see 055. Grouping a 500-row page
+      // in TypeScript made a project whose tasks fell outside that page show
+      // 0% here and its real figure on its own screen.
+      projectProgressRows(supabase, tenantId),
     ]);
 
   const projects = (projectData ?? []) as ProjectRow[];
@@ -75,13 +60,9 @@ export default async function ProjectsPage({
     (clientData ?? []).map((c) => [c.id, c.name] as const),
   );
 
-  const statusesByProject = new Map<string, string[]>();
-  for (const row of taskData ?? []) {
-    if (!row.project_id) continue;
-    const list = statusesByProject.get(row.project_id) ?? [];
-    list.push(row.status);
-    statusesByProject.set(row.project_id, list);
-  }
+  const progressByProject = new Map(
+    (progressData ?? []).map((r) => [r.project_id, r] as const),
+  );
 
   // "Projetos clientes / Projetos interno" — the brief's two tabs, as two
   // sections. A null client is the studio's own work, which is the same
@@ -110,9 +91,7 @@ export default async function ProjectsPage({
         ) : (
           <ul className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
             {rows.map((project) => {
-              const progress = projectProgress(
-                statusesByProject.get(project.id) ?? [],
-              );
+              const progress = progressOf(progressByProject.get(project.id));
               const late = isLate(project, today);
               return (
                 <li key={project.id}>
@@ -134,7 +113,7 @@ export default async function ProjectsPage({
                           {t(`form.types.${project.type}`)}
                         </div>
                       </div>
-                      <Pill tone={toneFor(project.status)}>
+                      <Pill tone={toneOf(statusTone, project.status)}>
                         {t(`form.statuses.${project.status}`)}
                       </Pill>
                     </div>

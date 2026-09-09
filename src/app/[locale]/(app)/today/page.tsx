@@ -10,6 +10,7 @@ import { getCurrentRole } from "@/lib/roles-server";
 import { currentTenantId } from "@/lib/tenant-server";
 import { formatCentsAsBrl, sumCents } from "@/lib/money";
 import { loadFinance } from "@/lib/finance-load";
+import { isActiveStatus, isNegotiatingStatus } from "@/lib/projects";
 import type { MeetingStatus, TaskPriority, TaskStatus } from "@/types/database";
 
 type PendingApproval = {
@@ -194,8 +195,11 @@ export default async function TodayPage({
       (p) => p.status,
     );
     leadership = {
-      activeProjects: statuses.filter((s) => s === "active").length,
-      negotiatingProjects: statuses.filter((s) => s === "negotiating").length,
+      // Through the helpers rather than an inline comparison: they carry the
+      // decision that `paused` does not count as active, and a second spelling
+      // here is how that decision quietly stops being true on one screen.
+      activeProjects: statuses.filter(isActiveStatus).length,
+      negotiatingProjects: statuses.filter(isNegotiatingStatus).length,
       // The same month measured two ways — see LeadershipBlock and
       // @/lib/finance for why they differ and why both are shown.
       expectedRevenue: formatCentsAsBrl(finance.monthAccrual.revenue),

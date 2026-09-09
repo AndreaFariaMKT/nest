@@ -5,7 +5,7 @@ import { createClient } from "@/lib/supabase/server";
 import { currentTenantId } from "@/lib/tenant-server";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { Pill } from "@/components/ui/Pill";
-import { formatCentsAsBrl } from "@/lib/money";
+import { formatCents, formatCentsAsBrl } from "@/lib/money";
 import { todayIso } from "@/lib/social";
 import {
   INVOICE_DEADLINE_BUSINESS_DAYS,
@@ -174,9 +174,7 @@ export default async function InvoicingPage({
                 <span className="flex shrink-0 items-center gap-2">
                   <Pill tone="muted">{t("exportBadge")}</Pill>
                   <span className="tabular-nums">
-                    {row.currency === "BRL"
-                      ? formatCentsAsBrl(row.amount_cents)
-                      : `${row.currency} ${(row.amount_cents / 100).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}`}
+                    {formatCents(row.amount_cents, row.currency)}
                   </span>
                 </span>
               </li>

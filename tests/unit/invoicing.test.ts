@@ -104,3 +104,41 @@ describe("invoiceQueue", () => {
     expect(exports.map((e) => e.id)).toEqual(["sos"]);
   });
 });
+
+describe("a row must never vanish from both lists", () => {
+  /**
+   * `invoice_status` has four legal values, one of which is 'export'.
+   * `needsInvoice` skipped those, and the exports list was keyed on the
+   * CLIENT'S COUNTRY — so a receivable already marked as an export whose
+   * client is BR, or has no client at all, appeared in neither list. A row
+   * that disappears from a to-do list reads as a row that was forgotten,
+   * which is the exact failure the split was designed to prevent.
+   */
+  it("keeps a row marked export but owned by a BR client in the exports list", () => {
+    const rows = [
+      { id: "x", paid_on: "2026-08-21", invoice_status: "export", country: "BR" },
+    ];
+    const { due, exports } = invoiceQueue(rows, "2026-09-07");
+    expect(due).toHaveLength(0);
+    expect(exports.map((e) => e.id)).toEqual(["x"]);
+  });
+
+  it("keeps a row marked export with no client at all", () => {
+    const rows = [
+      { id: "y", paid_on: "2026-08-21", invoice_status: "export", country: null },
+    ];
+    expect(invoiceQueue(rows, "2026-09-07").exports.map((e) => e.id)).toEqual(["y"]);
+  });
+
+  /**
+   * The mirror case, which must NOT change: a domestic row with no country
+   * recorded still owes a nota. Assuming "unknown means export" would be the
+   * expensive direction to be wrong in.
+   */
+  it("still queues a paid row whose client country was never filled in", () => {
+    const rows = [
+      { id: "z", paid_on: "2026-08-10", invoice_status: "pending", country: null },
+    ];
+    expect(invoiceQueue(rows, "2026-09-07").due.map((d) => d.id)).toEqual(["z"]);
+  });
+});

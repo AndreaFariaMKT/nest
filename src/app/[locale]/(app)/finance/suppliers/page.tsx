@@ -4,7 +4,7 @@ import { OPTION_LIST_CAP } from "@/lib/pagination";
 import { createClient } from "@/lib/supabase/server";
 import { currentTenantId } from "@/lib/tenant-server";
 import { PageHeader } from "@/components/ui/PageHeader";
-import { Pill } from "@/components/ui/Pill";
+import { Pill, toneOf, type Tone } from "@/components/ui/Pill";
 import { formatCentsAsBrl } from "@/lib/money";
 import {
   type SupplierRow } from "@/lib/finance-db";
@@ -17,7 +17,7 @@ const noteTone = {
   collected: "success",
   pending: "warning",
   not_required: "muted",
-} as const;
+} as const satisfies Record<string, Tone>;
 
 export default async function SuppliersPage({
   params,
@@ -84,7 +84,7 @@ export default async function SuppliersPage({
                       .join(" · ")}
                   </div>
                 </div>
-                <Pill tone={noteTone[s.note_status as keyof typeof noteTone] ?? "muted"}>
+                <Pill tone={toneOf(noteTone, s.note_status)}>
                   {t(`note.${s.note_status}`)}
                 </Pill>
               </div>

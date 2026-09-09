@@ -58,7 +58,10 @@ export async function saveSupplierAction(
     default_amount_cents: amountCents,
     pay_day: payDay,
     note_status: (formData.get("note_status") ?? "pending").toString(),
-    notes: optional(formData, "notes"),
+    // `notes` is deliberately NOT written. The form has no field for it, so
+    // including it meant every save wrote null — harmless while the column is
+    // empty, and a silent wipe the moment anyone fills it from SQL or a future
+    // screen. A write-only key is worse than a missing one.
   };
 
   const { error } = id

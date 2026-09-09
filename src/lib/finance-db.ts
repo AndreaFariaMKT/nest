@@ -18,8 +18,6 @@ export type EntryRow = T["fin_entries"]["Row"];
 export type ReceivableRow = T["fin_receivables"]["Row"];
 export type PayableRow = T["fin_payables"]["Row"];
 export type SupplierRow = T["fin_suppliers"]["Row"];
-export type FxRow = T["fin_fx_rates"]["Row"];
-export type ImportRow = T["fin_imports"]["Row"];
 export type ImportLineRow = T["fin_import_lines"]["Row"];
 
 /**

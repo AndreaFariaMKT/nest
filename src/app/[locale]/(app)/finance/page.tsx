@@ -6,7 +6,7 @@ import { OPTION_LIST_CAP } from "@/lib/pagination";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { Pill } from "@/components/ui/Pill";
 import { Link } from "@/i18n/routing";
-import { formatCentsAsBrl, sumCents } from "@/lib/money";
+import { formatCents, formatCentsAsBrl, sumCents } from "@/lib/money";
 import { isOverdue, byCategory } from "@/lib/finance";
 import { loadFinance } from "@/lib/finance-load";
 
@@ -160,9 +160,7 @@ export default async function FinancePage({
                     </span>
                   </span>
                   <span className="shrink-0 tabular-nums">
-                    {a.currency === "BRL"
-                      ? money(a.balance_cents)
-                      : `${a.currency} ${(a.balance_cents / 100).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}`}
+                    {formatCents(a.balance_cents, a.currency)}
                   </span>
                 </li>
               ))}
@@ -255,9 +253,7 @@ export default async function FinancePage({
                       )}
                       {late ? <Pill tone="danger">{t("late")}</Pill> : null}
                       <span className="tabular-nums">
-                        {r.currency === "BRL"
-                          ? money(r.amount_cents)
-                          : `${r.currency} ${(r.amount_cents / 100).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}`}
+                        {formatCents(r.amount_cents, r.currency)}
                       </span>
                     </span>
                   </li>

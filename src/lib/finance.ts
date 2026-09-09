@@ -17,9 +17,6 @@
 
 import { sumCents } from "@/lib/money";
 
-export const CURRENCIES = ["BRL", "USD"] as const;
-export type Currency = (typeof CURRENCIES)[number];
-
 export type Money = { amount_cents: number; currency: string };
 
 export type FxRate = { day: string; base: string; quote: string; rate: number };
@@ -176,12 +173,12 @@ function converted(rows: readonly Entry[]): {
 }
 
 /** Rows whose cash date falls in an ISO month ("2026-08"). */
-export function inCashMonth(entries: readonly Entry[], month: string): Entry[] {
+function inCashMonth(entries: readonly Entry[], month: string): Entry[] {
   return entries.filter((e) => e.date_cash.startsWith(month));
 }
 
 /** Rows whose accrual date falls in an ISO month. */
-export function inAccrualMonth(
+function inAccrualMonth(
   entries: readonly Entry[],
   month: string,
 ): Entry[] {

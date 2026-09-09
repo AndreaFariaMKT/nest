@@ -77,6 +77,26 @@ export type ProjectProgress = {
  * full bar on an engagement nobody has started, which is the most misleading
  * thing this number could say.
  */
+/**
+ * The same figure as `projectProgress`, from counts the database did.
+ *
+ * A project with no row at all has no tasks, which reports 0% — not 100%, for
+ * the reason `projectProgress` gives: a full bar on an engagement nobody has
+ * started is the most misleading thing this number could say.
+ */
+export function progressOf(
+  counted: { total: number; done: number } | undefined,
+): ProjectProgress {
+  const total = counted?.total ?? 0;
+  const done = counted?.done ?? 0;
+  return {
+    total,
+    done,
+    open: total - done,
+    percent: total === 0 ? 0 : Math.round((done / total) * 100),
+  };
+}
+
 export function projectProgress(
   statuses: readonly string[],
 ): ProjectProgress {
