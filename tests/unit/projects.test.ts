@@ -10,6 +10,7 @@ import {
   isInternal,
   isLate,
   projectProgress,
+  summariseCosts,
 } from "@/lib/projects";
 import { uniqueSlug, slugify } from "@/lib/slug";
 
@@ -136,5 +137,71 @@ describe("uniqueSlug", () => {
       async () => false,
     );
     expect(slug).toBe("identidade-visual-nayara");
+  });
+});
+
+describe("summariseCosts", () => {
+  it("adds fixed amounts", () => {
+    const s = summariseCosts(
+      [
+        { amount_cents: 135000, percent_passed: null },
+        { amount_cents: 42000, percent_passed: null },
+      ],
+      1000000,
+    );
+    expect(s.total_cents).toBe(177000);
+    expect(s.margin_cents).toBe(823000);
+    expect(s.margin_percent).toBe(82);
+  });
+
+  it("resolves a percentage against the project's value", () => {
+    const s = summariseCosts([{ amount_cents: null, percent_passed: 30 }], 1000000);
+    expect(s.total_cents).toBe(300000);
+    expect(s.margin_cents).toBe(700000);
+  });
+
+  it("mixes the two bases", () => {
+    const s = summariseCosts(
+      [
+        { amount_cents: 100000, percent_passed: null },
+        { amount_cents: null, percent_passed: 10 },
+      ],
+      1000000,
+    );
+    expect(s.total_cents).toBe(200000);
+  });
+
+  /**
+   * A margin that silently ignores half its costs is worse than one that says
+   * it is incomplete — so a percentage with nothing to resolve against is
+   * counted, and the margin refuses to report.
+   */
+  it("counts an unresolvable percentage instead of treating it as zero", () => {
+    const s = summariseCosts([{ amount_cents: null, percent_passed: 30 }], null);
+    expect(s.unresolved).toBe(1);
+    expect(s.total_cents).toBe(0);
+    expect(s.margin_cents).toBeNull();
+    expect(s.margin_percent).toBeNull();
+  });
+
+  it("reports no margin for a project with no price", () => {
+    const s = summariseCosts([{ amount_cents: 50000, percent_passed: null }], null);
+    expect(s.total_cents).toBe(50000);
+    expect(s.margin_cents).toBeNull();
+  });
+
+  it("can report a negative margin, which is the point of having one", () => {
+    const s = summariseCosts([{ amount_cents: 1200000, percent_passed: null }], 1000000);
+    expect(s.margin_cents).toBe(-200000);
+    expect(s.margin_percent).toBe(-20);
+  });
+
+  it("has nothing to say about an empty cost list", () => {
+    expect(summariseCosts([], 1000000)).toEqual({
+      total_cents: 0,
+      unresolved: 0,
+      margin_cents: 1000000,
+      margin_percent: 100,
+    });
   });
 });

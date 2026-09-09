@@ -752,6 +752,22 @@
       "title": "Project flow",
       "hint": "This project type has a standard flow of {count} steps. Applying creates the tasks with due dates in business days from the start, assigned to whoever holds each role.",
       "apply": "Apply the flow"
+    },
+    "costs": {
+      "title": "Project costs",
+      "value": "Service value",
+      "total": "Total cost",
+      "margin": "Margin",
+      "noValue": "No service value recorded — the margin cannot be worked out.",
+      "unresolved": "{count} cost(s) set as a percentage with no service value to resolve against. The margin stays open.",
+      "description": "Description",
+      "supplier": "Supplier",
+      "noSupplier": "No supplier",
+      "amount": "Fixed amount",
+      "percent": "% passed on",
+      "add": "Add",
+      "remove": "Remove",
+      "hint": "Fill in a fixed amount OR a percentage — never both."
     }
   },
   "tasks": {

@@ -7,7 +7,7 @@ import { PageHeader } from "@/components/ui/PageHeader";
 import { Pill, toneOf, type Tone } from "@/components/ui/Pill";
 import { Link } from "@/i18n/routing";
 import { todayIso } from "@/lib/social";
-import { isLate, progressOf } from "@/lib/projects";
+import { isLate, isProjectType, progressOf } from "@/lib/projects";
 import { projectProgressRows, type ProjectRow } from "@/lib/projects-db";
 
 export const dynamic = "force-dynamic";
@@ -23,11 +23,21 @@ const statusTone = {
 
 export default async function ProjectsPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ locale: string }>;
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
 }) {
   const { locale } = await params;
+  const sp = await searchParams;
   setRequestLocale(locale);
+
+  // `?type=` is how /identity-projects and /website-builds now reach this
+  // screen. Those two routes read brand_kits and clients and were named after
+  // projects before there was a projects table; a filter over the real one is
+  // the same list, actually derived from the engagement.
+  const rawType = Array.isArray(sp.type) ? sp.type[0] : sp.type;
+  const typeFilter = isProjectType(rawType) ? rawType : null;
   const t = await getTranslations("projects");
 
   const supabase = await createClient();
@@ -55,7 +65,10 @@ export default async function ProjectsPage({
       projectProgressRows(supabase, tenantId),
     ]);
 
-  const projects = (projectData ?? []) as ProjectRow[];
+  const all = (projectData ?? []) as ProjectRow[];
+  const projects = typeFilter
+    ? all.filter((p) => p.type === typeFilter)
+    : all;
   const clientName = new Map(
     (clientData ?? []).map((c) => [c.id, c.name] as const),
   );
@@ -148,7 +161,7 @@ export default async function ProjectsPage({
   return (
     <div>
       <PageHeader
-        title={t("title")}
+        title={typeFilter ? t(`form.types.${typeFilter}`) : t("title")}
         subtitle={t("subtitle")}
         action={
           <Link

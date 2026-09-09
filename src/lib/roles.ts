@@ -101,8 +101,11 @@ export const NAV: Record<string, NavItem> = {
   social: { key: "social", href: "/social", label: "socialMedia", icon: MegaphoneIcon },
   reports: { key: "reports", href: "/reports", label: "reports", icon: ChartIcon },
   feedback: { key: "feedback", href: "/feedback", label: "feedback", icon: MeetingsIcon },
-  idprojects: { key: "idprojects", href: "/identity-projects", label: "identityProjects", icon: PenIcon },
-  builds: { key: "builds", href: "/website-builds", label: "websiteBuilds", icon: CodeIcon },
+  // Filtered views of the real projects table. Both used to be their own
+  // routes reading brand_kits and clients — named after projects before there
+  // was a projects table, and left duplicating the concept once there was.
+  idprojects: { key: "idprojects", href: "/projects?type=visual_identity", label: "identityProjects", icon: PenIcon },
+  builds: { key: "builds", href: "/projects?type=website", label: "websiteBuilds", icon: CodeIcon },
   // Client portal
   c_waiting: { key: "c_waiting", href: "/portal/waiting", label: "waitingOnYou", icon: BellIcon },
   c_overview: { key: "c_overview", href: "/portal", label: "projectOverview", icon: EyeIcon },
@@ -155,12 +158,12 @@ export const NAV_BY_ROLE: Record<AppRole, NavGroup[]> = {
     { group: "work", keys: ["social", "feedback"] },
   ],
   designer_identity: [
-    { group: "daily", keys: ["home", "messages"] },
-    { group: "work", keys: ["idprojects"] },
+    { group: "daily", keys: ["home", "tasks", "calendar", "messages"] },
+    { group: "work", keys: ["idprojects", "projects"] },
   ],
   developer: [
-    { group: "daily", keys: ["home", "messages"] },
-    { group: "work", keys: ["builds"] },
+    { group: "daily", keys: ["home", "tasks", "calendar", "messages"] },
+    { group: "work", keys: ["builds", "projects"] },
   ],
   accountant: [
     { group: "daily", keys: ["home", "messages"] },

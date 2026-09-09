@@ -41,14 +41,16 @@ const RESTRICTED: { prefix: string; roles: AppRole[] }[] = [
   // nav entry, so nothing pointed at it and nothing guarded it either — every
   // internal role could reach it by typing the path.
   { prefix: "/settings", roles: ["founder"] },
-  // Projects carry the commercials — 050 put service_value_cents,
-  // payment_terms, contract_url and proposal_url on the row — and the RLS
-  // policy admits every non-portal role, because it was written in 048 when
-  // a project held only a name, a type and a scope. Until that policy is
-  // narrowed, the deal value of every engagement was readable AND writable by
-  // a designer who typed the path: the nav was the only thing keeping them
-  // out, which is the exact failure /admin above was added to fix.
-  { prefix: "/projects", roles: ["founder", "manager", "accountant"] },
+  // Creating and editing a project. Reading one is open to every internal
+  // role — a designer has to see the engagement they are working on, and 053's
+  // `projects_read` policy says the same — but the commercials that 050 put on
+  // the row (value, payment terms, contract links) and the costs from
+  // project_costs are hidden in the page itself for anyone outside this list.
+  //
+  // Writing is narrower and stays here: before 053 the deal value of every
+  // engagement was writable by a designer who typed the path, which is the
+  // exact failure /admin above was added to fix.
+  { prefix: "/projects/new", roles: ["founder", "manager", "accountant"] },
   // The team list and role assignment. Same story: page-level isOwner() was
   // the only check, so a bug there was the only thing between a designer and
   // the invite form.

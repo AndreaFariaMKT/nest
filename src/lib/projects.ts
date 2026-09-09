@@ -129,3 +129,67 @@ export function isLate(
 export function isInternal(project: { client_id: string | null }): boolean {
   return project.client_id === null;
 }
+
+/**
+ * What an engagement costs to deliver, and what is left.
+ *
+ * A cost is either a fixed amount or a share of the contract passed through to
+ * a supplier — 050's CHECK refuses a row that sets both or neither, because
+ * that is the state that makes the total unanswerable.
+ *
+ * The percentage is resolved against the project's own value, so a project
+ * with no value recorded cannot resolve one: those are counted separately
+ * rather than treated as zero. A margin that silently ignores half its costs
+ * is worse than a margin that says it is incomplete.
+ */
+export type ProjectCost = {
+  amount_cents: number | null;
+  percent_passed: number | null;
+};
+
+export type CostSummary = {
+  total_cents: number;
+  /** Costs expressed as a percentage that could not be resolved. */
+  unresolved: number;
+  margin_cents: number | null;
+  margin_percent: number | null;
+};
+
+export function summariseCosts(
+  costs: readonly ProjectCost[],
+  serviceValueCents: number | null,
+): CostSummary {
+  let total = 0;
+  let unresolved = 0;
+
+  for (const cost of costs) {
+    if (cost.amount_cents !== null) {
+      total += cost.amount_cents;
+      continue;
+    }
+    if (cost.percent_passed === null) continue;
+    if (serviceValueCents === null) {
+      unresolved += 1;
+      continue;
+    }
+    total += Math.round((serviceValueCents * cost.percent_passed) / 100);
+  }
+
+  // No margin to report without a price, and none that can be trusted while a
+  // percentage is unresolved — both return null rather than a number that
+  // looks complete.
+  const margin =
+    serviceValueCents === null || unresolved > 0
+      ? null
+      : serviceValueCents - total;
+
+  return {
+    total_cents: total,
+    unresolved,
+    margin_cents: margin,
+    margin_percent:
+      margin === null || serviceValueCents === null || serviceValueCents === 0
+        ? null
+        : Math.round((margin / serviceValueCents) * 100),
+  };
+}

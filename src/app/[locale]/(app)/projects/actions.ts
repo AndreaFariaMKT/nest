@@ -358,3 +358,67 @@ export async function applyProjectFlowAction(formData: FormData): Promise<void> 
   revalidatePath(`/${locale}/projects/${id}`);
   revalidatePath(`/${locale}/tasks`);
 }
+
+/**
+ * Add a cost to a project — a supplier and either a fixed amount or a share of
+ * the contract passed through, never both.
+ *
+ * The exclusivity is checked here as well as by 050's CHECK so the person sees
+ * a field error rather than a constraint violation, which surfaces as a 500.
+ */
+export async function addProjectCostAction(formData: FormData): Promise<void> {
+  const projectId = (formData.get("project_id") ?? "").toString();
+  const locale = (formData.get("locale") ?? "pt-BR").toString();
+  const description = (formData.get("description") ?? "").toString().trim();
+  if (!projectId || description.length < 2) return;
+
+  const rawAmount = optional(formData, "amount");
+  const rawPercent = optional(formData, "percent_passed");
+
+  // Exactly one basis. Both or neither is the state that makes a project's
+  // total cost unanswerable, which is why the column pair carries a CHECK.
+  const amountCents = rawAmount ? parseBrlToCents(rawAmount) : null;
+  const percent = rawPercent ? Number(rawPercent) : null;
+  const hasAmount = amountCents !== null;
+  const hasPercent = percent !== null && Number.isFinite(percent) && percent > 0;
+  if (hasAmount === hasPercent) return;
+
+  const supabase = await createSupabaseClient();
+  const tenantId = await currentTenantId();
+
+  const { error } = await supabase.from("project_costs").insert({
+    tenant_id: tenantId,
+    project_id: projectId,
+    supplier_id: optional(formData, "supplier_id"),
+    description,
+    amount_cents: hasAmount ? amountCents : null,
+    percent_passed: hasPercent ? percent : null,
+  });
+
+  if (error) {
+    log.error("projects.costs", "insert_failed", { code: error.code });
+  }
+
+  revalidatePath(`/${locale}/projects/${projectId}`);
+}
+
+export async function deleteProjectCostAction(
+  formData: FormData,
+): Promise<void> {
+  const id = (formData.get("id") ?? "").toString();
+  const projectId = (formData.get("project_id") ?? "").toString();
+  const locale = (formData.get("locale") ?? "pt-BR").toString();
+  if (!id) return;
+
+  const supabase = await createSupabaseClient();
+  const tenantId = await currentTenantId();
+
+  const { error } = await supabase
+    .from("project_costs")
+    .delete()
+    .eq("id", id)
+    .eq("tenant_id", tenantId);
+
+  if (error) log.error("projects.costs", "delete_failed", { code: error.code });
+  revalidatePath(`/${locale}/projects/${projectId}`);
+}

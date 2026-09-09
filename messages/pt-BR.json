@@ -752,6 +752,22 @@
       "title": "Flow do projeto",
       "hint": "Este tipo de projeto tem um fluxo padrão de {count} etapas. Aplicar cria as tarefas com prazo em dias úteis a partir do início, atribuídas a quem ocupa cada papel.",
       "apply": "Aplicar o flow"
+    },
+    "costs": {
+      "title": "Custos do projeto",
+      "value": "Valor do serviço",
+      "total": "Custo total",
+      "margin": "Margem",
+      "noValue": "Sem valor de serviço registrado — a margem não pode ser apurada.",
+      "unresolved": "{count} custo(s) em percentual sem valor de serviço para resolver. A margem fica em aberto.",
+      "description": "Descrição",
+      "supplier": "Fornecedor",
+      "noSupplier": "Sem fornecedor",
+      "amount": "Valor fixo",
+      "percent": "% repassada",
+      "add": "Adicionar",
+      "remove": "Remover",
+      "hint": "Preencha valor fixo OU percentual repassada — nunca os dois."
     }
   },
   "tasks": {
