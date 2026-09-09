@@ -8,7 +8,7 @@ import { Pill, toneOf, type Tone } from "@/components/ui/Pill";
 import { Link } from "@/i18n/routing";
 import { todayIso } from "@/lib/social";
 import { isLate, isProjectType, progressOf } from "@/lib/projects";
-import { projectProgressRows, type ProjectRow } from "@/lib/projects-db";
+import type { ProjectRow } from "@/lib/projects-db";
 
 export const dynamic = "force-dynamic";
 
@@ -62,7 +62,7 @@ export default async function ProjectsPage({
       // Grouped in SQL over the whole board — see 055. Grouping a 500-row page
       // in TypeScript made a project whose tasks fell outside that page show
       // 0% here and its real figure on its own screen.
-      projectProgressRows(supabase, tenantId),
+      supabase.rpc("project_task_progress", { p_tenant: tenantId }),
     ]);
 
   const all = (projectData ?? []) as ProjectRow[];

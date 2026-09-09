@@ -14,6 +14,8 @@ import type { Database } from "@/types/database";
 type T = Database["public"]["Tables"];
 
 export type ProjectRow = T["projects"]["Row"];
+export type ProjectProgressRow =
+  Database["public"]["Functions"]["project_task_progress"]["Returns"][number];
 
 /**
  * The projects a task can be filed under, labelled the way the picker shows
@@ -44,23 +46,3 @@ export async function listProjectChoices(
   }));
 }
 
-/**
- * TEMPORARY — pending migration 055, then delete and re-run `types:gen`.
- *
- * `project_task_progress(uuid)` groups the board in SQL. Reading it in
- * TypeScript meant grouping a 500-row page, so a project whose tasks fell
- * outside that page showed 0% on the list and its real figure on its own page.
- */
-export type ProjectProgressRow = {
-  project_id: string;
-  total: number;
-  done: number;
-};
-
-export function projectProgressRows(
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  supabase: any,
-  tenantId: string,
-): Promise<{ data: ProjectProgressRow[] | null }> {
-  return supabase.rpc("project_task_progress", { p_tenant: tenantId });
-}

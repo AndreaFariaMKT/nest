@@ -9,7 +9,7 @@ import { Pill } from "@/components/ui/Pill";
 import { Link } from "@/i18n/routing";
 import { todayIso, studioDayOf } from "@/lib/social";
 import { isLate, progressOf } from "@/lib/projects";
-import { projectProgressRows, type ProjectRow } from "@/lib/projects-db";
+import type { ProjectRow } from "@/lib/projects-db";
 import type { TaskPriority, TaskStatus } from "@/types/database";
 
 export const dynamic = "force-dynamic";
@@ -86,7 +86,7 @@ export default async function TasksAndProjectsPage({
             .eq("tenant_id", tenantId)
             .limit(OPTION_LIST_CAP)
         : null,
-      projectProgressRows(supabase, tenantId),
+      supabase.rpc("project_task_progress", { p_tenant: tenantId }),
     ]);
 
   const myTasks = (taskRows?.data ?? []) as MyTask[];

@@ -1,40 +1,41 @@
-# Migrations 047–052 — aplicadas
+# Migrations — estado
 
-**Todas aplicadas** (setembro de 2026), tipos regenerados, `npm run types:check`
-sem drift. Nenhum contorno temporário sobrou no código.
+**047 a 055 aplicadas**, tipos regenerados, `npm run types:check` sem drift.
+**Nenhum contorno temporário no código.**
 
 | # | o que trouxe |
 |---|---|
 | 047 | `profiles.job_title`, `profiles.department` |
-| 048 | `projects`, `project_members`, dados fiscais no cliente, `tasks.project_id` e `tasks.follow_up_id` |
+| 048 | `projects`, `project_members`, dados fiscais no cliente, `tasks.project_id` e `follow_up_id` |
 | 049 | contas, categorias, fornecedores, lançamentos, a receber, a pagar, câmbio |
 | 050 | comercial do projeto e `project_costs` |
-| 051 | `fin_imports` e `fin_import_lines` (conciliação) |
-| 052 | `project_flow_steps` e `projects.flow_applied_at` |
+| 051 | conciliação bancária |
+| 052 | `project_flow_steps` e `flow_applied_at` |
+| 053 | escopo de tenant no papel `accountant`; leitura e escrita de `projects` separadas |
+| 054 | `amount_brl_cents`, sinais positivos em obrigações, saldo por conta em SQL |
+| 055 | progresso do projeto em SQL e seis índices |
 
-## O que continua valendo: `db push` não é seguro aqui
+## `db push` continua inseguro aqui
 
-Este documento nasceu porque `supabase migration list --linked` reportava
-**001–013 aplicadas e 014 em diante ausentes**, enquanto o banco tinha os
-objetos de todas elas. É o **histórico** que está incompleto, não o schema —
-e por isso a 047 em diante foram aplicadas à mão.
+`supabase migration list --linked` reporta **001–013 aplicadas e 014 em diante
+ausentes**, enquanto o banco tem os objetos de todas. É o **histórico** que
+está incompleto, não o schema — por isso da 047 em diante tudo foi aplicado à
+mão.
 
-Enquanto o histórico não for reparado, um `supabase db push` tentaria reaplicar
-dezenas de migrations sobre tabelas existentes. A maioria falharia no
-`create table`, mas várias carregam `drop policy` e `revoke`, **que rodam antes
-de qualquer erro aparecer**. O modo de falha não é "o push aborta" — é
-"políticas de RLS caem em produção e aí o push aborta".
+Um `db push` nesse estado tentaria reaplicar dezenas de migrations sobre
+tabelas existentes. A maioria falharia no `create table`, mas várias carregam
+`drop policy` e `revoke`, **que rodam antes de qualquer erro aparecer**. O modo
+de falha não é "o push aborta" — é "políticas de RLS caem em produção e aí o
+push aborta".
 
 ### Reparar (só escreve na tabela de histórico)
 
 ```bash
-supabase migration repair --status applied 014 015 016 017 018 019 020 021 022 \
-  023 024 025 026 027 028 029 030 031 032 033 034 035 036 037 038 039 040 041 \
-  042 043 044 045 046 047 048 049 050 051 052
+supabase migration repair --status applied $(seq -f "%03g" 14 55)
 supabase migration list --linked   # deve mostrar tudo aplicado
 ```
 
-Depois disso o `db push` volta a ser o caminho normal para a 053 em diante.
+Depois disso o `db push` volta a ser o caminho normal da 056 em diante.
 
 ## Uma armadilha do `types:gen`, já corrigida
 
