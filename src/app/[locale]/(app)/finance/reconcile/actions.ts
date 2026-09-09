@@ -290,7 +290,7 @@ export async function confirmLineAction(formData: FormData): Promise<void> {
       category_id: categoryId,
       description: line.description,
       amount_cents: line.amount_cents,
-      ...({ amount_brl_cents: amountBrl } as Record<string, number | null>),
+      amount_brl_cents: amountBrl,
       currency,
       date_cash: line.date,
       date_accrual: accrual,

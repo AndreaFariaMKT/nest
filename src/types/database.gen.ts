@@ -1216,6 +1216,7 @@ export type Database = {
       fin_entries: {
         Row: {
           account_id: string | null
+          amount_brl_cents: number | null
           amount_cents: number
           category_id: string | null
           client_id: string | null
@@ -1235,6 +1236,7 @@ export type Database = {
         }
         Insert: {
           account_id?: string | null
+          amount_brl_cents?: number | null
           amount_cents: number
           category_id?: string | null
           client_id?: string | null
@@ -1254,6 +1256,7 @@ export type Database = {
         }
         Update: {
           account_id?: string | null
+          amount_brl_cents?: number | null
           amount_cents?: number
           category_id?: string | null
           client_id?: string | null
@@ -3130,6 +3133,14 @@ export type Database = {
       }
     }
     Functions: {
+      fin_account_balances: {
+        Args: { p_tenant: string }
+        Returns: {
+          account_id: string
+          balance_cents: number
+          unconverted: number
+        }[]
+      }
       has_client_access: { Args: { target_client: string }; Returns: boolean }
       is_founder: { Args: { target_tenant: string }; Returns: boolean }
       is_owner: { Args: never; Returns: boolean }
@@ -3149,6 +3160,14 @@ export type Database = {
         }[]
       }
       owns_portal_client: { Args: { target_client: string }; Returns: boolean }
+      project_task_progress: {
+        Args: { p_tenant: string }
+        Returns: {
+          done: number
+          project_id: string
+          total: number
+        }[]
+      }
       show_limit: { Args: never; Returns: number }
       show_trgm: { Args: { "": string }; Returns: string[] }
       social_month_kpis: {

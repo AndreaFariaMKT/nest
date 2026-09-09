@@ -16,8 +16,6 @@ import {
   type FxRate,
 } from "@/lib/finance";
 import {
-  accountBalances,
-  type EntryWithBase,
   type AccountRow,
   type CategoryRow,
   type PayableRow,
@@ -95,7 +93,7 @@ export async function loadFinance(month?: string) {
 
   const accounts = (accountsRes.data ?? []) as AccountRow[];
   const categories = (categoriesRes.data ?? []) as CategoryRow[];
-  const entries = (entriesRes.data ?? []) as unknown as EntryWithBase[];
+  const entries = entriesRes.data ?? [];
   const receivables = (receivablesRes.data ?? []) as ReceivableRow[];
   const payables = (payablesRes.data ?? []) as PayableRow[];
   const rates = ((fxRes.data ?? []) as FxRate[]).map((r) => ({
@@ -108,7 +106,9 @@ export async function loadFinance(month?: string) {
 
   // From the whole ledger, in SQL — see fin_account_balances in 054. Summing
   // `entries` here would sum only the range read above.
-  const { data: balanceRows } = await accountBalances(supabase, tenantId);
+  const { data: balanceRows } = await supabase.rpc("fin_account_balances", {
+    p_tenant: tenantId,
+  });
   const balances = new Map((balanceRows ?? []).map((b) => [b.account_id, b]));
   const withBalance = accounts.map((a) => ({
     ...a,
