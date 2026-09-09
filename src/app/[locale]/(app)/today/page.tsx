@@ -9,7 +9,7 @@ import { getCurrentProfile } from "@/lib/auth";
 import { getCurrentRole } from "@/lib/roles-server";
 import { currentTenantId } from "@/lib/tenant-server";
 import { formatCentsAsBrl, sumCents } from "@/lib/money";
-import { loadFinance } from "@/lib/finance-load";
+import { loadMonthRevenue } from "@/lib/finance-load";
 import { isActiveStatus, isNegotiatingStatus } from "@/lib/projects";
 import type { MeetingStatus, TaskPriority, TaskStatus } from "@/types/database";
 
@@ -106,6 +106,8 @@ export default async function TodayPage({
     taskRows,
     meetingsData,
     awaitingClient,
+    projectRows,
+    revenue,
   ] = await Promise.all([
     ownerView
       ? supabase
@@ -166,6 +168,14 @@ export default async function TodayPage({
       .eq("status", "client_review")
       .order("publish_on", { ascending: true, nullsFirst: false })
       .limit(6),
+    // The leadership block, in the same wave rather than after it. It used to
+    // load once the first wave had resolved, which made the screen you land on
+    // after logging in wait for two round trips in series — and `ownerView` is
+    // already known here, so there was never a dependency to wait for.
+    ownerView
+      ? supabase.from("projects").select("status").eq("tenant_id", tenantId)
+      : null,
+    ownerView ? loadMonthRevenue() : null,
   ]);
 
   const activeClients = clientCount?.count ?? 0;
@@ -183,17 +193,8 @@ export default async function TodayPage({
     cashRevenue: string;
   } | null = null;
 
-  if (ownerView) {
-    const [{ data: projectRows }, finance] = await Promise.all([
-      supabase
-        .from("projects")
-        .select("status")
-        .eq("tenant_id", tenantId),
-      loadFinance(),
-    ]);
-    const statuses = ((projectRows ?? []) as Array<{ status: string }>).map(
-      (p) => p.status,
-    );
+  if (ownerView && revenue) {
+    const statuses = (projectRows?.data ?? []).map((p) => p.status);
     leadership = {
       // Through the helpers rather than an inline comparison: they carry the
       // decision that `paused` does not count as active, and a second spelling
@@ -202,8 +203,8 @@ export default async function TodayPage({
       negotiatingProjects: statuses.filter(isNegotiatingStatus).length,
       // The same month measured two ways — see LeadershipBlock and
       // @/lib/finance for why they differ and why both are shown.
-      expectedRevenue: formatCentsAsBrl(finance.monthAccrual.revenue),
-      cashRevenue: formatCentsAsBrl(finance.monthCash.inflow),
+      expectedRevenue: formatCentsAsBrl(revenue.expected_cents),
+      cashRevenue: formatCentsAsBrl(revenue.cash_cents),
     };
   }
 

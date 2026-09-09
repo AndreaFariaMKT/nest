@@ -51,8 +51,15 @@ export async function loadFinance(month?: string) {
   const rangeStart = `${Number(year) - 1}-12-01`;
   const rangeEnd = `${Number(year) + 1}-01-31`;
 
-  const [accountsRes, categoriesRes, entriesRes, receivablesRes, payablesRes, fxRes] =
-    await Promise.all([
+  const [
+    accountsRes,
+    categoriesRes,
+    entriesRes,
+    receivablesRes,
+    payablesRes,
+    fxRes,
+    balancesRes,
+  ] = await Promise.all([
       supabase.from("fin_accounts")
         .select("id, tenant_id, name, institution, currency, kind, is_active")
         .eq("tenant_id", tenantId)
@@ -89,6 +96,10 @@ export async function loadFinance(month?: string) {
         .eq("tenant_id", tenantId)
         .order("day", { ascending: false })
         .limit(400),
+      // Joins the wave rather than following it: it depends on none of the
+      // others, and a sequential round trip to a database in another
+      // hemisphere is ~150ms of a click nobody gets back.
+      supabase.rpc("fin_account_balances", { p_tenant: tenantId }),
     ]);
 
   const accounts = (accountsRes.data ?? []) as AccountRow[];
@@ -106,9 +117,7 @@ export async function loadFinance(month?: string) {
 
   // From the whole ledger, in SQL — see fin_account_balances in 054. Summing
   // `entries` here would sum only the range read above.
-  const { data: balanceRows } = await supabase.rpc("fin_account_balances", {
-    p_tenant: tenantId,
-  });
+  const balanceRows = balancesRes.data;
   const balances = new Map((balanceRows ?? []).map((b) => [b.account_id, b]));
   const withBalance = accounts.map((a) => ({
     ...a,
@@ -176,4 +185,55 @@ export async function loadFinance(month?: string) {
     monthCash,
     monthAccrual,
   };
+}
+
+/**
+ * Just the two revenue figures the leadership block shows.
+ *
+ * The block needs the month's accrual revenue and its cash inflow. It was
+ * calling `loadFinance()` for them, which reads accounts, categories, every
+ * entry in a fourteen-month range, receivables, payables, exchange rates and
+ * the balance aggregate — seven queries and, before this, two round trips — to
+ * render two numbers on the screen you land on after logging in.
+ *
+ * One query, one wave, and only the month asked for.
+ */
+export async function loadMonthRevenue(month?: string): Promise<{
+  expected_cents: number;
+  cash_cents: number;
+  unconverted: number;
+}> {
+  const supabase = await createClient();
+  const tenantId = await currentTenantId();
+  const target = month ?? todayIso().slice(0, 7);
+
+  // Both dates matter and they select different rows, so the range has to
+  // cover either column landing in the month.
+  const from = `${target}-01`;
+  const to = `${target}-31`;
+
+  const { data } = await supabase
+    .from("fin_entries")
+    .select("amount_brl_cents, date_cash, date_accrual, category_id")
+    .eq("tenant_id", tenantId)
+    .or(
+      `and(date_cash.gte.${from},date_cash.lte.${to}),and(date_accrual.gte.${from},date_accrual.lte.${to})`,
+    );
+
+  const rows = data ?? [];
+  let expected = 0;
+  let cash = 0;
+  let unconverted = 0;
+
+  for (const row of rows) {
+    if (row.amount_brl_cents === null) {
+      unconverted += 1;
+      continue;
+    }
+    if (row.amount_brl_cents <= 0) continue;
+    if (row.date_accrual.startsWith(target)) expected += row.amount_brl_cents;
+    if (row.date_cash.startsWith(target)) cash += row.amount_brl_cents;
+  }
+
+  return { expected_cents: expected, cash_cents: cash, unconverted };
 }

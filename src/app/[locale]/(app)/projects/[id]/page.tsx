@@ -54,15 +54,24 @@ export default async function ProjectPage({
   const t = await getTranslations("projects");
 
   const supabase = await createClient();
-  const tenantId = await currentTenantId();
+  // Together, not one after the other: neither consumes the other's result.
+  const [tenantId, role] = await Promise.all([
+    currentTenantId(),
+    getCurrentRole(),
+  ]);
 
   // Who may see what an engagement is worth and what it costs to deliver.
   // Everyone internal reads the project; the money on it is narrower.
-  const role = await getCurrentRole();
   const seesMoney =
     role === "founder" || role === "manager" || role === "accountant";
 
-  const [{ data: projectData }, { data: taskData }, people] = await Promise.all([
+  const [
+    { data: projectData },
+    { data: taskData },
+    people,
+    { data: costData },
+    { data: supplierData },
+  ] = await Promise.all([
     supabase
       .from("projects")
       .select("*")
@@ -80,20 +89,46 @@ export default async function ProjectPage({
       .order("due_at", { ascending: true, nullsFirst: false })
       .limit(OPTION_LIST_CAP),
     listAssignablePeople(),
+    // These depend on the route param and the tenant, not on the project row,
+    // so they belong in this wave rather than in one of their own.
+    seesMoney
+      ? supabase
+          .from("project_costs")
+          .select("id, description, amount_cents, percent_passed, supplier_id")
+          .eq("project_id", id)
+          .eq("tenant_id", tenantId)
+          .order("created_at", { ascending: true })
+      : { data: [] },
+    seesMoney
+      ? supabase
+          .from("fin_suppliers")
+          .select("id, name")
+          .eq("tenant_id", tenantId)
+          .order("name", { ascending: true })
+      : { data: [] },
   ]);
 
   if (!projectData) notFound();
   const project = projectData as unknown as ProjectRow;
 
-  let clientName: string | null = null;
-  if (project.client_id) {
-    const { data } = await supabase
-      .from("clients")
-      .select("name")
-      .eq("id", project.client_id)
-      .maybeSingle();
-    clientName = data?.name ?? null;
-  }
+  // Both of these need the project row, so they cannot join the wave above —
+  // but they do not need each other.
+  const [clientRes, stepRes] = await Promise.all([
+    project.client_id
+      ? supabase
+          .from("clients")
+          .select("name")
+          .eq("id", project.client_id)
+          .eq("tenant_id", tenantId)
+          .maybeSingle()
+      : null,
+    supabase
+      .from("project_flow_steps")
+      .select("id, title, description, role, offset_days, priority, sort")
+      .eq("tenant_id", tenantId)
+      .eq("project_type", project.type),
+  ]);
+  const clientName = clientRes?.data?.name ?? null;
 
   const tasks: KanbanTask[] = ((taskData ?? []) as unknown as Joined[]).map(
     (r) => {
@@ -115,34 +150,12 @@ export default async function ProjectPage({
   // What the flow would create, computed but not written. Showing the plan
   // before the button rather than after it is the difference between a feature
   // people try and one they avoid.
-  const [{ data: costData }, { data: supplierData }] = seesMoney
-    ? await Promise.all([
-    supabase
-      .from("project_costs")
-      .select("id, description, amount_cents, percent_passed, supplier_id")
-      .eq("project_id", id)
-      .eq("tenant_id", tenantId)
-      .order("created_at", { ascending: true }),
-    supabase
-      .from("fin_suppliers")
-      .select("id, name")
-      .eq("tenant_id", tenantId)
-      .order("name", { ascending: true }),
-  ])
-    : [{ data: [] }, { data: [] }];
-
   const costs = costData ?? [];
   const suppliers = supplierData ?? [];
   const supplierName = new Map(suppliers.map((x) => [x.id, x.name] as const));
   const costSummary = summariseCosts(costs, project.service_value_cents);
 
-  const { data: stepData } = await supabase
-    .from("project_flow_steps")
-    .select("id, title, description, role, offset_days, priority, sort")
-    .eq("tenant_id", tenantId)
-    .eq("project_type", project.type);
-
-  const steps = (stepData ?? []) as FlowStep[];
+  const steps = (stepRes.data ?? []) as FlowStep[];
   const flowPreview =
     steps.length > 0 && !project.flow_applied_at
       ? planFlow(steps, project.starts_on ?? todayIso(), [], [])
