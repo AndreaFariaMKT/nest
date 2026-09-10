@@ -52,3 +52,4 @@ supabase/.env
 /blob-report/
 /playwright/.cache/
 src/types/database.gen.ts.tmp
+.migracao-supabase/
