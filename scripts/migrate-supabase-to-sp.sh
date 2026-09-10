@@ -320,27 +320,53 @@ confirm "Realtime ligado para messages?"
 
 # ── 9 ─────────────────────────────────────────────────────────────────────
 stage "Storage: os três buckets"
-say "Os arquivos NÃO vão no dump do banco. São três buckets:"
-step "brand-assets  — logos e materiais de marca dos clientes"
-step "creatives     — PNG/JPEG renderizados das peças"
-step "reel-videos   — vídeos dos reels"
+say "Os arquivos NÃO vão no dump — só as linhas de storage.buckets vão."
+say "Sem isto, toda imagem de marca, todo carrossel e todo reel do app"
+say "vira 404 contra um bucket que existe e está vazio."
 say ""
-say "Crie os três no projeto novo com a MESMA visibilidade do atual,"
-say "e copie os objetos. Sem isso, toda imagem do app quebra."
-open_url "https://supabase.com/dashboard/project/$NEW_REF/storage/buckets"
-confirm "Buckets criados e objetos copiados?"
+step "brand-assets  — logos e materiais de marca"
+step "creatives     — carrosséis renderizados"
+step "reel-videos   — vídeos"
+say ""
+say "Precisamos da chave service_role dos DOIS projetos."
+say "A do projeto novo você já vai copiar na próxima etapa; pegue as duas agora."
+say ""
+
+open_url "https://supabase.com/dashboard/project/wntrsavneabdcrztwudf/settings/api-keys"
+ask_secret OLD_SERVICE_KEY "service_role do projeto ANTIGO:"
+open_url "https://supabase.com/dashboard/project/$NEW_REF/settings/api-keys"
+ask OLD_URL_VALUE "Project URL do projeto ANTIGO:"
+ask NEW_URL_VALUE "Project URL do projeto NOVO:"
+ask_secret NEW_SERVICE_KEY "service_role do projeto NOVO:"
+
+say ""
+say "Primeiro uma simulação, que não grava nada:"
+OLD_URL="$OLD_URL_VALUE" OLD_SERVICE_KEY="$OLD_SERVICE_KEY" \
+NEW_URL="$NEW_URL_VALUE" NEW_SERVICE_KEY="$NEW_SERVICE_KEY" \
+  node scripts/copy-storage.mjs --dry-run
+
+say ""
+confirm "A contagem de arquivos bate com o que você espera?"
+
+OLD_URL="$OLD_URL_VALUE" OLD_SERVICE_KEY="$OLD_SERVICE_KEY" \
+NEW_URL="$NEW_URL_VALUE" NEW_SERVICE_KEY="$NEW_SERVICE_KEY" \
+  node scripts/copy-storage.mjs
+
+say ""
+say "Se caiu no meio, rode a linha acima de novo — ele pula o que já copiou."
+pause
 
 # ── 10 ────────────────────────────────────────────────────────────────────
 stage "Chaves novas para a Vercel"
 say "Das 27 variáveis do app, só estas três mudam."
+say "A URL e a service_role do projeto novo você já colou na etapa 9."
+say "Falta só a chave anon."
 open_url "https://supabase.com/dashboard/project/$NEW_REF/settings/api-keys"
-ask NEW_URL "Project URL do projeto novo:"
-ask_secret NEW_ANON "Chave anon / publishable:"
-ask_secret NEW_SERVICE "Chave service_role / secret:"
+ask_secret NEW_ANON "Chave anon / publishable do projeto NOVO:"
 
-write_env NEXT_PUBLIC_SUPABASE_URL "$NEW_URL"
+write_env NEXT_PUBLIC_SUPABASE_URL "$NEW_URL_VALUE"
 write_env NEXT_PUBLIC_SUPABASE_ANON_KEY "$NEW_ANON"
-write_env SUPABASE_SERVICE_ROLE_KEY "$NEW_SERVICE"
+write_env SUPABASE_SERVICE_ROLE_KEY "$NEW_SERVICE_KEY"
 
 say ""
 open_url "https://vercel.com/dashboard"
