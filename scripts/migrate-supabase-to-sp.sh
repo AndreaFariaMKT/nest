@@ -303,22 +303,38 @@ say "É a diferença entre todo mundo manter o login e ninguém entrar."
 say "Então conferimos agora, antes de qualquer passo irreversível."
 say ""
 
-AUTH_ROWS=$(grep -c "^COPY auth\.users\|INSERT INTO auth\.users" "$DUMP_DIR/data.sql" 2>/dev/null || echo 0)
-LIVE_USERS=$(psql "$OLD_DB_URL" -tAc 'select count(*) from auth.users' 2>/dev/null || echo "?")
+# `grep -c` imprime 0 e sai com 1 quando não acha nada, então o `|| echo 0`
+# que estava aqui produzia "0\n0" — o teste numérico quebrava, o `if` caía no
+# else, e a mensagem dizia "os logins estão no dump" quando não estavam.
+# A checagem escrita para evitar o desastre falhava ABERTA.
+AUTH_IN_DATA=$(grep -c "auth\.users" "$DUMP_DIR/data.sql" 2>/dev/null || true)
+LIVE_USERS=$(psql "$OLD_DB_URL" -tAc 'select count(*) from auth.users' 2>/dev/null | tr -d ' ' || true)
 
-say "  usuários no banco atual : $LIVE_USERS"
-say "  auth.users no dump     : $AUTH_ROWS bloco(s)"
+say "  usuários no banco atual : ${LIVE_USERS:-?}"
+say "  auth.users no data.sql  : ${AUTH_IN_DATA:-0}"
 say ""
 
-if [ "$AUTH_ROWS" -eq 0 ]; then
-  say "O dump NÃO traz os logins."
-  say ""
-  step "Rode também, antes de continuar:"
-  say "   npx supabase db dump --db-url \"\$OLD_DB_URL\" -s auth -f $DUMP_DIR/auth.sql"
-  step "E inclua auth.sql no restore da etapa 7."
-  confirm "Fez o dump de auth e vai incluí-lo no restore?"
+if [ "${AUTH_IN_DATA:-0}" -gt 0 ] 2>/dev/null; then
+  say "Os logins vieram no dump principal."
+  pause
 else
-  say "Os logins estão no dump. Seguimos."
+  say "O dump principal NÃO traz os logins — confirmado, não suposto."
+  say "Fazendo um dump do schema auth agora."
+  say ""
+  npx supabase db dump --db-url "$OLD_DB_URL" -s auth -f "$DUMP_DIR/auth.sql"
+
+  AUTH_DUMPED=$(grep -c "auth\.users" "$DUMP_DIR/auth.sql" 2>/dev/null || true)
+  say ""
+  say "  auth.users no auth.sql  : ${AUTH_DUMPED:-0}"
+
+  if [ "${AUTH_DUMPED:-0}" -eq 0 ] 2>/dev/null; then
+    say ""
+    say "Nem assim. PARANDO — seguir daqui deixaria todo mundo sem login,"
+    say "e isso só apareceria depois da virada."
+    exit 1
+  fi
+  AUTH_FILE="$DUMP_DIR/auth.sql"
+  say "Os logins estão em auth.sql e entram no restore."
   pause
 fi
 
@@ -329,7 +345,20 @@ step "Region: South America (São Paulo) — sa-east-1. Confira com atenção."
 step "Plano: o mesmo do atual, para não perder backup diário."
 step "Guarde a senha do banco que ele gerar — ela não aparece de novo."
 say ""
-ask NEW_REF "Cole o Reference ID do projeto NOVO:"
+OLD_REF="wntrsavneabdcrztwudf"
+while :; do
+  ask NEW_REF "Cole o Reference ID do projeto NOVO:"
+  if [ "$NEW_REF" = "$OLD_REF" ]; then
+    say ""
+    say "Esse é o ref da PRODUÇÃO."
+    say ""
+    say "Restaurar o dump nele sobrescreveria o banco que está no ar."
+    say "O projeto novo é outro — o que você criou em São Paulo."
+    say ""
+    continue
+  fi
+  [ -n "$NEW_REF" ] && break
+done
 write_env NEW_SUPABASE_REF "$NEW_REF"
 
 # ── 6 ─────────────────────────────────────────────────────────────────────
@@ -347,7 +376,17 @@ open_url "https://supabase.com/dashboard/project/$NEW_REF/settings/database"
 step "Copie a string do projeto NOVO — SESSION POOLER, não a direta."
 while :; do
   ask_secret NEW_DB_URL "Cole a connection string do projeto NOVO:"
-  reject_direct "$NEW_DB_URL" && break
+  reject_direct "$NEW_DB_URL" || continue
+  case "$NEW_DB_URL" in
+    *"$OLD_REF"*)
+      say ""
+      say "Essa string aponta para a PRODUÇÃO. Restaurar aqui destruiria"
+      say "o banco que está no ar. Use a string do projeto de São Paulo."
+      say ""
+      continue
+      ;;
+  esac
+  break
 done
 
 psql "$NEW_DB_URL" -c 'select 1' >/dev/null 2>&1 \
@@ -357,10 +396,16 @@ say ""
 say "Restaurando. Uma transação só: ou entra tudo, ou não entra nada."
 confirm "Pode restaurar?"
 
+# `ALTER ROLE supabase_admin` é recusado: papel reservado, só superusuário
+# mexe. E o arquivo inteiro só ajusta statement_timeout, que o projeto novo já
+# traz no padrão — então filtrar a linha não perde nada.
+grep -v 'supabase_admin' "$DUMP_DIR/roles.sql" > "$DUMP_DIR/roles.filtrado.sql"
+
 psql --single-transaction --variable ON_ERROR_STOP=1 \
-  --file "$DUMP_DIR/roles.sql" \
+  --file "$DUMP_DIR/roles.filtrado.sql" \
   --file "$DUMP_DIR/schema.sql" \
   --command 'SET session_replication_role = replica' \
+  ${AUTH_FILE:+--file "$AUTH_FILE"} \
   --file "$DUMP_DIR/data.sql" \
   --dbname "$NEW_DB_URL"
 
