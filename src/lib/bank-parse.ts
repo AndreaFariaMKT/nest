@@ -181,6 +181,27 @@ export function parseCsv(text: string): ParseResult {
       hits.sort((a, b) => a.h.length - b.h.length);
       return hits[0].i;
     }
+    // Last: the name as the START of a word.
+    //
+    // "descri" is a stem, not a word — it was written to cover "descrição",
+    // "descricao" and "description" at once, and the whole-word rule above
+    // (added to stop "id" matching "Cidade") quietly killed it: after
+    // "descri" comes "c", so the boundary never matched and EVERY Brazilian
+    // CSV lost its description. The reconcile screen showed "—" on every line
+    // and `namesCounterparty` had nothing to compare, so a statement could
+    // essentially never auto-match.
+    //
+    // Anchoring at a word START keeps the bug this was all built around out:
+    // in "cidade" the "id" is preceded by "c", so it still does not match.
+    for (const n of names) {
+      const prefix = new RegExp(`(^|[^a-z0-9])${n}`);
+      const hits = header
+        .map((h, i) => ({ h, i }))
+        .filter(({ h }) => prefix.test(h));
+      if (hits.length === 0) continue;
+      hits.sort((a, b) => a.h.length - b.h.length);
+      return hits[0].i;
+    }
     return -1;
   };
 
@@ -216,8 +237,43 @@ export function parseCsv(text: string): ParseResult {
   return { lines, skipped };
 }
 
+/**
+ * Give every line an identifier, inventing one only where the bank gave none.
+ *
+ * An OFX carries a FITID and a good CSV carries an "identificador" column.
+ * Plenty of CSVs carry neither — and a line with `external_ref: null` slipped
+ * through `dropAlreadyImported`, past the partial unique index on
+ * `fin_import_lines`, and staged a second time. Pulling the month to date
+ * twice, which is the normal way to use this screen, doubled every line in the
+ * overlap; confirming them doubled the month.
+ *
+ * The synthetic key is the movement itself — date, amount, description — plus
+ * how many identical ones came before it in the file. The ordinal is what
+ * keeps this from being too clever: two genuinely separate R$ 50 PIX payments
+ * to the same person on the same day are #0 and #1, and both survive, while a
+ * re-export of the same file produces the same two keys and neither is staged
+ * again.
+ *
+ * Prefixed so it can never be mistaken for something a bank issued.
+ */
+function fillMissingRefs(lines: BankLine[]): BankLine[] {
+  const seen = new Map<string, number>();
+  return lines.map((line) => {
+    if (line.external_ref) return line;
+    const body = [
+      line.date,
+      line.amount_cents,
+      line.description.trim().toLowerCase().replace(/\s+/g, " "),
+    ].join("|");
+    const n = seen.get(body) ?? 0;
+    seen.set(body, n + 1);
+    return { ...line, external_ref: `derived:${body}#${n}` };
+  });
+}
+
 export function parseStatement(filename: string, text: string): ParseResult {
-  return filename.toLowerCase().endsWith(".csv")
+  const parsed = filename.toLowerCase().endsWith(".csv")
     ? parseCsv(text)
     : parseOfx(text);
+  return { ...parsed, lines: fillMissingRefs(parsed.lines) };
 }

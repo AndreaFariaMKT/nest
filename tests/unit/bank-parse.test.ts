@@ -206,3 +206,63 @@ describe("real-world CSV shapes", () => {
     expect(parseCsv(csv).lines[0].external_ref).toBeNull();
   });
 });
+
+describe("a statement the bank gave no identifiers for", () => {
+  // Nubank-style: date, description, amount. No id column at all, and the
+  // unaccented "Descricao" that Brazilian exporters actually write.
+  const csv = [
+    "Data;Descricao;Valor",
+    "01/09/2026;Pagamento PIX Aline;-1.350,50",
+    "02/09/2026;Pix recebido Cliente;4.000,00",
+  ].join("\n");
+
+  it("reads the description from an unaccented header", () => {
+    // "descri" is a stem. The whole-word rule that stops "id" matching
+    // "Cidade" made it match nothing, so every Brazilian CSV showed "—" on
+    // every line and the matcher had no counterparty to compare.
+    const lines = parseStatement("nubank.csv", csv).lines;
+    expect(lines[0].description).toBe("Pagamento PIX Aline");
+    expect(lines[1].description).toBe("Pix recebido Cliente");
+    // And the centavos survive the semicolon file.
+    expect(lines[0].amount_cents).toBe(-135050);
+    expect(lines[1].amount_cents).toBe(400000);
+  });
+
+  it("derives a reference so a re-import does not double the month", () => {
+    const a = parseStatement("nubank.csv", csv);
+    const b = parseStatement("nubank.csv", csv);
+    expect(a.lines).toHaveLength(2);
+    expect(a.lines.every((l) => l.external_ref)).toBe(true);
+    // The same file parsed twice yields the same keys, which is the whole
+    // point: dropAlreadyImported can then recognise the second pull.
+    expect(b.lines.map((l) => l.external_ref)).toEqual(
+      a.lines.map((l) => l.external_ref),
+    );
+  });
+
+  it("keeps two genuinely identical movements apart", () => {
+    // Two separate R$ 50 payments to the same person on the same day are two
+    // payments, not one imported twice.
+    const twice = [
+      "Data;Descricao;Valor",
+      "01/09/2026;Pix Fulano;-50,00",
+      "01/09/2026;Pix Fulano;-50,00",
+    ].join("\n");
+    const refs = parseStatement("x.csv", twice).lines.map((l) => l.external_ref);
+    expect(refs[0]).not.toBe(refs[1]);
+    expect(new Set(refs).size).toBe(2);
+  });
+
+  it("never overwrites a reference the bank did give", () => {
+    const withId = [
+      "Data;Identificador;Descricao;Valor",
+      "01/09/2026;ABC-123;Pagamento;-10,00",
+    ].join("\n");
+    expect(parseStatement("x.csv", withId).lines[0].external_ref).toBe("ABC-123");
+  });
+
+  it("marks a derived reference as derived", () => {
+    // It must never be mistaken for something a bank issued.
+    expect(parseStatement("x.csv", csv).lines[0].external_ref).toMatch(/^derived:/);
+  });
+});
