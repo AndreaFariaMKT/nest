@@ -259,6 +259,58 @@ command -v psql >/dev/null || { say "psql não encontrado. Instale o postgresql-
 docker info >/dev/null 2>&1 || { say "Docker não está rodando — o dump precisa dele."; exit 1; }
 
 # ── 2 ─────────────────────────────────────────────────────────────────────
+DUMP_DIR="$(pwd)/.migracao-supabase"
+REUSAR=0
+if [ -s "$DUMP_DIR/schema.sql" ] && [ -s "$DUMP_DIR/data.sql" ]; then
+  # Esta etapa só existe quando há dump anterior, então entra na conta aqui
+  # em vez de deixar o rodapé prometer um total que não bate.
+  TOTAL_STAGES=$((TOTAL_STAGES + 1))
+  stage "Dump anterior encontrado"
+  say "Já existe um dump nesta pasta, de uma execução anterior:"
+  say ""
+  ls -lh "$DUMP_DIR"/*.sql 2>/dev/null | awk '{print "   " $9 "  " $5}'
+  say ""
+  say "Reaproveitar pula as etapas 2, 3 e 4 — que é onde você já passou"
+  say "quatro vezes. Só não reaproveite se a produção mudou desde então."
+  say ""
+  if confirm "Reaproveitar este dump?"; then
+    REUSAR=1
+
+    # Reaproveitar só é seguro se os logins estiverem cobertos. Sem isto, o
+    # restore roda inteiro e ninguém consegue entrar depois — e isso só
+    # aparece na virada, que é tarde demais para descobrir.
+    if [ -s "$DUMP_DIR/auth.sql" ]; then
+      AUTH_FILE="$DUMP_DIR/auth.sql"
+      say "auth.sql presente — os logins estão cobertos."
+    elif grep -q "auth\.users" "$DUMP_DIR/data.sql" 2>/dev/null; then
+      say "Os logins estão dentro do data.sql."
+    else
+      say ""
+      say "Este dump NÃO tem os logins — nem auth.sql, nem dentro do data.sql."
+      say "Restaurar assim deixaria todo mundo sem entrar."
+      say ""
+      say "Só falta isso. Preciso da conexão do projeto ATUAL uma vez,"
+      say "e faço só o dump do auth — segundos, não o dump inteiro."
+      say ""
+      while :; do
+        ask_secret OLD_DB_URL "Cole a connection string do projeto ATUAL:"
+        reject_direct "$OLD_DB_URL" && break
+      done
+      npx supabase db dump --db-url "$OLD_DB_URL" -s auth -f "$DUMP_DIR/auth.sql"
+
+      if grep -q "auth\.users" "$DUMP_DIR/auth.sql" 2>/dev/null; then
+        AUTH_FILE="$DUMP_DIR/auth.sql"
+        say "Logins capturados."
+      else
+        say "O dump do auth saiu vazio. PARANDO."
+        exit 1
+      fi
+    fi
+    pause
+  fi
+fi
+
+if [ "$REUSAR" = "0" ]; then
 stage "Conexão do projeto ATUAL"
 say "Vamos pegar a string de conexão do projeto que existe hoje."
 open_url "https://supabase.com/dashboard/project/wntrsavneabdcrztwudf/settings/database"
@@ -275,11 +327,12 @@ say "Testando a conexão..."
 psql "$OLD_DB_URL" -c 'select 1' >/dev/null 2>&1 \
   || { say "Não consegui conectar. Confira a senha e tente de novo."; exit 1; }
 say "Conectou."
+fi
 
 # ── 3 ─────────────────────────────────────────────────────────────────────
+if [ "$REUSAR" = "0" ]; then
 stage "Dump: papéis, schema e dados"
 say "Três arquivos, na ordem que o restore vai precisar."
-DUMP_DIR="$(pwd)/.migracao-supabase"
 mkdir -p "$DUMP_DIR"
 say "Salvando em $DUMP_DIR"
 say ""
@@ -336,6 +389,8 @@ else
   AUTH_FILE="$DUMP_DIR/auth.sql"
   say "Os logins estão em auth.sql e entram no restore."
   pause
+fi
+
 fi
 
 # ── 5 ─────────────────────────────────────────────────────────────────────
