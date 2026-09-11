@@ -6,7 +6,7 @@ import { currentTenantId } from "@/lib/tenant-server";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { Pill, toneOf, type Tone } from "@/components/ui/Pill";
 import { Select } from "@/components/ui/Select";
-import { formatCentsAsBrl } from "@/lib/money";
+import { formatCents } from "@/lib/money";
 import {
   type AccountRow,
   type CategoryRow,
@@ -57,6 +57,13 @@ export default async function ReconcilePage({
 
   const lines = (lineData ?? []) as ImportLineRow[];
   const accounts = (accountData ?? []) as AccountRow[];
+  const currencyById = new Map(accounts.map((a) => [a.id, a.currency]));
+  const currencyOf = (line: ImportLineRow) => {
+    const accountId =
+      (line as { import?: { account_id: string | null } | null }).import
+        ?.account_id ?? null;
+    return (accountId ? currencyById.get(accountId) : null) ?? "BRL";
+  };
   const categories = (categoryData ?? []) as CategoryRow[];
 
   const counts = {
@@ -140,7 +147,14 @@ export default async function ReconcilePage({
                         : ""
                     }`}
                   >
-                    {formatCentsAsBrl(line.amount_cents)}
+                    {/* In the currency of the account the statement came
+                        from. fin_import_lines has no currency column, but the
+                        import knows its account and confirmLineAction already
+                        derives it the same way — so a Wise line read
+                        "R$ 4.110,00" on the one screen whose whole promise is
+                        that you see a movement before it is written, and was
+                        then confirmed as US$ 4.110, worth five times that. */}
+                    {formatCents(line.amount_cents, currencyOf(line))}
                   </div>
                 </div>
 
@@ -152,7 +166,8 @@ export default async function ReconcilePage({
                   <input type="hidden" name="locale" value={locale} />
                   <label className="text-xs text-muted-foreground">
                     {t("category")}
-                    <Select name="category_id" className="mt-1 h-9 w-auto">
+                    <Select name="category_id" inline
+                      className="mt-1 h-9">
                       <option value="">—</option>
                       {categories.map((c) => (
                         <option key={c.id} value={c.id}>
@@ -169,7 +184,8 @@ export default async function ReconcilePage({
                         the month's totals. */}
                     <Select
                       name="account_id"
-                      className="mt-1 h-9 w-auto"
+                      inline
+                      className="mt-1 h-9"
                       defaultValue={
                         (line as { import?: { account_id: string | null } | null })
                           .import?.account_id ?? ""

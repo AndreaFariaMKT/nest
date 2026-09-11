@@ -149,8 +149,13 @@ echo "Limpando extensões pré-instaladas no schema errado..."
 # vira no-op — a extensão existe em `extensions`, `public.vector` não existe, e
 # o restore morre lá na frente na primeira função que usa o tipo. O erro
 # precisa aparecer aqui, onde ainda diz o que fazer.
-if ! psql "$URL" -q -c 'DROP EXTENSION IF EXISTS vector CASCADE;' \
-                    -c 'DROP EXTENSION IF EXISTS pg_trgm CASCADE;'; then
+# ON_ERROR_STOP=1, e sem ele nada disto funciona: o psql só sai com código
+# diferente de zero por causa de um erro de SQL quando essa variável está
+# ligada. Sem ela o `if !` nunca dispara, e a checagem que existe para impedir
+# a falha falha aberta — de novo, no mesmo lugar.
+if ! psql "$URL" -q --variable ON_ERROR_STOP=1 \
+        -c 'DROP EXTENSION IF EXISTS vector CASCADE;' \
+        -c 'DROP EXTENSION IF EXISTS pg_trgm CASCADE;'; then
   echo
   echo "Não consegui derrubar as extensões pré-instaladas."
   echo "Se elas estiverem no schema 'extensions', o restore vai falhar com"
@@ -171,8 +176,23 @@ psql --single-transaction --variable ON_ERROR_STOP=1 \
 
 echo
 echo "Conferindo:"
-psql "$URL" -tAc "select '  clientes: '||count(*) from public.clients"
-psql "$URL" -tAc "select '  tarefas:  '||count(*) from public.tasks"
-psql "$URL" -tAc "select '  logins:   '||count(*) from auth.users"
+# Também com ON_ERROR_STOP: sem ele, uma tabela que não existe imprime o erro
+# e o script segue até "Pronto", que é o oposto do que esta seção serve para
+# dizer.
+if ! psql "$URL" -tA --variable ON_ERROR_STOP=1 \
+        -c "select '  clientes: '||count(*) from public.clients" \
+        -c "select '  tarefas:  '||count(*) from public.tasks" \
+        -c "select '  logins:   '||count(*) from auth.users"; then
+  echo
+  echo "O restore terminou mas a conferência falhou — NÃO considere pronto."
+  exit 1
+fi
+
 echo
 echo "Pronto. A produção não foi tocada."
+echo
+echo "Falta uma coisa, e é a que já foi esquecida uma vez:"
+echo "  curl -s https://nest-six-beta.vercel.app/api/health"
+echo "tem que devolver \"status\":\"ok\" E \"db\":{\"ok\":true."
+echo "Uma rota respondendo 307 não prova nada — isso é o middleware falando"
+echo "com o serviço de auth, que não é o Postgres."

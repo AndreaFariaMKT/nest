@@ -42,11 +42,13 @@ export default async function EntriesPage({
       .select("id, name, currency")
       .eq("tenant_id", tenantId)
       .eq("is_active", true)
-      .order("name", { ascending: true }),
+      .order("name", { ascending: true })
+      .limit(OPTION_LIST_CAP),
     supabase.from("fin_categories")
       .select("id, name, kind, sort")
       .eq("tenant_id", tenantId)
-      .order("sort", { ascending: true }),
+      .order("sort", { ascending: true })
+      .limit(OPTION_LIST_CAP),
     supabase.from("clients")
       .select("id, name")
       .eq("tenant_id", tenantId)

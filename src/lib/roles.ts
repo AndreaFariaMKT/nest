@@ -130,13 +130,22 @@ export const NAV: Record<string, NavItem> = {
 export interface NavGroup {
   group: string; // i18n key under nav.groups.*
   keys: string[];
+  /**
+   * Render the group as a section and its screens, deriving the shape from the
+   * hrefs (see nav-tree). Off by default: a group is a flat list of
+   * destinations unless someone decided otherwise, which is what keeps the
+   * client portal — where /portal is a prefix of everything — a flat list.
+   */
+  nested?: boolean;
 }
 
 /** Role → grouped menu, mirroring the prototype's per-persona navigation. */
 export const NAV_BY_ROLE: Record<AppRole, NavGroup[]> = {
   founder: [
     { group: "daily", keys: ["home", "tasks", "calendar", "meetings", "messages"] },
-    { group: "leadership", keys: ["admin", "finance", "cashflow", "entries", "due", "reconcile", "invoicing", "commercial", "marketing"] },
+    // Financeiro is a module with six screens; the rest of the group are their
+    // own destinations. nestGroup sorts out which is which from the hrefs.
+    { group: "leadership", nested: true, keys: ["admin", "finance", "cashflow", "entries", "due", "reconcile", "invoicing", "commercial", "marketing"] },
     { group: "insights", keys: ["reports", "socialReport"] },
     // "Área conteúdo trocar nome para operação", and the studio already had an
     // Operação group — so they merge rather than sitting one above the other
@@ -181,6 +190,7 @@ export const NAV_BY_ROLE: Record<AppRole, NavGroup[]> = {
     // fin_* — so the menu was the only thing keeping them out.
     {
       group: "finance",
+      nested: true,
       keys: [
         "finance",
         "cashflow",

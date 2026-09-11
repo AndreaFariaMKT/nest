@@ -239,6 +239,17 @@ export async function confirmLineAction(formData: FormData): Promise<void> {
         .eq("tenant_id", tenantId)
         .maybeSingle()
     : { data: null };
+
+  // An id that names no account of ours is refused rather than absorbed. The
+  // lookup is already tenant-scoped, so a foreign uuid returned null here and
+  // the currency quietly fell back to "BRL" — while the row was still written
+  // with that account id, which the foreign key accepts because it carries no
+  // tenant predicate. The result was a ledger entry counted in every month
+  // total and attached to an account no balance query can see.
+  if (resolvedAccount && !account) {
+    log.error("finance.reconcile", "foreign_account", { line: id });
+    return;
+  }
   const currency = account?.currency ?? "BRL";
 
   // The month this belongs to comes from the obligation it settles, when it
@@ -246,31 +257,52 @@ export async function confirmLineAction(formData: FormData): Promise<void> {
   // August's revenue — writing the cash date into both is precisely the
   // conflation the two-date model exists to prevent, and it moved R$ 4.000 of
   // revenue into the wrong month.
+  // The match is re-checked here, not trusted from import time.
+  //
+  // The matcher only ever considers obligations that are still open — but that
+  // was true when the file was imported, and this runs whenever someone gets
+  // round to confirming. Settle the same receivable from /finance/due in the
+  // meantime and the staged line is still listed (it filters on confirmed_at,
+  // which nothing else sets): confirming it wrote a SECOND entry for the same
+  // R$ 4.000 and overwrote paid_on with the bank's date. The month reconciled
+  // to double the real inflow.
+  //
+  // A line whose obligation has since been settled is confirmed as an
+  // unmatched movement instead — the money did arrive, it just no longer
+  // closes anything.
   let accrual = line.date;
-  if (line.matched_id && line.matched_kind === "receivable") {
+  let matchedId: string | null = null;
+  if (line.matched_id && line.matched_kind) {
+    const matchedTable =
+      line.matched_kind === "receivable" ? "fin_receivables" : "fin_payables";
     const { data } = await supabase
-      .from("fin_receivables")
-      .select("date_accrual")
+      .from(matchedTable)
+      .select("date_accrual, paid_on, status")
       .eq("id", line.matched_id)
       .eq("tenant_id", tenantId)
+      .is("paid_on", null)
+      .neq("status", "cancelled")
       .maybeSingle();
-    accrual = data?.date_accrual ?? line.date;
-  } else if (line.matched_id && line.matched_kind === "payable") {
-    const { data } = await supabase
-      .from("fin_payables")
-      .select("date_accrual")
-      .eq("id", line.matched_id)
-      .eq("tenant_id", tenantId)
-      .maybeSingle();
-    accrual = data?.date_accrual ?? line.date;
+    if (data) {
+      accrual = data.date_accrual;
+      matchedId = line.matched_id;
+    }
   }
 
   // Converted at the movement's own date. A rate looked up later is a
   // different number — the studio is not owed today's rate on August's money.
+  // The pair, filtered. This query selected `base, quote` and then ignored
+  // them, so the newest row on or before the date won whatever pair it held —
+  // and 049 allows base and quote to be either currency. One BRL→USD row and
+  // every confirmed Wise line would be multiplied by ~0,186 instead of ~5,37.
+  // Nothing writes the inverse pair today; the other two lookups in this
+  // module already filter, and this one was the odd copy out.
   const { data: rateRows } = await supabase
     .from("fin_fx_rates")
-    .select("day, base, quote, rate")
+    .select("rate")
     .eq("tenant_id", tenantId)
+    .eq("base", "USD")
+    .eq("quote", "BRL")
     .lte("day", line.date)
     .order("day", { ascending: false })
     .limit(1);
@@ -310,17 +342,19 @@ export async function confirmLineAction(formData: FormData): Promise<void> {
     .eq("id", id)
     .eq("tenant_id", tenantId);
 
-  // Close the thing it matched, when it matched one.
-  if (line.matched_id && line.matched_kind === "receivable") {
-    await supabase.from("fin_receivables")
+  // Close the thing it matched, when it matched one that is still open. The
+  // open-check is in the update itself for the same reason as in the settle
+  // path: a read followed by an unconditional write loses every race.
+  if (matchedId && line.matched_kind) {
+    await supabase
+      .from(
+        line.matched_kind === "receivable" ? "fin_receivables" : "fin_payables",
+      )
       .update({ paid_on: line.date, status: "paid" })
-      .eq("id", line.matched_id)
-      .eq("tenant_id", tenantId);
-  } else if (line.matched_id && line.matched_kind === "payable") {
-    await supabase.from("fin_payables")
-      .update({ paid_on: line.date, status: "paid" })
-      .eq("id", line.matched_id)
-      .eq("tenant_id", tenantId);
+      .eq("id", matchedId)
+      .eq("tenant_id", tenantId)
+      .is("paid_on", null)
+      .neq("status", "cancelled");
   }
 
   revalidatePath(`/${locale}/finance/reconcile`);

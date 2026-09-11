@@ -57,9 +57,18 @@ describe("currency conversion", () => {
 });
 
 describe("balances", () => {
+  /**
+   * These are `fin_account_balances` rows, so every figure is ALREADY BRL
+   * cents — 054 sums `amount_brl_cents`, each entry converted at the rate of
+   * the day it moved. The Wise account holds US$ 5.744,53, which reached the
+   * ledger as R$ 30.848,12.
+   *
+   * The old fixture hand-built native-currency balances, which is why it
+   * asserted the double conversion and passed.
+   */
   const accounts = [
     { currency: "BRL", kind: "operacional", balance_cents: 27797 },
-    { currency: "USD", kind: "operacional", balance_cents: 574453 },
+    { currency: "USD", kind: "operacional", balance_cents: 3084812 },
     { currency: "BRL", kind: "reserva", balance_cents: 3122362 },
   ];
 
@@ -69,15 +78,36 @@ describe("balances", () => {
    * one.
    */
   it("keeps the reserve out of the operating balance", () => {
-    const operating = operatingBalance(accounts, 5.37);
-    expect(operating).toBe(27797 + Math.round(574453 * 5.37));
-    // The reserve is more than ten times the operating balance, so if it ever
+    const operating = operatingBalance(accounts);
+    expect(operating).toBe(27797 + 3084812);
+    // The reserve is roughly the size of the operating balance, so if it ever
     // leaked in this assertion is the one that catches it.
-    expect(operating).toBeLessThan(3122362);
+    expect(operating).toBeLessThan(27797 + 3084812 + 3122362);
   });
 
   it("reports the reserve on its own", () => {
-    expect(reserveBalance(accounts, 5.37)).toBe(3122362);
+    expect(reserveBalance(accounts)).toBe(3122362);
+  });
+
+  /**
+   * The bug this pair of functions shipped with: a non-BRL account was
+   * multiplied by the day's rate on top of the conversion 054 had already
+   * done, reporting R$ 165.654,41 for R$ 30.848,12.
+   */
+  it("does not convert a balance that is already converted", () => {
+    expect(operatingBalance([accounts[1]])).toBe(3084812);
+  });
+
+  /**
+   * And the mirror failure, which was worse than it looks: with no rate on
+   * file for today the old branch returned 0 for that account and silently
+   * dropped a balance the ledger already knew in reais.
+   */
+  it("does not need a rate at all", () => {
+    expect(operatingBalance(accounts)).toBe(
+      operatingBalance([...accounts].reverse()),
+    );
+    expect(reserveBalance([{ kind: "reserva", balance_cents: 900 }])).toBe(900);
   });
 });
 

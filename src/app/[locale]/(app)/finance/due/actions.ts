@@ -11,9 +11,7 @@ import { accrualFor, initialInvoiceStatus } from "@/lib/finance-entry";
 
 export type ObligationFormState = {
   error?: string;
-  fieldErrors?: Partial<
-    Record<"description" | "amount" | "due" | "counterparty", string>
-  >;
+  fieldErrors?: Partial<Record<"description" | "amount" | "due", string>>;
   saved?: boolean;
 };
 
@@ -156,6 +154,28 @@ export async function savePayableAction(
 }
 
 /**
+ * Give a claimed obligation back.
+ *
+ * Not a rollback — there is no transaction across two statements here — but it
+ * closes the window where a row is marked paid with nothing in the ledger to
+ * show for it. Best effort by design: if this fails too, the error log is the
+ * only place left to say so.
+ */
+async function releaseClaim(
+  supabase: Awaited<ReturnType<typeof createSupabaseClient>>,
+  table: "fin_receivables" | "fin_payables",
+  id: string,
+  tenantId: string,
+): Promise<void> {
+  const { error } = await supabase
+    .from(table)
+    .update({ paid_on: null, status: "open" })
+    .eq("id", id)
+    .eq("tenant_id", tenantId);
+  if (error) log.error("finance.due", "release_failed", { code: error.code });
+}
+
+/**
  * Settle an obligation, and record the money moving.
  *
  * The ledger entry is the point. Closing the row alone would take the amount
@@ -182,16 +202,69 @@ export async function markPaidAction(formData: FormData): Promise<void> {
   const supabase = await createSupabaseClient();
   const tenantId = await currentTenantId();
 
-  const { data: row } = await supabase
-    .from(table)
-    .select("*")
-    .eq("id", id)
+  // The account is required here, not only in the form.
+  //
+  // It was enforced by `required` on a <select> and by nothing else, while the
+  // ledger write sat inside `if (accountId)` and the status update ran either
+  // way. Posting the action without the field closed the obligation and wrote
+  // no entry: the amount left "a receber", entered no balance, and became
+  // invisible — precisely the disappearance the comment above says the account
+  // requirement exists to prevent.
+  if (!accountId) {
+    log.error("finance.due", "settle_without_account", { kind });
+    return;
+  }
+
+  // And it has to be an account of THIS tenant. A foreign uuid would pass the
+  // foreign key — which has no tenant predicate — and produce a ledger row
+  // attached to an account no balance query can see.
+  const { data: account } = await supabase
+    .from("fin_accounts")
+    .select("currency")
+    .eq("id", accountId)
     .eq("tenant_id", tenantId)
     .maybeSingle();
+  if (!account) {
+    log.error("finance.due", "settle_foreign_account", { kind });
+    return;
+  }
 
-  if (!row || row.paid_on !== null || row.status === "cancelled") return;
+  // Claim the row BEFORE writing the entry, with the open-check in the update
+  // itself.
+  //
+  // It used to be a read followed by an unconditional update, so a double
+  // click had both requests see `paid_on = null`, both insert a ledger row and
+  // both mark it paid: R$ 4.000 of receivable became R$ 8.000 of balance, with
+  // nothing on any screen that would ever ask about it. Postgres settles the
+  // race instead — the second update matches no row and returns nothing.
+  const { data: claimedRows, error: claimError } = await supabase
+    .from(table)
+    .update({ paid_on: paidOn, status: "paid" })
+    .eq("id", id)
+    .eq("tenant_id", tenantId)
+    .is("paid_on", null)
+    .neq("status", "cancelled")
+    .select("*");
 
-  if (accountId) {
+  if (claimError) {
+    log.error("finance.due", "claim_failed", { code: claimError.code });
+    return;
+  }
+  const row = claimedRows?.[0];
+  // Already settled, cancelled, or not ours. Nothing to do and nothing to say.
+  if (!row) return;
+
+  // The money moved through an account that holds a different currency than
+  // the obligation was written in, so there is no single amount that is true
+  // of both. The form only offers matching accounts; this is the floor under
+  // that.
+  if (account.currency !== row.currency) {
+    await releaseClaim(supabase, table, id, tenantId);
+    log.error("finance.due", "settle_currency_mismatch", { kind });
+    return;
+  }
+
+  {
     // Money in is positive, money out is negative. The obligation stored a
     // magnitude; the direction is what side of the book it was on.
     const signed =
@@ -259,19 +332,15 @@ export async function markPaidAction(formData: FormData): Promise<void> {
     // The obligation stays open if the ledger write failed. A closed row with
     // no entry behind it is money that vanished, and it is invisible: nothing
     // on any screen would ever ask about it again.
+    // The claim is given back when the ledger write fails. Without this the
+    // obligation would be closed with no entry behind it — the same
+    // disappearance as settling with no account, reached by a different route.
     if (entryError) {
+      await releaseClaim(supabase, table, id, tenantId);
       log.error("finance.due", "entry_failed", { code: entryError.code });
       return;
     }
   }
-
-  const { error } = await supabase
-    .from(table)
-    .update({ paid_on: paidOn, status: "paid" })
-    .eq("id", id)
-    .eq("tenant_id", tenantId);
-
-  if (error) log.error("finance.due", "settle_failed", { code: error.code });
 
   revalidatePath(`/${locale}/finance/due`);
   revalidatePath(`/${locale}/finance`);

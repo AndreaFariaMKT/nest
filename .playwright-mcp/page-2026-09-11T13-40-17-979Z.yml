@@ -1,0 +1,12 @@
+- generic [ref=e2]:
+  - generic [ref=e3]:
+    - text: Categoria
+    - combobox "Categoria" [ref=e4]:
+      - option "â€”" [selected]
+      - option "Uma categoria bem longa"
+  - generic [ref=e5]:
+    - text: Conta
+    - combobox "Conta" [ref=e6]:
+      - option "â€”" [selected]
+      - option "Uma conta bem longa aqui"
+  - button "Confirmar" [ref=e7]

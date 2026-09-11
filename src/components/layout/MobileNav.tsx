@@ -50,7 +50,8 @@ export function MobileNav({
   notifications: NotificationItem[];
   unreadCount: number;
   socialScreens: SubScreen[];
-  /** Folded groups, so the drawer agrees with the sidebar. */
+  /** The fold state the server last read. NavList re-reads the cookie on
+   *  mount, which is what actually keeps the drawer in step. */
   collapsedGroups?: readonly string[];
 }) {
   const tCommon = useTranslations("common");

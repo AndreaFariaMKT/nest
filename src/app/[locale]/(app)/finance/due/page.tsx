@@ -92,7 +92,8 @@ export default async function DuePage({
       .select("id, name, currency")
       .eq("tenant_id", tenantId)
       .eq("is_active", true)
-      .order("name", { ascending: true }),
+      .order("name", { ascending: true })
+      .limit(OPTION_LIST_CAP),
     supabase.from("clients")
       .select("id, name")
       .eq("tenant_id", tenantId)
@@ -112,7 +113,8 @@ export default async function DuePage({
       .select("id, name, kind, sort")
       .eq("tenant_id", tenantId)
       .neq("kind", "income")
-      .order("sort", { ascending: true }),
+      .order("sort", { ascending: true })
+      .limit(OPTION_LIST_CAP),
   ]);
 
   const accounts = accountsRes.data ?? [];
@@ -143,6 +145,8 @@ export default async function DuePage({
         {rows.map((row) => {
           const status = obligationStatus(row, today);
           const settled = status === "paid" || status === "cancelled";
+          // Where this amount could actually land.
+          const payable = accounts.filter((a) => a.currency === row.currency);
           return (
             <li key={row.id} className="py-3" data-testid={`${kind}-row`}>
               <div className="flex flex-wrap items-start justify-between gap-3">
@@ -185,21 +189,26 @@ export default async function DuePage({
                       name="paid_on"
                       defaultValue={today}
                       required
-                      className="h-9 w-auto"
+                      inline
+                      className="h-9"
                       aria-label={t("paidOnLabel")}
                     />
-                    {/* Required, not optional. Closing the row without an
-                        account takes the amount out of "a receber" and never
-                        puts it into a balance — the money would appear to
-                        evaporate on the day it arrived. */}
+                    {/* Only accounts that hold this obligation's currency.
+                        Receiving US$ 4.110 into a Nubank account in reais has
+                        no single amount that is true of both the obligation
+                        and the account, so the choice is removed rather than
+                        resolved by a guess. The action refuses the mismatch
+                        too — this is the half that keeps anyone from meeting
+                        that refusal. */}
                     <Select
                       name="account_id"
                       required
-                      defaultValue={accounts[0]?.id ?? ""}
-                      className="h-9 w-auto"
+                      defaultValue={payable[0]?.id ?? ""}
+                      inline
+                      className="h-9"
                       aria-label={t("account")}
                     >
-                      {accounts.map((a) => (
+                      {payable.map((a) => (
                         <option key={a.id} value={a.id}>
                           {a.name} · {a.currency}
                         </option>
@@ -208,11 +217,16 @@ export default async function DuePage({
                     <Button
                       type="submit"
                       variant="brand"
-                      disabled={accounts.length === 0}
+                      disabled={payable.length === 0}
                       className="h-9 px-3"
                     >
                       {t(`${kind}.settle`)}
                     </Button>
+                    {payable.length === 0 ? (
+                      <span className="text-xs text-destructive">
+                        {t("noAccountInCurrency", { currency: row.currency })}
+                      </span>
+                    ) : null}
                   </form>
 
                   <form action={cancelObligationAction}>

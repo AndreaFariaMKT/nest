@@ -4,6 +4,7 @@ import {
   nestGroup,
   itemState,
   parseCollapsedGroups,
+  readCookie,
   serialiseCollapsedGroups,
 } from "@/lib/nav-tree";
 import { NAV, NAV_BY_ROLE } from "@/lib/roles";
@@ -107,11 +108,12 @@ describe("the collapsed-groups cookie", () => {
     expect(parseCollapsedGroups("")).toEqual(new Set());
   });
 
-  it("drops anything it did not write", () => {
-    // A cookie is user-controlled input. Group names are our own identifiers,
-    // so anything else was not put there by us.
-    expect(parseCollapsedGroups("daily.<script>.a-b.ok")).toEqual(
-      new Set(["daily", "ok"]),
+  it("drops anything shaped unlike a group name", () => {
+    // A cookie is user-controlled input. Group names are letters and dashes;
+    // markup, digits and punctuation were not put there by us. `a-b` is
+    // accepted because a dashed group name is a shape we expect to add.
+    expect(parseCollapsedGroups("daily.<script>.a-b.ok.x1")).toEqual(
+      new Set(["daily", "a-b", "ok"]),
     );
   });
 });
@@ -157,5 +159,37 @@ describe("against the real menu", () => {
         }
       }
     }
+  });
+});
+
+describe("readCookie", () => {
+  it("picks one cookie out of the jar", () => {
+    expect(readCookie("a=1; nest-nav-groups=daily.insights; b=2", "nest-nav-groups"))
+      .toBe("daily.insights");
+  });
+
+  it("is undefined when absent, and not fooled by a suffix match", () => {
+    expect(readCookie("other=1", "nest-nav-groups")).toBeUndefined();
+    // "x-nest-nav-groups" is a different cookie.
+    expect(readCookie("x-nest-nav-groups=daily", "nest-nav-groups")).toBeUndefined();
+  });
+
+  it("keeps a value that contains an equals sign", () => {
+    expect(readCookie("k=a=b", "k")).toBe("a=b");
+  });
+
+  it("survives an empty jar", () => {
+    expect(readCookie("", "k")).toBeUndefined();
+  });
+});
+
+describe("group keys the cookie accepts", () => {
+  it("keeps the shapes a future group name will take", () => {
+    // All eleven names today are lowercase, but socialReport and
+    // content-engine are the next ones' shape — and a rejected name would just
+    // never stay folded, with nothing to show for it.
+    expect(parseCollapsedGroups("socialReport.content-engine")).toEqual(
+      new Set(["socialReport", "content-engine"]),
+    );
   });
 });

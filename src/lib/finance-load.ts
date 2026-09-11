@@ -125,8 +125,8 @@ export async function loadFinance(month?: string) {
     unconverted: balances.get(a.id)?.unconverted ?? 0,
   }));
 
-  const operating = operatingBalance(withBalance, todayRate);
-  const reserve = reserveBalance(withBalance, todayRate);
+  const operating = operatingBalance(withBalance);
+  const reserve = reserveBalance(withBalance);
   const receivable = openTotal(receivables, rateFor);
   const payable = openTotal(payables, rateFor);
 
@@ -212,20 +212,36 @@ export async function loadMonthRevenue(month?: string): Promise<{
   const from = `${target}-01`;
   const to = `${target}-31`;
 
+  // The category is joined, not just selected. `category_id` used to be read
+  // from the database and then never looked at, and the transfer rule went
+  // with it: moving R$ 20.000 into the reserve is a positive entry, so the
+  // home screen counted it as revenue while /finance — which does apply the
+  // rule — denied it. The two screens disagreed by the size of the transfer,
+  // and the one people see on login was the optimistic one.
   const { data } = await supabase
     .from("fin_entries")
-    .select("amount_brl_cents, date_cash, date_accrual, category_id")
+    .select(
+      "amount_brl_cents, date_cash, date_accrual, category:fin_categories(kind)",
+    )
     .eq("tenant_id", tenantId)
     .or(
       `and(date_cash.gte.${from},date_cash.lte.${to}),and(date_accrual.gte.${from},date_accrual.lte.${to})`,
     );
 
-  const rows = data ?? [];
+  const rows = (data ?? []) as Array<{
+    amount_brl_cents: number | null;
+    date_cash: string;
+    date_accrual: string;
+    category: { kind: string } | null;
+  }>;
   let expected = 0;
   let cash = 0;
   let unconverted = 0;
 
   for (const row of rows) {
+    // Money between the studio's own accounts is not income on either axis —
+    // the same exclusion monthResult and cashFlow apply in @/lib/finance.
+    if (row.category?.kind === "transfer") continue;
     if (row.amount_brl_cents === null) {
       unconverted += 1;
       continue;

@@ -113,7 +113,10 @@ export async function saveEntryAction(
     client_id: optional(formData, "client_id"),
     project_id: optional(formData, "project_id"),
     supplier_id: optional(formData, "supplier_id"),
-    notes: optional(formData, "notes"),
+    // `notes` is deliberately NOT written: EntryForm has no such field, so
+    // this read was always null. Same reasoning as fin_suppliers — a write-only
+    // key is harmless while the column is empty and a silent wipe the day
+    // anything else fills it.
     // Typed by hand, so it has not been checked against a statement. The
     // reconciliation screen is what flips this, and leaving it false is what
     // lets a later import still find the line.

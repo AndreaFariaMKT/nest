@@ -63,50 +63,45 @@ export function rateOnOrBefore(
 }
 
 export type Account = {
-  currency: string;
   kind: string;
+  /**
+   * ALREADY IN BRL CENTS.
+   *
+   * This is `fin_account_balances.balance_cents` (054), which sums
+   * `amount_brl_cents` — each entry converted at the rate of the day the money
+   * actually moved. It is not a native-currency balance, and the account's own
+   * `currency` says nothing about it.
+   */
   balance_cents: number;
 };
 
 /**
  * Operating cash, in BRL cents.
  *
+ * These used to take a rate and multiply any non-BRL account by it. That was a
+ * second conversion on top of the one 054 already did in SQL: a Wise balance
+ * of US$ 5.744,53 — R$ 30.848,12 in the ledger — was reported as
+ * R$ 165.654,41, and working capital and both runway figures were built on
+ * that. The mirror failure was as bad: with no rate on file for today the same
+ * branch returned 0 and discarded a balance that was already known in reais.
+ *
+ * Summing is now the whole operation, because the conversion happened at the
+ * only moment it could be right — when each movement was recorded.
+ *
  * The reserve is excluded deliberately. It exists in order not to be spent,
  * and folding it in is how a studio believes it has four months of runway when
  * it has one. `reserveBalance` reports it separately, and the two are never
  * added on screen.
  */
-export function operatingBalance(
-  accounts: readonly Account[],
-  rate: number | null,
-): number {
+export function operatingBalance(accounts: readonly Account[]): number {
   return sumCents(
-    accounts
-      .filter((a) => a.kind === "operacional")
-      .map((a) =>
-        a.currency === "BRL"
-          ? a.balance_cents
-          : rate === null
-            ? 0
-            : Math.round(a.balance_cents * rate),
-      ),
+    accounts.filter((a) => a.kind === "operacional").map((a) => a.balance_cents),
   );
 }
 
-export function reserveBalance(
-  accounts: readonly Account[],
-  rate: number | null,
-): number {
+export function reserveBalance(accounts: readonly Account[]): number {
   return sumCents(
-    accounts
-      .filter((a) => a.kind === "reserva")
-      .map((a) =>
-        a.currency === "BRL"
-          ? a.balance_cents
-          : rate === null
-            ? 0
-            : Math.round(a.balance_cents * rate),
-      ),
+    accounts.filter((a) => a.kind === "reserva").map((a) => a.balance_cents),
   );
 }
 

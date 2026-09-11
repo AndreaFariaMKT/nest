@@ -354,7 +354,8 @@
       "errors": {
         "tooShort": "Description is too short.",
         "invalid": "Invalid amount."
-      }
+      },
+      "noAccountInCurrency": "No account in {currency}."
     },
     "addAccount": "Add an account",
     "addRate": "Record a rate"

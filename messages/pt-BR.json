@@ -354,7 +354,8 @@
       "errors": {
         "tooShort": "Descrição muito curta.",
         "invalid": "Valor inválido."
-      }
+      },
+      "noAccountInCurrency": "Nenhuma conta em {currency}."
     },
     "addAccount": "Cadastrar conta",
     "addRate": "Registrar taxa"

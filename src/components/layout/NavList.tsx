@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { useTranslations } from "next-intl";
 import { Link, usePathname } from "@/i18n/routing";
 import { SocialSubNav, type SubScreen } from "@/components/layout/SocialSubNav";
@@ -8,6 +8,8 @@ import { NAV, NAV_BY_ROLE, type AppRole } from "@/lib/roles";
 import {
   nestGroup,
   itemState,
+  parseCollapsedGroups,
+  readCookie,
   serialiseCollapsedGroups,
   NAV_GROUPS_COOKIE,
   type ItemState,
@@ -39,6 +41,92 @@ const TONE: Record<ItemState, string> = {
   within: "bg-white/[0.06] text-sidebar-foreground hover:bg-white/10",
   idle: "text-sidebar-foreground/75 hover:bg-white/5 hover:text-sidebar-foreground",
 };
+
+type EntryProps = {
+  itemKey: string;
+  depth: 0 | 1;
+  collapsed: boolean;
+  pathname: string;
+  hasChildren: boolean;
+  label: string;
+  socialScreens: SubScreen[];
+  onNavigate?: () => void;
+};
+
+/**
+ * One menu row.
+ *
+ * Module scope, not inside NavList's body. Declared inside, it was a brand new
+ * component type on every render, so React could not reconcile it: clicking a
+ * link unmounted and rebuilt the entire rail, throwing away the anchor that
+ * had focus and dropping the keyboard user back to <body>. Folding a group did
+ * the same to every other group.
+ */
+function Entry({
+  itemKey,
+  depth,
+  collapsed,
+  pathname,
+  hasChildren,
+  label,
+  socialScreens,
+  onNavigate,
+}: EntryProps) {
+  const item = NAV[itemKey];
+  const href = item.href;
+  const state = itemState(pathname, href, hasChildren);
+  const Icon = item.icon;
+
+  // The module's own screens hang off its entry rather than a tab row above
+  // the page. They open only while you are inside it, so the list stays short
+  // everywhere else.
+  const showSub =
+    itemKey === "social" &&
+    !collapsed &&
+    socialScreens.length > 0 &&
+    (pathname === "/social" || pathname.startsWith("/social/"));
+
+  return (
+    <div className="flex flex-col">
+      <Link
+        href={href}
+        onClick={onNavigate}
+        title={collapsed ? label : undefined}
+        aria-current={state === "active" ? "page" : undefined}
+        className={
+          collapsed
+            ? `grid place-items-center rounded-xl p-2.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${TONE[state]}`
+            : `flex items-center gap-3 rounded-xl py-2 pr-3 text-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${
+                depth === 1 ? "pl-4 font-normal" : "pl-3 font-medium"
+              } ${TONE[state]}`
+        }
+      >
+        {/* The guide rail. A child's indent alone reads as a rendering
+            accident at this width; a line that runs the height of the
+            section says the item belongs to the one above it. */}
+        {depth === 1 && !collapsed ? (
+          <span
+            aria-hidden="true"
+            className={`-my-2 w-px self-stretch ${
+              state === "active" ? "bg-sidebar-active-foreground/40" : "bg-white/10"
+            }`}
+          />
+        ) : null}
+        <Icon
+          className={
+            collapsed ? "h-5 w-5" : depth === 1 ? "h-3.5 w-3.5" : "h-4 w-4"
+          }
+        />
+        {!collapsed && label}
+      </Link>
+      {showSub ? (
+        <Suspense fallback={null}>
+          <SocialSubNav screens={socialScreens} onNavigate={onNavigate} />
+        </Suspense>
+      ) : null}
+    </div>
+  );
+}
 
 /**
  * The role's navigation, rendered once and used twice: by the desktop sidebar
@@ -73,6 +161,25 @@ export function NavList({
     () => new Set(initialCollapsedGroups ?? []),
   );
 
+  // Seeded from the server prop so the first paint matches the server's, then
+  // reconciled with the cookie on mount.
+  //
+  // The phone drawer unmounts everything below it when it closes, so folding a
+  // group there was forgotten the moment you shut the drawer: it remounted
+  // from a prop that is only as fresh as the last navigation. Reading the
+  // cookie here costs nothing and cannot mismatch during hydration, because it
+  // happens after it.
+  useEffect(() => {
+    const fromCookie = parseCollapsedGroups(
+      readCookie(document.cookie, NAV_GROUPS_COOKIE),
+    );
+    setFolded((prev) =>
+      prev.size === fromCookie.size && [...prev].every((g) => fromCookie.has(g))
+        ? prev
+        : fromCookie,
+    );
+  }, []);
+
   function toggleGroup(group: string) {
     setFolded((prev) => {
       const next = new Set(prev);
@@ -93,79 +200,28 @@ export function NavList({
   // sections. Derived from the hrefs the items already carry — see nav-tree.
   const shaped = groups.map((group) => ({
     group,
-    nodes: nestGroup(group.keys.map((k) => ({ key: k, href: NAV[k].href }))),
+    nodes: group.nested
+      ? nestGroup(group.keys.map((k) => ({ key: k, href: NAV[k].href })))
+      : group.keys.map((key) => ({ key, children: [] as string[] })),
   }));
-  const childrenOf = new Map<string, string[]>();
-  for (const { nodes } of shaped) {
-    for (const node of nodes) childrenOf.set(node.key, node.children);
-  }
-
-  function Entry({ itemKey, depth }: { itemKey: string; depth: 0 | 1 }) {
-    const item = NAV[itemKey];
-    const href = item.href;
-    const hasChildren = depth === 0 && (childrenOf.get(itemKey)?.length ?? 0) > 0;
-    const state = itemState(pathname, href, hasChildren);
-    const Icon = item.icon;
-
-    // The module's own screens hang off its entry rather than a tab row above
-    // the page. They open only while you are inside it, so the list stays
-    // short everywhere else.
-    const showSub =
-      itemKey === "social" &&
-      !collapsed &&
-      socialScreens.length > 0 &&
-      (pathname === "/social" || pathname.startsWith("/social/"));
-
-    return (
-      <div className="flex flex-col">
-        <Link
-          href={href}
-          onClick={onNavigate}
-          title={collapsed ? t(item.label) : undefined}
-          aria-current={state === "active" ? "page" : undefined}
-          className={
-            collapsed
-              ? `grid place-items-center rounded-xl p-2.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${TONE[state]}`
-              : `flex items-center gap-3 rounded-xl py-2 pr-3 text-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${
-                  depth === 1 ? "pl-4 font-normal" : "pl-3 font-medium"
-                } ${TONE[state]}`
-          }
-        >
-          {/* The guide rail. A child's indent alone reads as a rendering
-              accident at this width; a line that runs the height of the
-              section says the item belongs to the one above it. */}
-          {depth === 1 && !collapsed ? (
-            <span
-              aria-hidden="true"
-              className={`-my-2 w-px self-stretch ${
-                state === "active" ? "bg-sidebar-active-foreground/40" : "bg-white/10"
-              }`}
-            />
-          ) : null}
-          <Icon
-            className={
-              collapsed ? "h-5 w-5" : depth === 1 ? "h-3.5 w-3.5" : "h-4 w-4"
-            }
-          />
-          {!collapsed && t(item.label)}
-        </Link>
-        {showSub ? (
-          <Suspense fallback={null}>
-            <SocialSubNav screens={socialScreens} onNavigate={onNavigate} />
-          </Suspense>
-        ) : null}
-      </div>
-    );
-  }
-
   return (
     <nav className="flex flex-1 flex-col gap-5 overflow-y-auto px-3 pb-4">
       {shaped.map(({ group, nodes }) => {
         const open = !folded.has(group.group);
         // A folded group still has to admit it holds the open screen, or
         // navigating into one makes the current page vanish from the menu.
-        const holdsCurrent = group.keys.some(
-          (k) => itemState(pathname, NAV[k].href, false) === "active",
+        // Asked with each entry's REAL shape. Passing `false` for everything
+        // made a section prefix-match its own children — so on
+        // /finance/accounts, which lives in Diretório, the folded Liderança
+        // group claimed to hold the open screen because /finance matches.
+        const holdsCurrent = nodes.some(
+          (node) =>
+            itemState(pathname, NAV[node.key].href, node.children.length > 0) ===
+              "active" ||
+            node.children.some(
+              (child) =>
+                itemState(pathname, NAV[child].href, false) === "active",
+            ),
         );
         const panelId = `nav-${group.group}`;
 
@@ -211,9 +267,28 @@ export function NavList({
             >
               {nodes.map((node) => (
                 <div key={node.key} className="flex flex-col gap-0.5">
-                  <Entry itemKey={node.key} depth={0} />
+                  <Entry
+                    itemKey={node.key}
+                    depth={0}
+                    collapsed={collapsed}
+                    pathname={pathname}
+                    hasChildren={node.children.length > 0}
+                    label={t(NAV[node.key].label)}
+                    socialScreens={socialScreens}
+                    onNavigate={onNavigate}
+                  />
                   {node.children.map((childKey) => (
-                    <Entry key={childKey} itemKey={childKey} depth={1} />
+                    <Entry
+                      key={childKey}
+                      itemKey={childKey}
+                      depth={1}
+                      collapsed={collapsed}
+                      pathname={pathname}
+                      hasChildren={false}
+                      label={t(NAV[childKey].label)}
+                      socialScreens={socialScreens}
+                      onNavigate={onNavigate}
+                    />
                   ))}
                 </div>
               ))}

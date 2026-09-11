@@ -5,7 +5,7 @@ import { createClient } from "@/lib/supabase/server";
 import { currentTenantId } from "@/lib/tenant-server";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { Pill } from "@/components/ui/Pill";
-import { formatCents, formatCentsAsBrl } from "@/lib/money";
+import { formatCents } from "@/lib/money";
 import { todayIso } from "@/lib/social";
 import {
   INVOICE_DEADLINE_BUSINESS_DAYS,
@@ -102,7 +102,12 @@ export default async function InvoicingPage({
                         : t("dueOn", { date: row.due_on })}
                     </Pill>
                     <span className="tabular-nums">
-                      {formatCentsAsBrl(row.amount_cents)}
+                      {/* In the row's own currency. This half of the screen
+                          used formatCentsAsBrl while the export list twelve
+                          lines below used formatCents — the same column,
+                          rendered two ways, and the queue was the one that got
+                          a dollar amount wrong. */}
+                      {formatCents(row.amount_cents, row.currency)}
                     </span>
                   </div>
                 </div>

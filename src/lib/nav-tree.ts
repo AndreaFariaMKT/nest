@@ -40,6 +40,17 @@ function parentOf(entry: NavEntry, all: readonly NavEntry[]): string | null {
 /**
  * Nest a group's keys one level deep.
  *
+ * Opt-in per group, and that is the point. Deriving hierarchy from hrefs alone
+ * restructured the client portal, where `/portal` is a path prefix of all nine
+ * other entries: the whole menu folded under "Visão do projeto", and
+ * "Esperando você" — first on purpose, because it is the only screen that asks
+ * the client for something — became the second item, indented, in a smaller
+ * icon. Correct by the rule and wrong for the person reading it.
+ *
+ * So the rule is not global. A group says whether it is hierarchical; WITHIN
+ * one that does, the shape is still derived, so a screen added to a module
+ * cannot forget to declare its parent.
+ *
  * One level, deliberately. `/finance/reconcile` under `/finance` is the shape
  * the product has; a third tier in a 256px rail is an indent nobody can read.
  * A grandchild attaches to its nearest ancestor that is itself a root.
@@ -123,9 +134,28 @@ export function parseCollapsedGroups(raw: string | undefined): Set<string> {
       .split(".")
       .map((s) => s.trim())
       // Group names are our own identifiers; anything else in the cookie was
-      // not put there by us.
-      .filter((s) => /^[a-z]{1,32}$/.test(s)),
+      // not put there by us. Letters and dashes, because the eleven names of
+      // today are lowercase but `socialReport` and `content-engine` are the
+      // shape the next one takes — and a name this rejected would simply never
+      // stay folded, with nothing to show for it.
+      .filter((s) => /^[A-Za-z-]{1,32}$/.test(s)),
   );
+}
+
+/**
+ * One cookie out of a `document.cookie` string.
+ *
+ * The drawer on a phone unmounts its whole subtree when it closes, so the
+ * fold state has to be re-read on each open rather than kept in React. The
+ * server prop cannot do it: it is whatever the cookie said on the last
+ * navigation, and folding a group is not one.
+ */
+export function readCookie(jar: string, name: string): string | undefined {
+  for (const part of jar.split(";")) {
+    const [k, ...rest] = part.trim().split("=");
+    if (k === name) return decodeURIComponent(rest.join("="));
+  }
+  return undefined;
 }
 
 export function serialiseCollapsedGroups(groups: Iterable<string>): string {
