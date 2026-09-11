@@ -1,0 +1,328 @@
+"use server";
+
+import { revalidatePath } from "next/cache";
+
+import { dbError } from "@/lib/db-error";
+import { log } from "@/lib/log";
+import { createClient as createSupabaseClient } from "@/lib/supabase/server";
+import { currentTenantId } from "@/lib/tenant-server";
+import { parseBrlToCents } from "@/lib/money";
+import { accrualFor, initialInvoiceStatus } from "@/lib/finance-entry";
+
+export type ObligationFormState = {
+  error?: string;
+  fieldErrors?: Partial<
+    Record<"description" | "amount" | "due" | "counterparty", string>
+  >;
+  saved?: boolean;
+};
+
+function optional(formData: FormData, key: string) {
+  const v = (formData.get(key) ?? "").toString().trim();
+  return v.length > 0 ? v : null;
+}
+
+const ISO_DATE = /^\d{4}-\d{2}-\d{2}$/;
+const CURRENCIES = new Set(["BRL", "USD"]);
+
+type CommonFields = {
+  description: string;
+  amount_cents: number;
+  currency: string;
+  due_on: string;
+  date_accrual: string;
+};
+
+type CommonRead =
+  | { ok: true; value: CommonFields }
+  | { ok: false; state: ObligationFormState };
+
+/** The shared half of both forms: description, amount, currency, two dates. */
+function readCommon(formData: FormData): CommonRead {
+  const description = (formData.get("description") ?? "").toString().trim();
+  if (description.length < 2) {
+    return { ok: false, state: { fieldErrors: { description: "tooShort" } } };
+  }
+
+  const dueOn = (formData.get("due_on") ?? "").toString().trim();
+  if (!ISO_DATE.test(dueOn)) {
+    return { ok: false, state: { fieldErrors: { due: "invalid" } } };
+  }
+
+  const typedAccrual = optional(formData, "date_accrual");
+  if (typedAccrual && !ISO_DATE.test(typedAccrual)) {
+    return { ok: false, state: { fieldErrors: { due: "invalid" } } };
+  }
+
+  // Amounts here are a positive obligation on both sides — "the studio is owed
+  // 4.000" and "the studio owes 1.200". The sign belongs to the ledger entry
+  // that settles it, not to the promise, and 054 put a positive-amount CHECK on
+  // both tables for exactly that reason.
+  const amountCents = parseBrlToCents((formData.get("amount") ?? "").toString());
+  if (amountCents === null || amountCents === 0) {
+    return { ok: false, state: { fieldErrors: { amount: "invalid" } } };
+  }
+
+  const currency = (formData.get("currency") ?? "BRL").toString();
+
+  return {
+    ok: true,
+    value: {
+      description,
+      amount_cents: amountCents,
+      currency: CURRENCIES.has(currency) ? currency : "BRL",
+      due_on: dueOn,
+      // Competência defaults to the due date, which is the month the work was
+      // agreed for. Defaulting to today would file January's retainer, typed
+      // in December, as January revenue in the wrong direction.
+      date_accrual: accrualFor(dueOn, typedAccrual),
+    },
+  };
+}
+
+export async function saveReceivableAction(
+  _prev: ObligationFormState,
+  formData: FormData,
+): Promise<ObligationFormState> {
+  const locale = (formData.get("locale") ?? "pt-BR").toString();
+  const common = readCommon(formData);
+  if (!common.ok) return common.state;
+
+  const supabase = await createSupabaseClient();
+  const tenantId = await currentTenantId();
+  const clientId = optional(formData, "client_id");
+
+  // An American client's receivable is born `export`: there is no Brazilian
+  // nota to ever issue for it, and starting it at `pending` puts it in the
+  // nota queue from day one.
+  let country: string | null = null;
+  if (clientId) {
+    const { data } = await supabase
+      .from("clients")
+      .select("country")
+      .eq("id", clientId)
+      .eq("tenant_id", tenantId)
+      .maybeSingle();
+    country = data?.country ?? null;
+  }
+
+  const { error } = await supabase.from("fin_receivables").insert({
+    ...common.value,
+    tenant_id: tenantId,
+    client_id: clientId,
+    project_id: optional(formData, "project_id"),
+    status: "open",
+    invoice_status: initialInvoiceStatus(country),
+  });
+
+  if (error) {
+    log.error("finance.receivables", "insert_failed", { code: error.code });
+    return { error: dbError(error) };
+  }
+
+  revalidatePath(`/${locale}/finance/due`);
+  revalidatePath(`/${locale}/finance`);
+  return { saved: true };
+}
+
+export async function savePayableAction(
+  _prev: ObligationFormState,
+  formData: FormData,
+): Promise<ObligationFormState> {
+  const locale = (formData.get("locale") ?? "pt-BR").toString();
+  const common = readCommon(formData);
+  if (!common.ok) return common.state;
+
+  const supabase = await createSupabaseClient();
+  const tenantId = await currentTenantId();
+
+  const { error } = await supabase.from("fin_payables").insert({
+    ...common.value,
+    tenant_id: tenantId,
+    supplier_id: optional(formData, "supplier_id"),
+    category_id: optional(formData, "category_id"),
+    project_id: optional(formData, "project_id"),
+    status: "open",
+  });
+
+  if (error) {
+    log.error("finance.payables", "insert_failed", { code: error.code });
+    return { error: dbError(error) };
+  }
+
+  revalidatePath(`/${locale}/finance/due`);
+  revalidatePath(`/${locale}/finance`);
+  return { saved: true };
+}
+
+/**
+ * Settle an obligation, and record the money moving.
+ *
+ * The ledger entry is the point. Closing the row alone would take the amount
+ * out of "a receber" without ever putting it into the balance, so the studio's
+ * money would appear to evaporate on the day it arrived.
+ *
+ * The account is required for that reason. If the movement is going to come
+ * from a bank statement instead, the reconciliation screen settles the
+ * obligation and writes the entry in one step — doing both is a double entry,
+ * which is why the matcher only ever considers rows still open.
+ */
+export async function markPaidAction(formData: FormData): Promise<void> {
+  const id = (formData.get("id") ?? "").toString();
+  const kind = (formData.get("kind") ?? "").toString();
+  const locale = (formData.get("locale") ?? "pt-BR").toString();
+  const accountId = (formData.get("account_id") ?? "").toString() || null;
+  const paidOn = (formData.get("paid_on") ?? "").toString().trim();
+
+  if (!id || !ISO_DATE.test(paidOn)) return;
+  if (kind !== "receivable" && kind !== "payable") return;
+
+  const table = kind === "receivable" ? "fin_receivables" : "fin_payables";
+
+  const supabase = await createSupabaseClient();
+  const tenantId = await currentTenantId();
+
+  const { data: row } = await supabase
+    .from(table)
+    .select("*")
+    .eq("id", id)
+    .eq("tenant_id", tenantId)
+    .maybeSingle();
+
+  if (!row || row.paid_on !== null || row.status === "cancelled") return;
+
+  if (accountId) {
+    // Money in is positive, money out is negative. The obligation stored a
+    // magnitude; the direction is what side of the book it was on.
+    const signed =
+      kind === "receivable"
+        ? Math.abs(row.amount_cents)
+        : -Math.abs(row.amount_cents);
+
+    let amountBrl: number | null = signed;
+    if (row.currency !== "BRL") {
+      const { data: rateRows } = await supabase
+        .from("fin_fx_rates")
+        .select("rate")
+        .eq("tenant_id", tenantId)
+        .eq("base", "USD")
+        .eq("quote", "BRL")
+        .lte("day", paidOn)
+        .order("day", { ascending: false })
+        .limit(1);
+      const rate = rateRows?.[0] ? Number(rateRows[0].rate) : null;
+      amountBrl = rate === null ? null : Math.round(signed * rate);
+    }
+
+    // A receivable carries no category of its own, so revenue is filed under
+    // the seeded `receita`. A payable brought its category from the form.
+    let categoryId: string | null =
+      kind === "payable"
+        ? ((row as { category_id: string | null }).category_id ?? null)
+        : null;
+    if (kind === "receivable") {
+      const { data: cat } = await supabase
+        .from("fin_categories")
+        .select("id")
+        .eq("tenant_id", tenantId)
+        .eq("slug", "receita")
+        .maybeSingle();
+      categoryId = cat?.id ?? null;
+    }
+
+    const { error: entryError } = await supabase.from("fin_entries").insert({
+      tenant_id: tenantId,
+      account_id: accountId,
+      category_id: categoryId,
+      description: row.description,
+      amount_cents: signed,
+      amount_brl_cents: amountBrl,
+      currency: row.currency,
+      date_cash: paidOn,
+      // The month it BELONGS to travels with the obligation. August's retainer
+      // paid on 5 September is September's cash and August's revenue — writing
+      // the cash date into both is the conflation the two-date model exists to
+      // prevent.
+      date_accrual: row.date_accrual,
+      client_id:
+        kind === "receivable"
+          ? ((row as { client_id: string | null }).client_id ?? null)
+          : null,
+      supplier_id:
+        kind === "payable"
+          ? ((row as { supplier_id: string | null }).supplier_id ?? null)
+          : null,
+      project_id: (row as { project_id: string | null }).project_id ?? null,
+      reconciled: false,
+    });
+
+    // The obligation stays open if the ledger write failed. A closed row with
+    // no entry behind it is money that vanished, and it is invisible: nothing
+    // on any screen would ever ask about it again.
+    if (entryError) {
+      log.error("finance.due", "entry_failed", { code: entryError.code });
+      return;
+    }
+  }
+
+  const { error } = await supabase
+    .from(table)
+    .update({ paid_on: paidOn, status: "paid" })
+    .eq("id", id)
+    .eq("tenant_id", tenantId);
+
+  if (error) log.error("finance.due", "settle_failed", { code: error.code });
+
+  revalidatePath(`/${locale}/finance/due`);
+  revalidatePath(`/${locale}/finance`);
+  revalidatePath(`/${locale}/finance/entries`);
+  revalidatePath(`/${locale}/finance/invoicing`);
+}
+
+export async function cancelObligationAction(formData: FormData): Promise<void> {
+  const id = (formData.get("id") ?? "").toString();
+  const kind = (formData.get("kind") ?? "").toString();
+  const locale = (formData.get("locale") ?? "pt-BR").toString();
+  if (!id || (kind !== "receivable" && kind !== "payable")) return;
+
+  const supabase = await createSupabaseClient();
+  const tenantId = await currentTenantId();
+
+  // Cancelled, not deleted: a contract that fell through is part of the year's
+  // story, and `isOpen` already excludes it from every total.
+  const { error } = await supabase
+    .from(kind === "receivable" ? "fin_receivables" : "fin_payables")
+    .update({ status: "cancelled" })
+    .eq("id", id)
+    .eq("tenant_id", tenantId)
+    .is("paid_on", null);
+
+  if (error) log.error("finance.due", "cancel_failed", { code: error.code });
+
+  revalidatePath(`/${locale}/finance/due`);
+  revalidatePath(`/${locale}/finance`);
+}
+
+export async function deleteObligationAction(formData: FormData): Promise<void> {
+  const id = (formData.get("id") ?? "").toString();
+  const kind = (formData.get("kind") ?? "").toString();
+  const locale = (formData.get("locale") ?? "pt-BR").toString();
+  if (!id || (kind !== "receivable" && kind !== "payable")) return;
+
+  const supabase = await createSupabaseClient();
+  const tenantId = await currentTenantId();
+
+  // Only what was never settled. A paid row has a ledger entry behind it, and
+  // removing the obligation would orphan the money it explains.
+  const { error } = await supabase
+    .from(kind === "receivable" ? "fin_receivables" : "fin_payables")
+    .delete()
+    .eq("id", id)
+    .eq("tenant_id", tenantId)
+    .is("paid_on", null);
+
+  if (error) log.error("finance.due", "delete_failed", { code: error.code });
+
+  revalidatePath(`/${locale}/finance/due`);
+  revalidatePath(`/${locale}/finance`);
+}

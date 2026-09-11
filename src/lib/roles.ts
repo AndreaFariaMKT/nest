@@ -22,6 +22,7 @@ import {
   KeyIcon,
   ServicesIcon,
   SettingsIcon,
+  BookIcon,
 } from "@/components/icons/NavIcons";
 
 /**
@@ -77,6 +78,13 @@ export const NAV: Record<string, NavItem> = {
   cashflow: { key: "cashflow", href: "/finance/cashflow", label: "cashflow", icon: ChartIcon },
   reconcile: { key: "reconcile", href: "/finance/reconcile", label: "reconcile", icon: FolderIcon },
   invoicing: { key: "invoicing", href: "/finance/invoicing", label: "invoicing", icon: FileIcon },
+  // The three screens that let the module be filled in rather than only read.
+  // Until they existed the sole writer of fin_entries was the reconciliation
+  // confirm path, so a studio that had not yet exported a bank file had a
+  // finance module with no way to enter an account, a movement or a bill.
+  accounts: { key: "accounts", href: "/finance/accounts", label: "accounts", icon: BookIcon },
+  entries: { key: "entries", href: "/finance/entries", label: "entries", icon: PenIcon },
+  due: { key: "due", href: "/finance/due", label: "due", icon: ClockIcon },
   commercial: { key: "commercial", href: "/commercial", label: "commercial", icon: FunnelIcon },
   marketing: { key: "marketing", href: "/marketing", label: "marketing", icon: MegaphoneIcon },
   // The content engine's own board. /production-queue pointed at the same
@@ -128,7 +136,7 @@ export interface NavGroup {
 export const NAV_BY_ROLE: Record<AppRole, NavGroup[]> = {
   founder: [
     { group: "daily", keys: ["home", "tasks", "calendar", "meetings", "messages"] },
-    { group: "leadership", keys: ["admin", "finance", "cashflow", "reconcile", "invoicing", "commercial", "marketing"] },
+    { group: "leadership", keys: ["admin", "finance", "cashflow", "entries", "due", "reconcile", "invoicing", "commercial", "marketing"] },
     { group: "insights", keys: ["reports", "socialReport"] },
     // "Área conteúdo trocar nome para operação", and the studio already had an
     // Operação group — so they merge rather than sitting one above the other
@@ -136,7 +144,7 @@ export const NAV_BY_ROLE: Record<AppRole, NavGroup[]> = {
     // are reached from the project they belong to now, which is what "elas
     // estarão dentro da aba operação" asks for.
     { group: "operation", keys: ["overview", "clients", "projects", "social", "content", "schedule"] },
-    { group: "directory", keys: ["people", "services", "suppliers"] },
+    { group: "directory", keys: ["people", "services", "suppliers", "accounts"] },
     { group: "system", keys: ["errors", "settings"] },
   ],
   manager: [
@@ -176,8 +184,11 @@ export const NAV_BY_ROLE: Record<AppRole, NavGroup[]> = {
       keys: [
         "finance",
         "cashflow",
+        "entries",
+        "due",
         "reconcile",
         "invoicing",
+        "accounts",
         "suppliers",
         "admin",
       ],

@@ -5,6 +5,7 @@ import { createClient } from "@/lib/supabase/server";
 import { currentTenantId } from "@/lib/tenant-server";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { Pill, toneOf, type Tone } from "@/components/ui/Pill";
+import { Select } from "@/components/ui/Select";
 import { formatCentsAsBrl } from "@/lib/money";
 import {
   type AccountRow,
@@ -151,17 +152,14 @@ export default async function ReconcilePage({
                   <input type="hidden" name="locale" value={locale} />
                   <label className="text-xs text-muted-foreground">
                     {t("category")}
-                    <select
-                      name="category_id"
-                      className="mt-1 block h-9 rounded-md border border-input bg-background px-2 text-sm"
-                    >
+                    <Select name="category_id" className="mt-1 h-9 w-auto">
                       <option value="">—</option>
                       {categories.map((c) => (
                         <option key={c.id} value={c.id}>
                           {c.name}
                         </option>
                       ))}
-                    </select>
+                    </Select>
                   </label>
                   <label className="text-xs text-muted-foreground">
                     {t("account")}
@@ -169,13 +167,13 @@ export default async function ReconcilePage({
                         blank, confirming wrote a null account and the entry
                         dropped out of every balance while still counting in
                         the month's totals. */}
-                    <select
+                    <Select
                       name="account_id"
+                      className="mt-1 h-9 w-auto"
                       defaultValue={
                         (line as { import?: { account_id: string | null } | null })
                           .import?.account_id ?? ""
                       }
-                      className="mt-1 block h-9 rounded-md border border-input bg-background px-2 text-sm"
                     >
                       <option value="">—</option>
                       {accounts.map((a) => (
@@ -183,7 +181,7 @@ export default async function ReconcilePage({
                           {a.name}
                         </option>
                       ))}
-                    </select>
+                    </Select>
                   </label>
                   <button
                     type="submit"

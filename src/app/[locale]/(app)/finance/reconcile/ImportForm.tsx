@@ -6,6 +6,7 @@ import { useTranslations } from "next-intl";
 import { FormError } from "@/components/ui/FormError";
 import { Button } from "@/components/ui/Button";
 import { Label } from "@/components/ui/Label";
+import { Select } from "@/components/ui/Select";
 import { importStatementAction, type ImportState } from "./actions";
 
 const initial: ImportState = {};
@@ -27,18 +28,14 @@ export function ImportForm({
       <div className="grid gap-3 sm:grid-cols-2">
         <div className="space-y-1.5">
           <Label htmlFor="account_id">{t("account")}</Label>
-          <select
-            id="account_id"
-            name="account_id"
-            className="h-10 w-full rounded-md border border-input bg-background px-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
-          >
+          <Select id="account_id" name="account_id">
             <option value="">—</option>
             {accounts.map((a) => (
               <option key={a.id} value={a.id}>
                 {a.name}
               </option>
             ))}
-          </select>
+          </Select>
         </div>
         <div className="space-y-1.5">
           <Label htmlFor="file">{t("file")}</Label>

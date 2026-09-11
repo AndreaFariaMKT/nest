@@ -55,7 +55,10 @@
     "suppliers": "Suppliers",
     "cashflow": "Cash flow",
     "reconcile": "Reconciliation",
-    "invoicing": "Invoices"
+    "invoicing": "Invoices",
+    "accounts": "Accounts",
+    "entries": "Entries",
+    "due": "Receivables & payables"
   },
   "finance": {
     "title": "Finance",
@@ -87,7 +90,6 @@
       "reserve": "Reserve",
       "reserveHint": "Outside operations · covers {months}."
     },
-    "accounts": "Where the money is",
     "noAccounts": "No accounts yet.",
     "kindOperating": "operating",
     "kindReserve": "reserve",
@@ -229,7 +231,133 @@
       "exportsTitle": "Exports",
       "exportBadge": "Export",
       "exportsHint": "Shown on purpose: what disappears from a list looks forgotten, not exempt."
-    }
+    },
+    "whereMoney": "Where the money is",
+    "accounts": {
+      "title": "Accounts and exchange rate",
+      "subtitle": "Where the money sits, and what a dollar is worth on the day.",
+      "add": "Add account",
+      "save": "Save",
+      "empty": "No accounts yet. Start here: without one, the ledger has nowhere to record a movement.",
+      "name": "Name",
+      "namePlaceholder": "Nubank current account",
+      "institution": "Institution",
+      "institutionPlaceholder": "Nubank, Wise, Itaú…",
+      "currency": "Currency",
+      "kind": "Kind",
+      "kinds": {
+        "operacional": "Operating",
+        "reserva": "Reserve"
+      },
+      "archive": "Archive",
+      "restore": "Restore",
+      "archived": "Archived",
+      "unconverted": "{count} without a rate",
+      "errors": {
+        "tooShort": "Name is too short."
+      },
+      "fx": {
+        "title": "Rate of the day",
+        "hint": "Dollar to real. Every dollar entry is converted at the rate of the day the money moved — not today's.",
+        "day": "Day",
+        "rate": "Rate",
+        "save": "Save rate",
+        "delete": "Delete",
+        "missingToday": "No rate for today — dollar amounts stay out of the totals until you record one.",
+        "errors": {
+          "invalid": "Invalid rate."
+        }
+      }
+    },
+    "entries": {
+      "title": "Entries",
+      "subtitle": "What came in and what went out, typed straight into the ledger.",
+      "add": "Record",
+      "delete": "Delete",
+      "empty": "No entries yet.",
+      "direction": "Kind",
+      "directions": {
+        "in": "Money in",
+        "out": "Money out"
+      },
+      "amount": "Amount",
+      "dateCash": "Cash date",
+      "dateAccrual": "Accrual",
+      "description": "Description",
+      "descriptionPlaceholder": "Aline payment · September",
+      "account": "Account",
+      "category": "Category",
+      "client": "Client",
+      "project": "Project",
+      "supplier": "Supplier",
+      "reconciled": "Reconciled",
+      "accrualIs": "accrual {date}",
+      "needAccount": "Create an account first.",
+      "noAccountsYet": "No accounts yet.",
+      "goToAccounts": "Create an account",
+      "footnote": "A blank accrual follows the cash date. Fill it only when the month of the money and the month of the work differ — that is where the gap between balance and profit comes from.",
+      "th": {
+        "cash": "Cash",
+        "description": "Description",
+        "category": "Category",
+        "account": "Account",
+        "amount": "Amount"
+      },
+      "errors": {
+        "tooShort": "Description is too short.",
+        "invalid": "Invalid amount.",
+        "required": "Pick an account."
+      }
+    },
+    "due": {
+      "title": "Receivables and payables",
+      "subtitle": "What the studio is still owed, and what it still owes.",
+      "description": "Description",
+      "client": "Client",
+      "supplier": "Supplier",
+      "project": "Project",
+      "category": "Category",
+      "amount": "Amount",
+      "currency": "Currency",
+      "dueOn": "Due",
+      "dateAccrual": "Accrual",
+      "empty": "Nothing here yet.",
+      "noCounterparty": "Unlinked",
+      "dueLabel": "due {date}",
+      "accrualIs": "accrual {date}",
+      "paidOn": "settled {date}",
+      "paidOnLabel": "Date",
+      "account": "Account",
+      "cancel": "Cancel",
+      "delete": "Delete",
+      "needAccount": "Create an account before settling anything.",
+      "goToAccounts": "Create an account",
+      "footnote": "Settling here closes the obligation and records the money in the chosen account. If the amount comes from a bank statement, confirm it in reconciliation — that does both at once.",
+      "status": {
+        "open": "Open",
+        "late": "Late",
+        "paid": "Settled",
+        "cancelled": "Cancelled"
+      },
+      "receivable": {
+        "title": "Receivables",
+        "add": "Add receivable",
+        "settle": "Received",
+        "descriptionPlaceholder": "September retainer · Client"
+      },
+      "payable": {
+        "title": "Payables",
+        "add": "Add payable",
+        "settle": "Paid",
+        "descriptionPlaceholder": "Luprime accounting · September"
+      },
+      "errors": {
+        "tooShort": "Description is too short.",
+        "invalid": "Invalid amount."
+      }
+    },
+    "addAccount": "Add an account",
+    "addRate": "Record a rate"
   },
   "overview": {
     "title": "Overview",

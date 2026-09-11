@@ -7,6 +7,7 @@ import { FormError } from "@/components/ui/FormError";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { Label } from "@/components/ui/Label";
+import { Select } from "@/components/ui/Select";
 import { saveSupplierAction, type SupplierFormState } from "./actions";
 import type { SupplierRow } from "@/lib/finance-db";
 
@@ -64,16 +65,15 @@ export function SupplierForm({
           {/* Which one it is matters: recurring payments to a pessoa física can
               carry withholding that payments to a CNPJ do not, and the studio
               pays two people by CPF every month. */}
-          <select
+          <Select
             id={`doc_type-${supplier?.id ?? "new"}`}
             name="doc_type"
             defaultValue={supplier?.doc_type ?? ""}
-            className="h-10 w-full rounded-md border border-input bg-background px-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
           >
             <option value="">—</option>
             <option value="cpf">CPF</option>
             <option value="cnpj">CNPJ</option>
-          </select>
+          </Select>
         </div>
         <div className="space-y-1.5">
           <Label htmlFor={`doc_number-${supplier?.id ?? "new"}`}>
@@ -139,18 +139,17 @@ export function SupplierForm({
           <Label htmlFor={`note_status-${supplier?.id ?? "new"}`}>
             {t("noteStatus")}
           </Label>
-          <select
+          <Select
             id={`note_status-${supplier?.id ?? "new"}`}
             name="note_status"
             defaultValue={supplier?.note_status ?? "pending"}
-            className="h-10 w-full rounded-md border border-input bg-background px-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
           >
             {NOTE_STATUSES.map((s) => (
               <option key={s} value={s}>
                 {t(`note.${s}`)}
               </option>
             ))}
-          </select>
+          </Select>
         </div>
       </div>
 

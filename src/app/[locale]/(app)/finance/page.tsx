@@ -141,10 +141,21 @@ export default async function FinancePage({
         {/* Where the money is */}
         <section className="rounded-2xl border border-border bg-card p-5">
           <h2 className="mb-4 text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
-            {t("accounts")}
+            {t("whereMoney")}
           </h2>
           {f.accounts.length === 0 ? (
-            <p className="text-sm text-muted-foreground">{t("noAccounts")}</p>
+            /* The empty state is where the module actually starts, so it
+               carries the way in rather than describing the absence and
+               leaving the person to find the screen. */
+            <p className="text-sm text-muted-foreground">
+              {t("noAccounts")}{" "}
+              <Link
+                href="/finance/accounts"
+                className="underline underline-offset-4"
+              >
+                {t("addAccount")}
+              </Link>
+            </p>
           ) : (
             <ul className="divide-y divide-border">
               {f.accounts.map((a) => (
@@ -167,7 +178,15 @@ export default async function FinancePage({
             </ul>
           )}
           {f.todayRate === null ? (
-            <p className="mt-3 text-xs text-destructive">{t("noRateToday")}</p>
+            <p className="mt-3 text-xs text-destructive">
+              {t("noRateToday")}{" "}
+              <Link
+                href="/finance/accounts"
+                className="underline underline-offset-4"
+              >
+                {t("addRate")}
+              </Link>
+            </p>
           ) : (
             <p className="mt-3 text-xs text-muted-foreground">
               {t("rateToday", {

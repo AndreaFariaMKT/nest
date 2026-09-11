@@ -15,6 +15,14 @@ export default defineConfig({
       ),
     },
   },
+  // tsconfig sets `jsx: "preserve"`, which is right for Next and leaves the
+  // transformer handing raw JSX to the parser — so any test importing a module
+  // that touches a .tsx file died on "invalid JS syntax", about the syntax
+  // rather than about anything being tested. It is why the menu's data could
+  // not be asserted against its own translations: roles.ts imports the icon
+  // components. (`oxc`, not `esbuild`: Vite 8 replaced the transformer.)
+  oxc: { jsx: { runtime: "automatic" } },
+
   test: {
     // Unit tests only. E2E lives in tests/e2e/ via Playwright.
     include: ["tests/unit/**/*.test.ts", "src/**/*.test.ts"],

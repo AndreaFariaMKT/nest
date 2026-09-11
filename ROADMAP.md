@@ -6,8 +6,14 @@ Living document. Source of truth for **what is built**, **what is next**, and **
 
 ## 0. Current state — 2026-08 (multi-tenant + roles era)
 
-**Live in production** on Vercel (`nest-andrea-faria-mkts-projects.vercel.app`), Supabase Cloud (Free, ref `wntrsavneabdcrztwudf`, region us-east-1). Deploy = push to `main`. Migrations 001–018 applied. Apply new migrations with:
-`psql "postgresql://postgres.wntrsavneabdcrztwudf:<DB_PASSWORD>@aws-1-us-east-1.pooler.supabase.com:5432/postgres" -f <file>`
+**Live in production** on Vercel (`nest-andrea-faria-mkts-projects.vercel.app`), Supabase Cloud (Free, ref `eorvzmvjmxmfejujbgiu`, region **sa-east-1 / São Paulo**). Deploy = push to `main`.
+
+The database moved from us-east-1 in 2026-09: every click paid a round trip to Virginia from a function in São Paulo, and a warm query went from ~459ms to ~25ms. The runbook is [docs/virada-sao-paulo.md](./docs/virada-sao-paulo.md).
+
+Apply a new migration through the **Session pooler** string from the project's dashboard (Connect → Session pooler — the `db.<ref>.supabase.co` direct host is IPv6-only and unreachable from most laptops and from Docker):
+`psql "<session pooler URL>" -f supabase/migrations/<file>.sql`
+
+The database carries objects through **055**. `supabase db push` is **not** safe here — the remote migration history still reports 001–013, so a push would replay everything in between. See [docs/pending-migrations.md](./docs/pending-migrations.md) for the repair.
 
 ### Shipped this era
 - **Production deploy** — Vercel + Supabase Cloud; `/api/health` green; Analytics + Speed Insights wired (enable in dashboard).
@@ -687,8 +693,9 @@ Não pertencem a nenhuma sprint específica — vão acontecendo em paralelo.
 ## 4.9 Hub NEST — ajustes da Andréa (set/2026) · **feito**
 
 Os oito itens do e-mail de 5 de setembro, mais o módulo financeiro do
-protótipo HTML feito com a Aline. Migrations **048–052 escritas e ainda não
-aplicadas** — ver [docs/pending-migrations.md](./docs/pending-migrations.md).
+protótipo HTML feito com a Aline. Migrations **047–055 aplicadas** em produção;
+o histórico remoto do Supabase continua desalinhado, então `supabase db push`
+segue proibido — ver [docs/pending-migrations.md](./docs/pending-migrations.md).
 
 - [x] **1. Tela de início** — bloco Liderança com design próprio (projetos
   ativos, em negociação, receita esperada, receita em caixa) e o olho que
@@ -708,14 +715,27 @@ aplicadas** — ver [docs/pending-migrations.md](./docs/pending-migrations.md).
 - [x] **7. Tela equipe** — cargo e departamento (047).
 - [x] **8. Financeiro + fornecedores no Diretório**
 
-### O módulo financeiro (049, 051)
+### O módulo financeiro (049, 051, 054, 055)
 
-- [x] Contas, categorias, fornecedores, lançamentos, a receber, a pagar, câmbio
+- [x] Tabelas: contas, categorias, fornecedores, lançamentos, a receber,
+  a pagar, câmbio
 - [x] Dashboard com as seis medidas, contas e saída por categoria
 - [x] Fluxo de caixa mês e ano
 - [x] Conciliação bancária — OFX e CSV, com o casamento em três níveis
 - [x] Fila de nota fiscal com as três regras do manual
 - [x] Flow automático por tipo de projeto (052)
+- [x] **Cadastro e lançamento** — `/finance/accounts` (contas + câmbio do dia),
+  `/finance/entries` (lançar à mão) e `/finance/due` (a receber e a pagar).
+
+  Esta linha ficou de fora na primeira entrega e foi o que impediu o módulo de
+  ser usado: o módulo inteiro podia ser **lido** e nada podia ser **escrito**.
+  O único caminho até `fin_entries` era confirmar uma linha de extrato
+  importado, ninguém criava `fin_receivables`, e sem conta cadastrada o painel
+  abria em "Nenhuma conta cadastrada ainda". O casador de extrato — com toda a
+  sua bateria de testes — comparava contra uma lista vazia.
+
+  Primeiros passos para quem vai usar:
+  [docs/financeiro-primeiros-passos.md](./docs/financeiro-primeiros-passos.md).
 
 **A decisão que sustenta o módulo:** todo lançamento tem duas datas — caixa
 (quando o dinheiro se moveu) e competência (a que mês pertence). Balanço sai da

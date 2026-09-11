@@ -55,7 +55,10 @@
     "suppliers": "Fornecedores",
     "cashflow": "Fluxo de caixa",
     "reconcile": "Conciliação",
-    "invoicing": "Notas fiscais"
+    "invoicing": "Notas fiscais",
+    "accounts": "Contas",
+    "entries": "Lançamentos",
+    "due": "A receber e a pagar"
   },
   "finance": {
     "title": "Financeiro",
@@ -87,7 +90,6 @@
       "reserve": "Reserva",
       "reserveHint": "Fora da operação · cobre {months}."
     },
-    "accounts": "Onde está o dinheiro",
     "noAccounts": "Nenhuma conta cadastrada ainda.",
     "kindOperating": "operacional",
     "kindReserve": "reserva",
@@ -229,7 +231,133 @@
       "exportsTitle": "Exportação",
       "exportBadge": "Exportação",
       "exportsHint": "Aparecem aqui de propósito: some da lista quem foi esquecido, não quem não deve nota."
-    }
+    },
+    "whereMoney": "Onde está o dinheiro",
+    "accounts": {
+      "title": "Contas e câmbio",
+      "subtitle": "Onde o dinheiro fica, e quanto vale um dólar no dia.",
+      "add": "Adicionar conta",
+      "save": "Salvar",
+      "empty": "Nenhuma conta cadastrada ainda. Comece por aqui: sem conta, o sistema não tem onde registrar uma movimentação.",
+      "name": "Nome",
+      "namePlaceholder": "Nubank conta corrente",
+      "institution": "Instituição",
+      "institutionPlaceholder": "Nubank, Wise, Itaú…",
+      "currency": "Moeda",
+      "kind": "Tipo",
+      "kinds": {
+        "operacional": "Operacional",
+        "reserva": "Reserva"
+      },
+      "archive": "Arquivar",
+      "restore": "Reativar",
+      "archived": "Arquivada",
+      "unconverted": "{count} sem câmbio",
+      "errors": {
+        "tooShort": "Nome muito curto."
+      },
+      "fx": {
+        "title": "Câmbio do dia",
+        "hint": "Dólar para real. Cada lançamento em dólar é convertido pela taxa do dia em que o dinheiro se moveu — não pela de hoje.",
+        "day": "Dia",
+        "rate": "Taxa",
+        "save": "Salvar taxa",
+        "delete": "Excluir",
+        "missingToday": "Sem taxa de hoje — valores em dólar ficam fora dos totais até você registrar uma.",
+        "errors": {
+          "invalid": "Taxa inválida."
+        }
+      }
+    },
+    "entries": {
+      "title": "Lançamentos",
+      "subtitle": "O que entrou e o que saiu, digitado direto no livro.",
+      "add": "Lançar",
+      "delete": "Excluir",
+      "empty": "Nenhum lançamento ainda.",
+      "direction": "Tipo",
+      "directions": {
+        "in": "Entrada",
+        "out": "Saída"
+      },
+      "amount": "Valor",
+      "dateCash": "Data do caixa",
+      "dateAccrual": "Competência",
+      "description": "Descrição",
+      "descriptionPlaceholder": "Pagamento Aline · setembro",
+      "account": "Conta",
+      "category": "Categoria",
+      "client": "Cliente",
+      "project": "Projeto",
+      "supplier": "Fornecedor",
+      "reconciled": "Conciliado",
+      "accrualIs": "competência {date}",
+      "needAccount": "Cadastre uma conta primeiro.",
+      "noAccountsYet": "Nenhuma conta cadastrada ainda.",
+      "goToAccounts": "Cadastrar conta",
+      "footnote": "A competência em branco segue a data do caixa. Preencha só quando o mês do dinheiro e o mês do trabalho forem diferentes — é daí que vem a diferença entre balanço e lucro.",
+      "th": {
+        "cash": "Caixa",
+        "description": "Descrição",
+        "category": "Categoria",
+        "account": "Conta",
+        "amount": "Valor"
+      },
+      "errors": {
+        "tooShort": "Descrição muito curta.",
+        "invalid": "Valor inválido.",
+        "required": "Escolha uma conta."
+      }
+    },
+    "due": {
+      "title": "A receber e a pagar",
+      "subtitle": "O que o studio ainda vai receber e o que ainda deve.",
+      "description": "Descrição",
+      "client": "Cliente",
+      "supplier": "Fornecedor",
+      "project": "Projeto",
+      "category": "Categoria",
+      "amount": "Valor",
+      "currency": "Moeda",
+      "dueOn": "Vencimento",
+      "dateAccrual": "Competência",
+      "empty": "Nada por aqui ainda.",
+      "noCounterparty": "Sem vínculo",
+      "dueLabel": "vence em {date}",
+      "accrualIs": "competência {date}",
+      "paidOn": "quitado em {date}",
+      "paidOnLabel": "Data",
+      "account": "Conta",
+      "cancel": "Cancelar",
+      "delete": "Excluir",
+      "needAccount": "Cadastre uma conta antes de quitar qualquer coisa.",
+      "goToAccounts": "Cadastrar conta",
+      "footnote": "Quitar aqui fecha a cobrança e lança o dinheiro na conta escolhida. Se o valor vier do extrato do banco, confirme pela conciliação — ela faz as duas coisas de uma vez.",
+      "status": {
+        "open": "Em aberto",
+        "late": "Atrasado",
+        "paid": "Quitado",
+        "cancelled": "Cancelado"
+      },
+      "receivable": {
+        "title": "A receber",
+        "add": "Adicionar cobrança",
+        "settle": "Recebi",
+        "descriptionPlaceholder": "Retainer setembro · Cliente"
+      },
+      "payable": {
+        "title": "A pagar",
+        "add": "Adicionar obrigação",
+        "settle": "Paguei",
+        "descriptionPlaceholder": "Contabilidade Luprime · setembro"
+      },
+      "errors": {
+        "tooShort": "Descrição muito curta.",
+        "invalid": "Valor inválido."
+      }
+    },
+    "addAccount": "Cadastrar conta",
+    "addRate": "Registrar taxa"
   },
   "overview": {
     "title": "Visão geral",
