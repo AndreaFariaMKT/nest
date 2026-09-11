@@ -15,12 +15,15 @@ Os arquivos não vão no dump do banco. São três buckets, e sem eles toda imag
 de marca do app vira 404.
 
 ```
-OLD_URL=<url do projeto atual>      OLD_SERVICE_KEY=<service_role atual> \
-NEW_URL=<url de São Paulo>          NEW_SERVICE_KEY=<service_role de SP> \
-  node scripts/copy-storage.mjs --dry-run
+./scripts/copiar-storage.sh
 ```
 
-Confira a contagem, depois rode sem o `--dry-run`.
+Ele pede a chave **service_role** dos dois projetos — abre o link de cada um —
+e faz a simulação antes, mostrando quantos arquivos copiaria. Você confirma e
+ele copia.
+
+A service_role fica em **Settings → API Keys → Reveal**. Não use a `anon`: ela
+não enxerga os arquivos.
 
 Pode ser feito antes porque é aditivo: na janela você roda de novo e ele copia
 só o que surgiu, pulando o resto.
@@ -82,10 +85,10 @@ São só essas três das 27. As outras 24 não mudam.
 ### 7. Copiar os arquivos que surgiram
 
 ```
-... node scripts/copy-storage.mjs
+./scripts/copiar-storage.sh
 ```
 
-Mesmo comando do passo 1. Pula o que já foi.
+Mesmo comando do passo 1. Pula o que já foi copiado.
 
 ---
 
