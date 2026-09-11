@@ -79,6 +79,30 @@ if [ "${LIMPAR:-0}" = "1" ]; then
   echo "Limpo."
 fi
 
+# Pré-voo: o dump traz `auth.users`, e `auth` não é derrubado pelo LIMPAR de
+# `public` — é um schema gerenciado pelo Supabase. Um banco que já recebeu uma
+# restauração antes colide em `users_pkey`, e como tudo roda em transação única
+# o rollback leva junto as 46 tabelas que já tinham entrado. O sintoma é cruel:
+# uma parede de erro do Postgres e um banco que continua exatamente vazio.
+#
+# Então perguntamos antes, em vez de descobrir no meio.
+USERS=$(psql "$URL" -tAc 'select count(*) from auth.users' 2>/dev/null || echo "?")
+TABELAS=$(psql "$URL" -tAc "select count(*) from pg_tables where schemaname='public'" 2>/dev/null || echo "?")
+
+if [ "${LIMPAR:-0}" != "1" ] && { [ "${USERS:-0}" != "0" ] || [ "${TABELAS:-0}" != "0" ]; }; then
+  echo
+  echo "Este banco não está vazio: $USERS logins em auth.users, $TABELAS tabelas em public."
+  echo
+  echo "Restaurar por cima colide em chave duplicada, e como é transação única"
+  echo "o rollback desfaz tudo — você termina com o banco do jeito que está."
+  echo
+  echo "Para limpar antes e restaurar:"
+  echo
+  echo "    LIMPAR=1 $0"
+  echo
+  exit 1
+fi
+
 # O dump cria `vector` e `pg_trgm` em `public` — é onde as migrations deste
 # projeto as puseram. Habilitá-las pelo painel antes instala em `extensions`,
 # e aí o `CREATE EXTENSION IF NOT EXISTS` do dump vira no-op: a extensão
@@ -89,8 +113,19 @@ fi
 # projeto de destino isso é inofensivo: ele ainda não tem dado nenhum.
 echo
 echo "Limpando extensões pré-instaladas no schema errado..."
-psql "$URL" -q -c 'DROP EXTENSION IF EXISTS vector CASCADE;' \
-              -c 'DROP EXTENSION IF EXISTS pg_trgm CASCADE;' 2>/dev/null || true
+# Sem `2>/dev/null || true`. Essa linha já engoliu a falha uma vez: se o drop
+# não passa, o `CREATE EXTENSION IF NOT EXISTS ... WITH SCHEMA public` do dump
+# vira no-op — a extensão existe em `extensions`, `public.vector` não existe, e
+# o restore morre lá na frente na primeira função que usa o tipo. O erro
+# precisa aparecer aqui, onde ainda diz o que fazer.
+if ! psql "$URL" -q -c 'DROP EXTENSION IF EXISTS vector CASCADE;' \
+                    -c 'DROP EXTENSION IF EXISTS pg_trgm CASCADE;'; then
+  echo
+  echo "Não consegui derrubar as extensões pré-instaladas."
+  echo "Se elas estiverem no schema 'extensions', o restore vai falhar com"
+  echo "'type public.vector does not exist'. Resolva isso antes de seguir."
+  exit 1
+fi
 
 echo
 echo "Restaurando. Transação única: ou entra tudo, ou não entra nada."
