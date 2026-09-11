@@ -56,6 +56,29 @@ fi
 # statement_timeout, que o projeto novo já traz no padrão.
 grep -v supabase_admin "$D/roles.sql" > "$D/roles.filtrado.sql"
 
+# O ensaio já povoou este banco, então uma segunda restauração colide por
+# chave duplicada. Na virada isso importa: o dump precisa ser refeito na hora,
+# com ninguém usando o sistema, e restaurado sobre um banco limpo.
+#
+# Derruba os schemas que o dump recria. `auth` e `storage` são gerenciados pelo
+# Supabase — esses a gente esvazia em vez de derrubar, senão o projeto quebra.
+if [ "${LIMPAR:-0}" = "1" ]; then
+  echo
+  echo "LIMPANDO o banco de São Paulo antes de restaurar."
+  echo "Isto apaga o que o ensaio deixou lá. A produção não é tocada."
+  read -r -p "  digite LIMPAR para confirmar: " OK
+  [ "$OK" = "LIMPAR" ] || { echo "Cancelado."; exit 1; }
+
+  psql "$URL" -q \
+    -c 'DROP SCHEMA IF EXISTS public CASCADE;' \
+    -c 'CREATE SCHEMA public;' \
+    -c 'GRANT ALL ON SCHEMA public TO postgres, anon, authenticated, service_role;' \
+    -c 'TRUNCATE auth.users CASCADE;' \
+    -c 'TRUNCATE storage.objects CASCADE;' \
+    -c 'DELETE FROM storage.buckets;'
+  echo "Limpo."
+fi
+
 # O dump cria `vector` e `pg_trgm` em `public` — é onde as migrations deste
 # projeto as puseram. Habilitá-las pelo painel antes instala em `extensions`,
 # e aí o `CREATE EXTENSION IF NOT EXISTS` do dump vira no-op: a extensão
