@@ -87,13 +87,36 @@ Não há arquivos no storage. Se passar a haver antes da virada, rode
 
 ### 8. Conferir
 
-Abra https://nest-six-beta.vercel.app/api/health e olhe `latencyMs`.
+```bash
+curl -s https://nest-six-beta.vercel.app/api/health
+```
 
-- antes: **459ms**
-- esperado: **menos de 30ms**
+Olhe **nesta ordem**:
+
+1. **`"status": "ok"` e `checks.db.ok: true`.** Esta é a linha que importa. Em
+   11/09/2026 a virada foi dada como pronta com `db.ok: false` durante horas: o
+   banco de São Paulo tinha ficado sem nenhuma tabela e ninguém percebeu.
+2. Só então `checks.db.latencyMs` — antes **459ms**, esperado **menos de 30ms**.
+
+Duas leituras que **não** servem de prova, e as duas foram usadas como se
+servissem:
+
+- **A rota responder 307.** Isso é o middleware falando com o serviço de auth,
+  que é um processo separado do Postgres. Um banco completamente vazio devolve
+  307 igualzinho.
+- **`latencyMs` ter um número.** Uma consulta que falha também leva tempo. O
+  `db.ok: false` daquele dia veio acompanhado de um confortável `304ms`.
 
 Depois entre no app e teste: login, abrir um cliente, criar uma tarefa, o chat
 (realtime), e uma imagem de marca (storage).
+
+E confirme que a CLI está ligada no projeto certo antes de qualquer comando
+`--linked` — ela **não** é religada pela troca de chaves na Vercel:
+
+```bash
+cat supabase/.temp/project-ref     # tem que ser o ref de São Paulo
+supabase link --project-ref <ref de São Paulo>
+```
 
 ### 9. Trocar o ref no repositório
 

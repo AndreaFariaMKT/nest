@@ -1,7 +1,63 @@
 # Migrations — estado
 
-**047 a 055 aplicadas**, tipos regenerados, `npm run types:check` sem drift.
-**Nenhum contorno temporário no código.**
+> **11/09/2026 — o banco de São Paulo está vazio e a produção está apontando
+> para ele.** Leia a seção "Incidente" antes de qualquer coisa. O reparo de
+> histórico descrito no fim deste arquivo só faz sentido depois que o schema
+> estiver de volta.
+
+## Incidente — a virada para São Paulo não terminou
+
+Medido pela CLI já autenticada e pela própria produção:
+
+| verificação | resultado |
+|---|---|
+| `supabase inspect db table-stats --linked` | nenhuma tabela |
+| `supabase migration list --linked` | remoto sem nenhuma das 55 |
+| `GET /rest/v1/clients` com a chave anon | `PGRST205` — não existe |
+| `GET /api/health` em produção | `status: degraded`, `db.ok: false` |
+
+O bundle em produção aponta para `eorvzmvjmxmfejujbgiu` (São Paulo). O app
+sobe, o login redireciona, e **nenhuma leitura de dados funciona**.
+
+**Nada foi perdido.** O projeto antigo `wntrsavneabdcrztwudf` (us-east-1)
+continua intacto — `clients` 4, `tasks` 2, `fin_categories` 10 — e os arquivos
+do dump continuam em `.migracao-supabase/` (46 tabelas). Foi para isso que
+combinamos não apagar o projeto antigo por uma semana.
+
+### Voltar ao ar, na ordem
+
+1. **Trocar a senha do banco.** Ela foi exposta; e o passo 3 precisa da nova.
+   Dashboard → Settings → Database → Reset database password.
+2. **Opcional, se o estúdio precisa trabalhar agora:** apontar as variáveis da
+   Vercel de volta para us-east-1 e redeployar. Volta a funcionar em minutos,
+   ao custo de ~460 ms por clique em vez de ~25 ms.
+3. `./scripts/restaurar-em-sp.sh` — um passo, pede só a senha nova.
+4. **Conferir antes de confiar:**
+   `curl -s https://nest-six-beta.vercel.app/api/health` tem que devolver
+   `status: ok` **e** `db.ok: true`.
+
+O passo 4 é o que faltou da última vez. As rotas respondiam 307, o que foi lido
+como "está no ar" — mas 307 é o middleware conversando com o serviço de auth,
+que é independente do Postgres. **Rota que responde não é banco que responde.**
+
+## A CLI estava ligada no projeto errado
+
+`supabase/.temp/project-ref` apontava para `wntrsavneabdcrztwudf` mesmo depois
+da virada. Qualquer `--linked` — inclusive o `migration repair` descrito
+abaixo — agiria sobre **us-east-1**, e o histórico de São Paulo continuaria
+quebrado com a aparência de consertado.
+
+Já religado para `eorvzmvjmxmfejujbgiu`. Antes de rodar qualquer comando com
+`--linked`, confira:
+
+```bash
+cat supabase/.temp/project-ref   # tem que ser eorvzmvjmxmfejujbgiu
+```
+
+## O que cada migration trouxe
+
+Aplicadas à mão em us-east-1 entre agosto e setembro de 2026. Em São Paulo,
+voltam junto com o restore — o dump é do schema inteiro, não das migrations.
 
 | # | o que trouxe |
 |---|---|
@@ -15,31 +71,48 @@
 | 054 | `amount_brl_cents`, sinais positivos em obrigações, saldo por conta em SQL |
 | 055 | progresso do projeto em SQL e seis índices |
 
-## `db push` continua inseguro aqui
+## `db push` continua inseguro — e o reparo é 001–055, não 014–055
 
-`supabase migration list --linked` reporta **001–013 aplicadas e 014 em diante
-ausentes**, enquanto o banco tem os objetos de todas. É o **histórico** que
-está incompleto, não o schema — por isso da 047 em diante tudo foi aplicado à
-mão.
+Este arquivo dizia que o remoto reportava "001–013 aplicadas e 014 em diante
+ausentes". Isso era verdade **em us-east-1**. Em São Paulo o histórico está
+completamente vazio, e `supabase_migrations` **não está no dump** — então
+depois do restore ele continuará vazio.
 
-Um `db push` nesse estado tentaria reaplicar dezenas de migrations sobre
-tabelas existentes. A maioria falharia no `create table`, mas várias carregam
+Um `db push` nesse estado tentaria aplicar as 55 sobre um schema que já veio
+inteiro pelo dump. A maioria falharia no `create table`, mas várias carregam
 `drop policy` e `revoke`, **que rodam antes de qualquer erro aparecer**. O modo
 de falha não é "o push aborta" — é "políticas de RLS caem em produção e aí o
 push aborta".
 
 ### Reparar (só escreve na tabela de histórico)
 
+Depois do restore e do health check verde:
+
 ```bash
-supabase migration repair --status applied $(seq -f "%03g" 14 55)
-supabase migration list --linked   # deve mostrar tudo aplicado
+cat supabase/.temp/project-ref                 # eorvzmvjmxmfejujbgiu
+supabase migration repair --status applied $(seq -f "%03g" 1 55)
+supabase migration list --linked               # tudo aplicado, nos dois lados
 ```
 
-Depois disso o `db push` volta a ser o caminho normal da 056 em diante.
+Aí `db push` volta a ser o caminho normal da 056 em diante.
 
-## Uma armadilha do `types:gen`, já corrigida
+## A armadilha do `types:gen` — a segunda metade ainda mordia
 
 O script era `supabase gen types ... > src/types/database.gen.ts`, e o `>`
-trunca **antes** do comando rodar. Quando o CLI falhava, sobrava uma linha de
-erro JSON no lugar de 2500 linhas de schema, sem aviso. Agora escreve em
-temporário e só move em caso de sucesso.
+trunca **antes** do comando rodar: um CLI que falhava deixava uma linha de erro
+JSON no lugar de 2500 linhas de schema. Isso foi corrigido escrevendo em
+temporário e movendo só em caso de sucesso.
+
+Só que a guarda cobria o comando **falhar**, não o comando **ter sucesso
+devolvendo um schema vazio** — que é exatamente o que São Paulo devolve hoje.
+Rodar `npm run types:gen` agora troca as 3381 linhas de `database.gen.ts` por
+155 linhas de `[_ in never]: never`, com código de saída 0 e a mensagem
+"Generated src/types/database.gen.ts".
+
+Foi isso que aconteceu com o arquivo em 11/09 — não foi corrupção, foi uma
+geração bem-sucedida contra um banco vazio. Todo `supabase.from(...)` da
+aplicação passou a ter tipo `never`.
+
+O script agora recusa um schema sem tabelas antes de mover. E enquanto o banco
+estiver vazio, `npm run types:check` vai acusar drift: isso é o cheque fazendo
+o trabalho dele, não um alarme falso.

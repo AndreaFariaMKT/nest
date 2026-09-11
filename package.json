@@ -15,7 +15,7 @@
     "test:e2e:ui": "playwright test --ui",
     "test:coverage": "vitest run --coverage",
     "meta:exchange": "tsx scripts/meta-exchange.ts",
-    "types:gen": "supabase gen types typescript --project-id eorvzmvjmxmfejujbgiu > src/types/database.gen.ts.tmp && mv src/types/database.gen.ts.tmp src/types/database.gen.ts && echo 'Generated src/types/database.gen.ts' || (rm -f src/types/database.gen.ts.tmp && echo 'Generation failed — database.gen.ts left untouched (need `supabase login`?)' && exit 1)",
+    "types:gen": "./scripts/gen-types.sh",
     "types:check": "supabase gen types typescript --project-id eorvzmvjmxmfejujbgiu | diff -u src/types/database.gen.ts - || (echo 'Generated types drifted — run npm run types:gen to refresh.' && exit 1)"
   },
   "dependencies": {

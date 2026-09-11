@@ -6,14 +6,22 @@ Living document. Source of truth for **what is built**, **what is next**, and **
 
 ## 0. Current state — 2026-08 (multi-tenant + roles era)
 
-**Live in production** on Vercel (`nest-andrea-faria-mkts-projects.vercel.app`), Supabase Cloud (Free, ref `eorvzmvjmxmfejujbgiu`, region **sa-east-1 / São Paulo**). Deploy = push to `main`.
+> ⚠️ **2026-09-11 — the move to São Paulo did not finish.** Production points at
+> `eorvzmvjmxmfejujbgiu` and that database has **no tables**: `/api/health`
+> returns `db.ok: false` and every PostgREST read is `PGRST205`. Nothing is
+> lost — `wntrsavneabdcrztwudf` (us-east-1) is intact and the dump is still in
+> `.migracao-supabase/`. Recovery steps, in order, in
+> [docs/pending-migrations.md](./docs/pending-migrations.md). Read that before
+> touching anything here.
 
-The database moved from us-east-1 in 2026-09: every click paid a round trip to Virginia from a function in São Paulo, and a warm query went from ~459ms to ~25ms. The runbook is [docs/virada-sao-paulo.md](./docs/virada-sao-paulo.md).
+**Live in production** on Vercel (`nest-andrea-faria-mkts-projects.vercel.app`), Supabase Cloud (Free). Deploy = push to `main`.
+
+The database was moved from us-east-1 to **sa-east-1 / São Paulo** in 2026-09: every click paid a round trip to Virginia from a function in São Paulo, and a warm query measured ~459ms before and ~25ms after. The runbook is [docs/virada-sao-paulo.md](./docs/virada-sao-paulo.md) — and the lesson it is missing is that a route answering 307 proves the middleware reached the auth service, not that the database is there. Check `/api/health` for `db.ok: true`.
 
 Apply a new migration through the **Session pooler** string from the project's dashboard (Connect → Session pooler — the `db.<ref>.supabase.co` direct host is IPv6-only and unreachable from most laptops and from Docker):
 `psql "<session pooler URL>" -f supabase/migrations/<file>.sql`
 
-The database carries objects through **055**. `supabase db push` is **not** safe here — the remote migration history still reports 001–013, so a push would replay everything in between. See [docs/pending-migrations.md](./docs/pending-migrations.md) for the repair.
+`supabase db push` is **not** safe here: the remote migration history is empty while the schema arrives whole from a dump, so a push would replay all 55 — and several carry `drop policy` and `revoke`, which run before any error surfaces. See [docs/pending-migrations.md](./docs/pending-migrations.md) for the repair.
 
 ### Shipped this era
 - **Production deploy** — Vercel + Supabase Cloud; `/api/health` green; Analytics + Speed Insights wired (enable in dashboard).
