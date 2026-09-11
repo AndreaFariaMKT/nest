@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import { auditEnv } from "@/lib/env";
+import { keyMismatches } from "@/lib/supabase-key-ref";
 
 export const dynamic = "force-dynamic";
 
@@ -48,6 +49,23 @@ export async function GET() {
   }
 
   const envReport = auditEnv();
+
+  // A key from a different project fails every query while looking perfectly
+  // configured: present, well-formed, and passed by auditEnv. That is what the
+  // move to São Paulo left behind — the URL and the anon key moved, the
+  // service key did not — and `db.ok: false` was the only thing anyone could
+  // see for hours. Naming the variable turns the next occurrence into a fix
+  // instead of an investigation.
+  //
+  // Only the project ref is reported, never any part of a key.
+  const mismatched = keyMismatches(supabaseUrl, [
+    { variable: "SUPABASE_SERVICE_ROLE_KEY", value: serviceKey },
+    {
+      variable: "NEXT_PUBLIC_SUPABASE_ANON_KEY",
+      value: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
+    },
+  ]);
+
   const body = {
     status: dbOk ? "ok" : "degraded",
     version: appVersion(),
@@ -59,6 +77,9 @@ export async function GET() {
         inactiveOptional: envReport.inactiveOptional,
         missingCount: envReport.missingRequired.length,
         invalidCount: envReport.invalid.length,
+        // Omitted entirely when everything agrees, so the common case stays
+        // as short as it was.
+        ...(mismatched.length > 0 ? { keysFromAnotherProject: mismatched } : {}),
       },
     },
     elapsedMs: Date.now() - started,
