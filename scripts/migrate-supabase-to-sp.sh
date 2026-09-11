@@ -220,6 +220,29 @@ reject_direct() {
   return 0
 }
 
+# `supabase db dump -s auth` devolve só os TIPOS do schema auth: o CLI filtra
+# de propósito os schemas que o Supabase gerencia, então as tabelas e os dados
+# não vêm. Confirmado num arquivo de 46 KB com zero linhas de COPY.
+#
+# pg_dump direto resolve, e de quebra evita o Docker — o pooler é IPv4, que é
+# justamente o que a rede do contêiner não alcançava.
+#
+# Duas tabelas bastam para as pessoas continuarem entrando:
+#   auth.users      — as contas, com a senha cifrada
+#   auth.identities — o vínculo com o provedor (email, Google)
+# Sessões e refresh tokens ficam de fora de propósito: são efêmeros, e perdê-los
+# só significa que cada um faz login de novo uma vez.
+dump_auth() {
+  pg_dump --data-only --no-owner --no-privileges \
+    -t auth.users -t auth.identities \
+    "$1" > "$DUMP_DIR/auth.sql" 2>"$DUMP_DIR/auth.err" || {
+      say "pg_dump falhou:"
+      sed 's/^/     /' "$DUMP_DIR/auth.err" | head -4
+      return 1
+    }
+  grep -qE "^COPY auth\.users|INSERT INTO auth\.users" "$DUMP_DIR/auth.sql"
+}
+
 banner "Nest · migrar o Supabase para São Paulo"
 
 # ── 1 ─────────────────────────────────────────────────────────────────────
@@ -296,13 +319,13 @@ if [ -s "$DUMP_DIR/schema.sql" ] && [ -s "$DUMP_DIR/data.sql" ]; then
         ask_secret OLD_DB_URL "Cole a connection string do projeto ATUAL:"
         reject_direct "$OLD_DB_URL" && break
       done
-      npx supabase db dump --db-url "$OLD_DB_URL" -s auth -f "$DUMP_DIR/auth.sql"
-
-      if grep -q "auth\.users" "$DUMP_DIR/auth.sql" 2>/dev/null; then
+      if dump_auth "$OLD_DB_URL"; then
         AUTH_FILE="$DUMP_DIR/auth.sql"
-        say "Logins capturados."
+        say "Logins capturados: $(grep -cE "^[0-9a-f-]{36}\\t" "$DUMP_DIR/auth.sql" || echo '?') conta(s)."
       else
-        say "O dump do auth saiu vazio. PARANDO."
+        say ""
+        say "Não consegui capturar os logins. PARANDO — seguir daqui"
+        say "deixaria todo mundo sem entrar, e só apareceria na virada."
         exit 1
       fi
     fi
@@ -374,20 +397,15 @@ else
   say "O dump principal NÃO traz os logins — confirmado, não suposto."
   say "Fazendo um dump do schema auth agora."
   say ""
-  npx supabase db dump --db-url "$OLD_DB_URL" -s auth -f "$DUMP_DIR/auth.sql"
-
-  AUTH_DUMPED=$(grep -c "auth\.users" "$DUMP_DIR/auth.sql" 2>/dev/null || true)
-  say ""
-  say "  auth.users no auth.sql  : ${AUTH_DUMPED:-0}"
-
-  if [ "${AUTH_DUMPED:-0}" -eq 0 ] 2>/dev/null; then
+  if dump_auth "$OLD_DB_URL"; then
+    AUTH_FILE="$DUMP_DIR/auth.sql"
+    say "Logins capturados — auth.sql entra no restore."
+  else
     say ""
-    say "Nem assim. PARANDO — seguir daqui deixaria todo mundo sem login,"
-    say "e isso só apareceria depois da virada."
+    say "Não consegui capturar os logins. PARANDO — seguir daqui deixaria"
+    say "todo mundo sem entrar, e só apareceria na virada."
     exit 1
   fi
-  AUTH_FILE="$DUMP_DIR/auth.sql"
-  say "Os logins estão em auth.sql e entram no restore."
   pause
 fi
 
