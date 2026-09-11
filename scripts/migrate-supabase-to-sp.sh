@@ -191,6 +191,35 @@ ENSAIO=0
 TOTAL_STAGES=12
 [ "$ENSAIO" = "1" ] && TOTAL_STAGES=9
 
+# A conexão direta (db.<ref>.supabase.co) só publica endereço IPv6. O Docker,
+# que é onde o supabase CLI roda o pg_dump, usa rede IPv4 por padrão: ele
+# RESOLVE o IPv6 e não ALCANÇA. O dump falha no meio sem dizer por quê.
+#
+# O Session pooler publica IPv4 e é o que a própria documentação do Supabase
+# manda usar por padrão. Esta checagem existe porque a string errada está a um
+# clique de distância da certa, no mesmo painel.
+reject_direct() {
+  case "$1" in
+    *@db.*.supabase.co*)
+      say ""
+      say "Essa é a conexão DIRETA, e ela não funciona aqui."
+      say ""
+      say "O host db.<ref>.supabase.co só tem IPv6. O dump roda dentro do"
+      say "Docker, cuja rede padrão é IPv4 — ele resolve o endereço e não"
+      say "consegue alcançar."
+      say ""
+      step "No painel, no seletor do topo do Connect, troque para:"
+      say "   Session pooler"
+      say ""
+      say "A string certa tem 'pooler.supabase.com' no host e o usuário"
+      say "no formato postgres.<ref>."
+      say ""
+      return 1
+      ;;
+  esac
+  return 0
+}
+
 banner "Nest · migrar o Supabase para São Paulo"
 
 # ── 1 ─────────────────────────────────────────────────────────────────────
@@ -233,9 +262,13 @@ docker info >/dev/null 2>&1 || { say "Docker não está rodando — o dump preci
 stage "Conexão do projeto ATUAL"
 say "Vamos pegar a string de conexão do projeto que existe hoje."
 open_url "https://supabase.com/dashboard/project/wntrsavneabdcrztwudf/settings/database"
-step "Abra o painel Connect e escolha 'Session pooler'."
+step "Abra Connect e, no seletor do topo, escolha SESSION POOLER."
+step "Não use Direct connection: ela é IPv6 e o Docker não alcança."
 step "Copie a URI inteira e troque [YOUR-PASSWORD] pela senha real do banco."
-ask_secret OLD_DB_URL "Cole a connection string do projeto ATUAL:"
+while :; do
+  ask_secret OLD_DB_URL "Cole a connection string do projeto ATUAL:"
+  reject_direct "$OLD_DB_URL" && break
+done
 
 say ""
 say "Testando a conexão..."
@@ -311,8 +344,11 @@ confirm "As três estão habilitadas no projeto NOVO?"
 # ── 7 ─────────────────────────────────────────────────────────────────────
 stage "Restaurar no projeto novo"
 open_url "https://supabase.com/dashboard/project/$NEW_REF/settings/database"
-step "Copie a connection string do projeto NOVO (Session pooler, com a senha)."
-ask_secret NEW_DB_URL "Cole a connection string do projeto NOVO:"
+step "Copie a string do projeto NOVO — SESSION POOLER, não a direta."
+while :; do
+  ask_secret NEW_DB_URL "Cole a connection string do projeto NOVO:"
+  reject_direct "$NEW_DB_URL" && break
+done
 
 psql "$NEW_DB_URL" -c 'select 1' >/dev/null 2>&1 \
   || { say "Não consegui conectar no projeto novo."; exit 1; }
