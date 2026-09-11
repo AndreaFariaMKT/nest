@@ -1420,7 +1420,8 @@
       "next": "Próximo",
       "pageOf": "Página {page} de {total}",
       "range": "{from}–{to} de {total}"
-    }
+    },
+    "toggleGroup": "Mostrar ou esconder {group}"
   },
   "social": {
     "screens": {

@@ -9,6 +9,7 @@ import { getCurrentTenant } from "@/lib/tenant-server";
 import { getSessionUser, getCurrentProfile } from "@/lib/auth";
 import { getCurrentRole, getActualRole, getViewRole } from "@/lib/roles-server";
 import { socialSidebarScreens } from "@/lib/social";
+import { parseCollapsedGroups, NAV_GROUPS_COOKIE } from "@/lib/nav-tree";
 
 export default async function AppLayout({
   children,
@@ -62,7 +63,14 @@ export default async function AppLayout({
 
   const notifications = (list.data ?? []) as NotificationItem[];
   const unreadCount = unread.count ?? 0;
-  const collapsed = (await cookies()).get("nest-sidebar")?.value === "1";
+  // One read for both: the rail's width and which groups are folded. Read on
+  // the server for the same reason the width is — the menu is server-rendered,
+  // so a browser-only value makes every group flash open on each navigation.
+  const jar = await cookies();
+  const collapsed = jar.get("nest-sidebar")?.value === "1";
+  const collapsedGroups = [
+    ...parseCollapsedGroups(jar.get(NAV_GROUPS_COOKIE)?.value),
+  ];
 
   return (
     <div className="flex h-screen overflow-hidden bg-background">
@@ -77,6 +85,7 @@ export default async function AppLayout({
         notifications={notifications}
         unreadCount={unreadCount}
         initialCollapsed={collapsed}
+        initialCollapsedGroups={collapsedGroups}
         socialScreens={socialScreens}
       />
       {/* Below md the sidebar is hidden and this bar carries the navigation.
@@ -94,6 +103,7 @@ export default async function AppLayout({
           notifications={notifications}
           unreadCount={unreadCount}
           socialScreens={socialScreens}
+          collapsedGroups={collapsedGroups}
         />
         <main className="min-w-0 flex-1 overflow-y-auto px-4 py-6 md:px-8 md:py-8">
           {children}

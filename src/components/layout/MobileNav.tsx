@@ -38,6 +38,7 @@ export function MobileNav({
   notifications,
   unreadCount,
   socialScreens,
+  collapsedGroups,
 }: {
   theme: Theme;
   tenantName: string;
@@ -49,6 +50,8 @@ export function MobileNav({
   notifications: NotificationItem[];
   unreadCount: number;
   socialScreens: SubScreen[];
+  /** Folded groups, so the drawer agrees with the sidebar. */
+  collapsedGroups?: readonly string[];
 }) {
   const tCommon = useTranslations("common");
   const [open, setOpen] = useState(false);
@@ -158,6 +161,7 @@ export function MobileNav({
             <NavList
               role={role}
               socialScreens={socialScreens}
+              initialCollapsedGroups={collapsedGroups}
               onNavigate={() => setOpen(false)}
             />
 

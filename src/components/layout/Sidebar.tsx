@@ -43,6 +43,7 @@ export function Sidebar({
   notifications,
   unreadCount,
   initialCollapsed,
+  initialCollapsedGroups,
   socialScreens,
 }: {
   theme: Theme;
@@ -56,6 +57,8 @@ export function Sidebar({
   notifications: NotificationItem[];
   unreadCount: number;
   initialCollapsed: boolean;
+  /** Groups the person folded away, from the cookie the layout read. */
+  initialCollapsedGroups: readonly string[];
   /** The social module's screens, rendered as sub-items while inside it. */
   socialScreens: SubScreen[];
 }) {
@@ -118,6 +121,7 @@ export function Sidebar({
         role={role}
         socialScreens={socialScreens}
         collapsed={collapsed}
+        initialCollapsedGroups={initialCollapsedGroups}
       />
 
       {/* Footer */}
