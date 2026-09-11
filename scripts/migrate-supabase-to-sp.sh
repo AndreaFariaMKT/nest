@@ -435,13 +435,19 @@ done
 write_env NEW_SUPABASE_REF "$NEW_REF"
 
 # ── 6 ─────────────────────────────────────────────────────────────────────
-stage "Extensões — ANTES do restore"
-say "Três extensões que este schema usa. Se faltarem, o restore quebra no meio."
+stage "Extensões — NÃO habilite pelo painel"
+say "ERRADO: habilitar vector e pg_trgm pelo painel antes do restore."
+say ""
+say "O painel instala no schema `extensions`. As migrations deste projeto"
+say "as puseram em `public`, e é isso que o dump recria — mas com"
+say "IF NOT EXISTS, que vira no-op quando a extensão já existe em outro"
+say "schema. Resultado: `public.vector` não existe e o restore morre na"
+say "primeira função que usa esse tipo."
+say ""
+say "O dump cria as três sozinho, no lugar certo. Não faça nada aqui."
 open_url "https://supabase.com/dashboard/project/$NEW_REF/database/extensions"
-step "Habilite: vector   (embeddings do content-engine, migration 006)"
-step "Habilite: pgcrypto (gen_random_uuid em toda tabela)"
-step "Habilite: pg_trgm  (busca por similaridade)"
-confirm "As três estão habilitadas no projeto NOVO?"
+step "Se você já habilitou alguma pelo painel, o restore derruba e recria."
+confirm "Entendido — seguir sem habilitar nada?"
 
 # ── 7 ─────────────────────────────────────────────────────────────────────
 stage "Restaurar no projeto novo"
