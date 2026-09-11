@@ -9,7 +9,7 @@ D="$(cd "$(dirname "$0")/.." && pwd)/.migracao-supabase"
 PROD="wntrsavneabdcrztwudf"
 SP="eorvzmvjmxmfejujbgiu"
 
-for f in roles.sql schema.sql auth.sql data.sql; do
+for f in roles.sql schema.sql data.sql; do
   [ -s "$D/$f" ] || { echo "Falta $D/$f — rode o dump antes."; exit 1; }
 done
 
@@ -77,7 +77,6 @@ psql --single-transaction --variable ON_ERROR_STOP=1 \
   --file "$D/roles.filtrado.sql" \
   --file "$D/schema.sql" \
   --command 'SET session_replication_role = replica' \
-  --file "$D/auth.sql" \
   --file "$D/data.sql" \
   --dbname "$URL"
 

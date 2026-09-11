@@ -305,7 +305,7 @@ if [ -s "$DUMP_DIR/schema.sql" ] && [ -s "$DUMP_DIR/data.sql" ]; then
     if [ -s "$DUMP_DIR/auth.sql" ]; then
       AUTH_FILE="$DUMP_DIR/auth.sql"
       say "auth.sql presente — os logins estão cobertos."
-    elif grep -q "auth\.users" "$DUMP_DIR/data.sql" 2>/dev/null; then
+    elif grep -qE 'COPY "?auth"?\."?users"?' "$DUMP_DIR/data.sql" 2>/dev/null; then
       say "Os logins estão dentro do data.sql."
     else
       say ""
@@ -383,7 +383,11 @@ say ""
 # que estava aqui produzia "0\n0" — o teste numérico quebrava, o `if` caía no
 # else, e a mensagem dizia "os logins estão no dump" quando não estavam.
 # A checagem escrita para evitar o desastre falhava ABERTA.
-AUTH_IN_DATA=$(grep -c "auth\.users" "$DUMP_DIR/data.sql" 2>/dev/null || true)
+# O dump escreve `COPY "auth"."users"` — com aspas ENTRE as partes. Procurar
+# por `auth\.users` não casa, e foi assim que eu concluí que os logins não
+# vinham no dump quando vinham desde sempre, e depois montei um segundo dump
+# que colidiu por chave duplicada.
+AUTH_IN_DATA=$(grep -cE 'COPY "?auth"?\."?users"?' "$DUMP_DIR/data.sql" 2>/dev/null || true)
 LIVE_USERS=$(psql "$OLD_DB_URL" -tAc 'select count(*) from auth.users' 2>/dev/null | tr -d ' ' || true)
 
 say "  usuários no banco atual : ${LIVE_USERS:-?}"
