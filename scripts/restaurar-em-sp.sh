@@ -69,14 +69,45 @@ if [ "${LIMPAR:-0}" = "1" ]; then
   read -r -p "  digite LIMPAR para confirmar: " OK
   [ "$OK" = "LIMPAR" ] || { echo "Cancelado."; exit 1; }
 
-  psql "$URL" -q \
+  psql "$URL" -q --variable ON_ERROR_STOP=1 \
     -c 'DROP SCHEMA IF EXISTS public CASCADE;' \
     -c 'CREATE SCHEMA public;' \
     -c 'GRANT ALL ON SCHEMA public TO postgres, anon, authenticated, service_role;' \
-    -c 'TRUNCATE auth.users CASCADE;' \
-    -c 'TRUNCATE storage.objects CASCADE;' \
-    -c 'DELETE FROM storage.buckets;'
-  echo "Limpo."
+    -c 'TRUNCATE auth.users CASCADE;'
+
+  # O storage é caso à parte. O Supabase protege essas tabelas com um trigger
+  # — `storage.protect_delete()` — que recusa DELETE e TRUNCATE diretos:
+  #
+  #   ERROR: Direct deletion from storage tables is not allowed.
+  #
+  # É a proteção certa e ela nos pegou no meio da limpeza, com `set -e`
+  # derrubando o script depois do `DROP SCHEMA public` e antes do restore.
+  #
+  # `session_replication_role = replica` desliga os triggers da sessão, que é
+  # o mesmo mecanismo que o restore já usa para os dados. São três buckets e
+  # zero objetos, então isto é barato — e se não passar, a saída diz o que
+  # fazer à mão em vez de morrer no meio.
+  if psql "$URL" -q --variable ON_ERROR_STOP=1 -c "
+        SET session_replication_role = replica;
+        DELETE FROM storage.objects;
+        DELETE FROM storage.buckets;
+      " 2>/dev/null; then
+    echo "Limpo."
+  else
+    BUCKETS=$(psql "$URL" -tAc 'select count(*) from storage.buckets' 2>/dev/null || echo "?")
+    if [ "${BUCKETS:-0}" = "0" ]; then
+      # Nada para apagar: o trigger reclamou de uma tabela que já estava vazia.
+      echo "Limpo (storage já estava vazio)."
+    else
+      echo
+      echo "Não consegui limpar o storage: $BUCKETS buckets continuam lá, e o"
+      echo "Supabase não deixa apagá-los por SQL."
+      echo
+      echo "Apague-os pelo painel — Storage → cada bucket → Delete — e rode de"
+      echo "novo. São três: brand-assets, reel-videos, creatives. Estão vazios."
+      exit 1
+    fi
+  fi
 fi
 
 # Pré-voo: o dump traz `auth.users`, e `auth` não é derrubado pelo LIMPAR de
