@@ -127,8 +127,17 @@ async function main() {
   let bytes = 0;
 
   for (const spec of BUCKETS) {
-    const state = await ensureBucket(spec);
     const objects = await walk(from, spec.id);
+
+    // Nada para copiar: não criamos o bucket. Ele vem no dump do banco — as
+    // migrations o criam com `insert into storage.buckets` — então criá-lo
+    // aqui é trabalho redundante que só serve para falhar.
+    if (objects.length === 0) {
+      console.log(`${spec.id} — vazio na origem, nada a fazer`);
+      continue;
+    }
+
+    const state = await ensureBucket(spec);
     const total = objects.reduce((s, o) => s + o.size, 0);
 
     console.log(

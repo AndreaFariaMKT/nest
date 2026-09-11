@@ -9,24 +9,18 @@ Nayara: "o Nest fica fora do ar das 8h às 9h30."
 
 ## Antes da janela (pode ser na véspera)
 
-### 1. Copiar os arquivos do storage
+### 1. Copiar os arquivos do storage — NÃO É NECESSÁRIO
 
-Os arquivos não vão no dump do banco. São três buckets, e sem eles toda imagem
-de marca do app vira 404.
+Verificado no dump: `storage.objects` tem **zero linhas**. A produção não tem
+nenhum arquivo — nem logo de marca, nem carrossel renderizado, nem reel.
 
-```
-./scripts/copiar-storage.sh
-```
+E os três buckets vêm no próprio dump do banco, porque as migrations os criam
+com `insert into storage.buckets`.
 
-Ele pede a chave **service_role** dos dois projetos — abre o link de cada um —
-e faz a simulação antes, mostrando quantos arquivos copiaria. Você confirma e
-ele copia.
+Então não há nada a copiar e nada a criar. **Pule este passo.**
 
-A service_role fica em **Settings → API Keys → Reveal**. Não use a `anon`: ela
-não enxerga os arquivos.
-
-Pode ser feito antes porque é aditivo: na janela você roda de novo e ele copia
-só o que surgiu, pulando o resto.
+Se um dia houver arquivos, `./scripts/copiar-storage.sh` faz o trabalho — ele
+lista a origem primeiro e avisa quando está vazia.
 
 ### 2. Ligar o realtime
 
@@ -82,13 +76,10 @@ as três em **Production** → **Redeploy**.
 
 São só essas três das 27. As outras 24 não mudam.
 
-### 7. Copiar os arquivos que surgiram
+### 7. — não se aplica
 
-```
-./scripts/copiar-storage.sh
-```
-
-Mesmo comando do passo 1. Pula o que já foi copiado.
+Não há arquivos no storage. Se passar a haver antes da virada, rode
+`./scripts/copiar-storage.sh` aqui.
 
 ---
 

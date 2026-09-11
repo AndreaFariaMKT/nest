@@ -442,10 +442,10 @@ write_env NEW_SUPABASE_REF "$NEW_REF"
 stage "Extensões — NÃO habilite pelo painel"
 say "ERRADO: habilitar vector e pg_trgm pelo painel antes do restore."
 say ""
-say "O painel instala no schema `extensions`. As migrations deste projeto"
-say "as puseram em `public`, e é isso que o dump recria — mas com"
+say 'O painel instala no schema extensions. As migrations deste projeto'
+say 'as puseram em public, e é isso que o dump recria — mas com'
 say "IF NOT EXISTS, que vira no-op quando a extensão já existe em outro"
-say "schema. Resultado: `public.vector` não existe e o restore morre na"
+say 'schema. Resultado: public.vector não existe e o restore morre na'
 say "primeira função que usa esse tipo."
 say ""
 say "O dump cria as três sozinho, no lugar certo. Não faça nada aqui."
