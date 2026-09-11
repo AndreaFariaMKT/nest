@@ -53,3 +53,7 @@ supabase/.env
 /playwright/.cache/
 src/types/database.gen.ts.tmp
 .migracao-supabase/
+
+# Artefatos de sessão do Playwright MCP — logs de console e snapshots de
+# página, escritos por quem estiver depurando. Nunca versionados.
+.playwright-mcp/
