@@ -184,22 +184,47 @@ finish() {
 # Replace the example below. Set TOTAL_STAGES to match the stages you write.
 # ──────────────────────────────────────────────────────────────────────────
 
+# Ensaio: monta o banco novo e confere, sem tocar na produção. A virada das
+# chaves — o único passo irreversível — fica de fora.
+ENSAIO=0
+[ "${1:-}" = "--ensaio" ] && ENSAIO=1
 TOTAL_STAGES=12
+[ "$ENSAIO" = "1" ] && TOTAL_STAGES=9
 
 banner "Nest · migrar o Supabase para São Paulo"
 
 # ── 1 ─────────────────────────────────────────────────────────────────────
 stage "Antes de começar"
-say "Isto move o banco de produção de us-east-1 para sa-east-1."
+if [ "$ENSAIO" = "1" ]; then
+  say "MODO ENSAIO."
+  say ""
+  say "Monta o banco novo em São Paulo, restaura os dados e confere que"
+  say "tudo chegou — e PARA antes de trocar as chaves."
+  say ""
+  say "A produção não é tocada. Ninguém perde nada. O app continua"
+  say "falando com a Virgínia o tempo todo."
+  say ""
+  say "Serve para responder \"vai dar certo?\" antes de valer."
+else
+  say "MIGRAÇÃO REAL — a produção MUDA."
+  say ""
+  say "Entre o dump e a troca das chaves, o app continua no ar apontando"
+  say "para o banco ANTIGO. Tudo que alguém gravar nesse intervalo — uma"
+  say "tarefa, uma aprovação, uma mensagem — entra no banco velho e NÃO"
+  say "existe no novo. Some, sem erro e sem aviso."
+  say ""
+  say "Faça fora do horário do estúdio, com a equipe avisada."
+fi
 say ""
 say "Por que: uma consulta trivial leva 459ms hoje, medida pelo /api/health."
 say "Uma tela faz 5 a 10 delas, o que dá os 3 segundos por clique."
 say ""
-say "O sistema fica INDISPONÍVEL entre o dump e a virada das chaves."
-say "Faça isto fora do horário do estúdio."
-say ""
 step "Precisa ter: supabase CLI, psql, e o Docker rodando."
-confirm "Tudo isso está pronto e é uma boa hora?"
+if [ "$ENSAIO" = "1" ]; then
+  confirm "Pode começar o ensaio?"
+else
+  confirm "A equipe está avisada e é uma boa hora para o sistema cair?"
+fi
 
 command -v psql >/dev/null || { say "psql não encontrado. Instale o postgresql-client."; exit 1; }
 docker info >/dev/null 2>&1 || { say "Docker não está rodando — o dump precisa dele."; exit 1; }
@@ -357,7 +382,23 @@ say "Se caiu no meio, rode a linha acima de novo — ele pula o que já copiou."
 pause
 
 # ── 10 ────────────────────────────────────────────────────────────────────
+if [ "$ENSAIO" = "1" ]; then
+  stage "Ensaio concluído"
+  say "O banco novo está em São Paulo, com os dados e os arquivos."
+  say "A produção não foi tocada — o app segue na Virgínia."
+  say ""
+  say "Confira no painel do projeto novo que os números batem com o que"
+  say "a etapa 7 imprimiu. Se baterem, a migração de verdade é este mesmo"
+  say "roteiro sem --ensaio, e as etapas 1 a 9 vão muito mais rápido"
+  say "porque o projeto novo já existe."
+  say ""
+  say "Deixe o projeto novo de pé. Ele não atrapalha nada parado."
+  finish
+fi
+
 stage "Chaves novas para a Vercel"
+say "A PARTIR DAQUI A PRODUÇÃO MUDA. Antes disto, nada foi tocado."
+confirm "A equipe está avisada e ninguém está usando o sistema?"
 say "Das 27 variáveis do app, só estas três mudam."
 say "A URL e a service_role do projeto novo você já colou na etapa 9."
 say "Falta só a chave anon."
