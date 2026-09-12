@@ -23,7 +23,7 @@ import {
   TaskExtractionParseError,
 } from "@/lib/transcript-tasks";
 import { log } from "@/lib/log";
-import { checkRateLimit, ipFromHeaders } from "@/lib/rate-limit";
+import { checkRateLimitShared, ipFromHeaders } from "@/lib/rate-limit";
 
 export const dynamic = "force-dynamic";
 
@@ -67,7 +67,7 @@ type MeetingCandidate = {
 
 async function handler(request: NextRequest) {
   const ip = ipFromHeaders(request.headers);
-  const rl = checkRateLimit({
+  const rl = await checkRateLimitShared({
     key: `cron.transcript-pull:${ip}`,
     limit: 6,
     windowMs: 60_000,

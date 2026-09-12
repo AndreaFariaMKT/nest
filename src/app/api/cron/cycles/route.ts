@@ -4,7 +4,7 @@ import type { Database } from "@/types/database.gen";
 
 import { checkCronAuth } from "@/lib/cron-auth";
 import { currentYearMonth, cycleBounds } from "@/lib/cycles";
-import { checkRateLimit, ipFromHeaders } from "@/lib/rate-limit";
+import { checkRateLimitShared, ipFromHeaders } from "@/lib/rate-limit";
 
 export const dynamic = "force-dynamic";
 
@@ -20,7 +20,7 @@ async function handler(request: NextRequest) {
   // Rate limit by IP — cycles runs monthly, so 4/min is enough for the
   // scheduled firing + ad-hoc manual retries during incident response.
   const ip = ipFromHeaders(request.headers);
-  const rl = checkRateLimit({
+  const rl = await checkRateLimitShared({
     key: `cron.cycles:${ip}`,
     limit: 4,
     windowMs: 60_000,

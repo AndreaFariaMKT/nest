@@ -17,7 +17,7 @@ import {
 } from "@/lib/social-accounts";
 import { log } from "@/lib/log";
 import { recordError } from "@/lib/error-log";
-import { checkRateLimit, ipFromHeaders } from "@/lib/rate-limit";
+import { checkRateLimitShared, ipFromHeaders } from "@/lib/rate-limit";
 
 export const dynamic = "force-dynamic";
 
@@ -120,7 +120,7 @@ async function handler(request: NextRequest) {
   // cron runner shouldn't stampede. 12/min leaves plenty of headroom for
   // the */5 min schedule + manual retries.
   const ip = ipFromHeaders(request.headers);
-  const rl = checkRateLimit({
+  const rl = await checkRateLimitShared({
     key: `cron.publish:${ip}`,
     limit: 12,
     windowMs: 60_000,

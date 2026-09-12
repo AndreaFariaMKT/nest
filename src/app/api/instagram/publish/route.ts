@@ -4,7 +4,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { checkCronAuth } from "@/lib/cron-auth";
 import { resolveAccount, type SocialAccountRow } from "@/lib/social-accounts";
 import { publishCarousel, InstagramApiError } from "@/lib/instagram";
-import { checkRateLimit, ipFromHeaders } from "@/lib/rate-limit";
+import { checkRateLimitShared, ipFromHeaders } from "@/lib/rate-limit";
 
 export const dynamic = "force-dynamic";
 
@@ -25,7 +25,7 @@ export async function POST(request: NextRequest) {
   // Rate limit per IP — publishing is rare + heavy, 6/min is plenty for
   // manual retries and blocks runaway loops.
   const ip = ipFromHeaders(request.headers);
-  const rl = checkRateLimit({
+  const rl = await checkRateLimitShared({
     key: `ig.publish:${ip}`,
     limit: 6,
     windowMs: 60_000,

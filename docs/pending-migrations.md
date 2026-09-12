@@ -125,9 +125,28 @@ push vai funcionar. Foi o que me fez escrever a instrução errada aqui.
 
 ### Pendente agora
 
+Duas, e na mesma leva:
+
+```bash
+psql "<session pooler URL>" \
+  -f supabase/migrations/056_finance_founder_is_tenanted.sql \
+  -f supabase/migrations/057_rate_limits.sql
+npm run types:gen        # 057 acrescenta uma função que o código chama
+```
+
 **056** — o grant de founder nas tabelas do financeiro não é escopado por
 tenant. Mesmo defeito que a 053 corrigiu para a contadora, na cláusula ao lado.
 Ninguém perde acesso: um founder continua founder no próprio tenant.
+
+**057** — o rate limit sai da memória do processo para o Postgres. Em
+serverless cada instância tinha o seu contador, então o limite efetivo era o
+configurado vezes o número de instâncias vivas — e esse número sobe com o
+tráfego, ou seja, justamente quando o limite deveria apertar.
+
+Antes do `types:gen`, `checkRateLimitShared` chama a função nova através de um
+tipo escrito à mão, contido em um lugar só e preso ao SQL por
+`tests/unit/rate-limit-contract.test.ts`. Depois de regenerar os tipos, o
+comentário em `src/lib/rate-limit.ts` diz o que apagar.
 
 ## A armadilha do `types:gen` — a segunda metade ainda mordia
 

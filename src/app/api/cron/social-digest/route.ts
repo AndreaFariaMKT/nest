@@ -6,7 +6,7 @@ import en from "../../../../../messages/en.json";
 import ptBR from "../../../../../messages/pt-BR.json";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { log } from "@/lib/log";
-import { checkRateLimit, ipFromHeaders } from "@/lib/rate-limit";
+import { checkRateLimitShared, ipFromHeaders } from "@/lib/rate-limit";
 import { todayIso, CLIENT_VISIBLE_STAGES } from "@/lib/social";
 import { buildDigest, digestBody, type DigestPiece } from "@/lib/social-digest";
 
@@ -54,7 +54,7 @@ function translatorFor(locale: string | null) {
 
 async function handler(request: NextRequest) {
   const ip = ipFromHeaders(request.headers);
-  const rl = checkRateLimit({
+  const rl = await checkRateLimitShared({
     key: `cron.social-digest:${ip}`,
     limit: 6,
     windowMs: 60_000,

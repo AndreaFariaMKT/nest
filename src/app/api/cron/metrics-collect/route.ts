@@ -8,7 +8,7 @@ import {
   readCredentials,
 } from "@/lib/instagram";
 import { log } from "@/lib/log";
-import { checkRateLimit, ipFromHeaders } from "@/lib/rate-limit";
+import { checkRateLimitShared, ipFromHeaders } from "@/lib/rate-limit";
 
 export const dynamic = "force-dynamic";
 // Each post costs two Graph API calls, so a full batch is well past the 10s
@@ -41,7 +41,7 @@ type Admin = ReturnType<typeof createAdminClient>;
 
 async function handler(request: NextRequest) {
   const ip = ipFromHeaders(request.headers);
-  const rl = checkRateLimit({
+  const rl = await checkRateLimitShared({
     key: `cron.metrics-collect:${ip}`,
     limit: 6,
     windowMs: 60_000,

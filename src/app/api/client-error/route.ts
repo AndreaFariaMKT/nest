@@ -4,7 +4,7 @@ import { getSessionUser } from "@/lib/auth";
 import { getActualRole } from "@/lib/roles-server";
 import { currentTenantId } from "@/lib/tenant-server";
 import { recordError } from "@/lib/error-log";
-import { checkRateLimit } from "@/lib/rate-limit";
+import { checkRateLimitShared } from "@/lib/rate-limit";
 
 export const dynamic = "force-dynamic";
 
@@ -25,7 +25,7 @@ export async function POST(request: NextRequest) {
 
   // Keyed on the user, not the IP: a component stuck in a render loop will
   // hammer this from one session, and that is the case worth bounding.
-  const rl = checkRateLimit({
+  const rl = await checkRateLimitShared({
     key: `client-error:${user.id}`,
     limit: 10,
     windowMs: 60_000,

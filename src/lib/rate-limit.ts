@@ -1,12 +1,19 @@
-// Simple in-memory rate limiter.
+// Rate limiting, in two layers.
 //
-// Sliding-window counter: each key tracks the last N request timestamps and
-// rejects when more than `limit` fall inside the active window. Good enough
-// for a single-process dev box; for horizontal scale we'll swap the store
-// for Upstash Redis (same API, promise-based).
+// `checkRateLimit` below is the in-memory sliding window: each key keeps the
+// timestamps of recent requests and rejects when too many fall inside the
+// window. It is exact, it is free, and it is per process — which on Vercel
+// means per instance, so the effective limit is whatever you configured times
+// however many instances happen to be warm. That number rises with traffic,
+// which is to say it rises exactly when the limit was supposed to bite, and a
+// fresh instance starts at zero.
 //
-// ⚠ In-memory state resets on restart. For anything where that matters
-// (billing, abuse prevention) wait until the Redis swap lands.
+// `checkRateLimitShared` is the one to call from a route. It counts in
+// Postgres (057), so every instance reads the same number, and falls back to
+// the in-memory window when the database cannot answer.
+
+import { createAdminClient } from "@/lib/supabase/admin";
+import { log } from "@/lib/log";
 
 type Bucket = {
   // Timestamps (ms) of recent requests, oldest first.
@@ -128,4 +135,86 @@ export function ipFromHeaders(headers: Headers): string {
   const real = headers.get("x-real-ip");
   if (real) return real;
   return "unknown";
+}
+
+
+/**
+ * The same question, answered once for the whole deployment.
+ *
+ * Counts in Postgres through `rate_limit_hit` (057), which does the read, the
+ * decision and the write in one statement — two simultaneous requests cannot
+ * both read the old count and both write the same increment, which is the race
+ * a select-then-update loses silently and under load.
+ *
+ * Service-role client on purpose, and the function is revoked from everyone
+ * else: it is `security definer`, so an anonymous caller who could execute it
+ * would be able to inflate the counter for any key — including someone else's
+ * approval token, which is a way to lock a client out of approving their own
+ * post.
+ *
+ * **Falls back to the in-memory window when the database does not answer.**
+ * Failing closed here would mean a database blip turns into "nobody can
+ * approve anything", on the one surface that has no login to explain it — and
+ * the app cannot serve a page without Postgres anyway, so a limiter that
+ * refuses everything adds nothing but a second outage. The in-memory window is
+ * weaker, not absent, and the fallback is logged.
+ */
+export async function checkRateLimitShared(
+  opts: Omit<RateLimitOptions, "peek">,
+): Promise<RateLimitResult> {
+  try {
+    const { data, error } = await callHit({
+      p_bucket: opts.key,
+      p_window_ms: opts.windowMs,
+      p_limit: opts.limit,
+    });
+    if (error || !data || data.length === 0) throw error ?? new Error("no row");
+    const row = data[0];
+    return {
+      allowed: row.allowed,
+      remaining: row.remaining,
+      resetMs: row.reset_ms,
+      limit: opts.limit,
+    };
+  } catch (err) {
+    log.error("rate-limit", "shared_store_unavailable", {
+      code: err instanceof Error ? err.message.slice(0, 80) : "unknown",
+    });
+    return checkRateLimit(opts);
+  }
+}
+
+type HitArgs = { p_bucket: string; p_window_ms: number; p_limit: number };
+type HitRow = { allowed: boolean; remaining: number; reset_ms: number };
+
+/**
+ * The one place that knows `rate_limit_hit` exists before the generated types
+ * do.
+ *
+ * `database.gen.ts` is regenerated from the live database, so a function
+ * introduced by a migration that has not been applied yet is not in it — and
+ * this repository deliberately has no temporary casts left, because the last
+ * round of them outlived the migrations they were waiting for and three
+ * features shipped reading columns that no longer looked the way the cast
+ * claimed.
+ *
+ * So the cast is here, once, and `tests/unit/rate-limit-contract.test.ts`
+ * reads 057 and asserts the argument names, the argument order and the
+ * returned column names against the types below. If the SQL changes and this
+ * does not, that test fails — which is the thing a cast normally cannot do.
+ *
+ * Delete this and call `admin.rpc("rate_limit_hit", …)` directly once 057 is
+ * applied and `npm run types:gen` has run.
+ */
+async function callHit(
+  args: HitArgs,
+): Promise<{ data: HitRow[] | null; error: unknown }> {
+  const admin = createAdminClient();
+  const rpc = (admin as unknown as {
+    rpc: (fn: string, params: HitArgs) => PromiseLike<{
+      data: HitRow[] | null;
+      error: unknown;
+    }>;
+  }).rpc;
+  return rpc.call(admin, "rate_limit_hit", args);
 }

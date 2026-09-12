@@ -6,7 +6,7 @@ import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { getPortalClient, isPortalPreview } from "@/lib/client-portal";
 import { notifyUser } from "@/lib/notifications";
-import { checkRateLimit } from "@/lib/rate-limit";
+import { checkRateLimitShared } from "@/lib/rate-limit";
 import { cleanText } from "@/lib/sanitize";
 import { canRespond } from "@/lib/portal-approval";
 import type { TablesInsert } from "@/types/database";
@@ -55,7 +55,7 @@ export async function respondToDraftAction(
   // hammering the endpoint, and a bug that retries would otherwise just move
   // to the next draft.
   if (client) {
-    const rl = checkRateLimit({
+    const rl = await checkRateLimitShared({
       key: `portal-approval:${client.id}`,
       limit: 20,
       windowMs: 60_000,

@@ -1,7 +1,7 @@
 import { NextResponse, type NextRequest } from "next/server";
 
 import { checkCronAuth } from "@/lib/cron-auth";
-import { checkRateLimit, ipFromHeaders } from "@/lib/rate-limit";
+import { checkRateLimitShared, ipFromHeaders } from "@/lib/rate-limit";
 import { log } from "@/lib/log";
 import { env } from "@/lib/env";
 import {
@@ -48,7 +48,7 @@ export const dynamic = "force-dynamic";
  */
 async function handler(request: NextRequest) {
   const ip = ipFromHeaders(request.headers);
-  const rl = checkRateLimit({
+  const rl = await checkRateLimitShared({
     key: `cron.meta-refresh:${ip}`,
     limit: 4,
     windowMs: 60_000,

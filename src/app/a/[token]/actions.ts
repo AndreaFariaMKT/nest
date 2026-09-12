@@ -5,7 +5,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import type { Database } from "@/types/database.gen";
 import { redirect } from "next/navigation";
 import { notifyUser } from "@/lib/notifications";
-import { checkRateLimit } from "@/lib/rate-limit";
+import { checkRateLimitShared } from "@/lib/rate-limit";
 import { cleanText } from "@/lib/sanitize";
 import { log } from "@/lib/log";
 
@@ -110,8 +110,8 @@ async function persistResponse(
 
 // Throttle per-token. A legitimate client clicks approve or reject once;
 // anything beyond 10/min for the same token is either a bug or abuse.
-function approvalRateLimitOk(token: string): boolean {
-  const rl = checkRateLimit({
+async function approvalRateLimitOk(token: string): Promise<boolean> {
+  const rl = await checkRateLimitShared({
     key: `approval:${token}`,
     limit: 10,
     windowMs: 60_000,
@@ -131,7 +131,7 @@ export async function approveViaTokenAction(formData: FormData): Promise<void> {
   if (!token) return;
   // Throttled: tell them to slow down rather than showing a thank-you for a
   // click that was never processed.
-  if (!approvalRateLimitOk(token)) {
+  if (!(await approvalRateLimitOk(token))) {
     redirect(`/a/${token}?done=failed&locale=${locale}`);
   }
 
@@ -148,7 +148,7 @@ export async function rejectViaTokenAction(formData: FormData): Promise<void> {
   if (!token) return;
   // Throttled: tell them to slow down rather than showing a thank-you for a
   // click that was never processed.
-  if (!approvalRateLimitOk(token)) {
+  if (!(await approvalRateLimitOk(token))) {
     redirect(`/a/${token}?done=failed&locale=${locale}`);
   }
 
