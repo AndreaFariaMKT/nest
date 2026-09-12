@@ -27,7 +27,6 @@ export type AssigneeChoice = { id: string; label: string };
 export function TaskForm({
   locale,
   initial,
-  clients,
   projects,
   defaultProjectId,
   assignees,
@@ -36,7 +35,6 @@ export function TaskForm({
 }: {
   locale: string;
   initial?: Task | null;
-  clients: ClientChoice[];
   projects: ProjectChoice[];
   /** Pre-selected when the task is created from inside a project's board. */
   defaultProjectId?: string;

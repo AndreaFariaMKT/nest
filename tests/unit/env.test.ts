@@ -5,7 +5,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 const originalEnv = { ...process.env };
 
 function setEnv(map: Record<string, string | undefined>) {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+   
   for (const [k, v] of Object.entries(map)) {
     if (v === undefined) delete (process.env as Record<string, unknown>)[k];
     else (process.env as Record<string, unknown>)[k] = v;

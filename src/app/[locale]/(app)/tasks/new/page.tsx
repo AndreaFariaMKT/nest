@@ -65,7 +65,6 @@ export default async function NewTaskPage({
       </div>
       <TaskForm
         locale={locale}
-        clients={clients}
         projects={projects}
         defaultProjectId={defaultProjectId}
         assignees={assignees}

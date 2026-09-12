@@ -8,6 +8,17 @@ import {
   PIPELINE_STAGES,
 } from "@/lib/pipeline";
 
+/**
+ * A message dictionary, for the purpose of looking at its keys.
+ *
+ * Recursive on purpose and dishonest about leaves: a string is typed here as
+ * another dictionary. These tests only ever read KEY SHAPES — `Object.keys`,
+ * set membership, "do both locales agree" — so the lie never reaches a value,
+ * and it buys deep access without an `any` in sight.
+ */
+type Dict = { [key: string]: Dict };
+
+
 const DICTS = { en, "pt-BR": ptBR } as const;
 
 /**
@@ -18,7 +29,7 @@ const DICTS = { en, "pt-BR": ptBR } as const;
  */
 describe("commercial.pipeline strings", () => {
   for (const [locale, dict] of Object.entries(DICTS)) {
-    const scope = (dict as Record<string, any>).commercial?.pipeline;
+    const scope = (dict as unknown as Dict).commercial?.pipeline;
 
     it(`${locale}: names every stage`, () => {
       expect(PIPELINE_STAGES.filter((s) => !scope?.stage?.[s])).toEqual([]);
@@ -43,7 +54,7 @@ describe("commercial.pipeline strings", () => {
 
   it("ships no stage the domain does not have — 'won' is the conversion", () => {
     const shipped = Object.keys(
-      (en as Record<string, any>).commercial.pipeline.stage,
+      (en as unknown as Dict).commercial.pipeline.stage,
     );
     expect(shipped.filter((s) => !(PIPELINE_STAGES as readonly string[]).includes(s))).toEqual([]);
     expect(shipped).not.toContain("won");
@@ -51,8 +62,8 @@ describe("commercial.pipeline strings", () => {
 
   it("keeps both dictionaries the same shape", () => {
     const shape = (o: Record<string, unknown>) => Object.keys(o).sort();
-    const a = (en as Record<string, any>).commercial.pipeline;
-    const b = (ptBR as Record<string, any>).commercial.pipeline;
+    const a = (en as unknown as Dict).commercial.pipeline;
+    const b = (ptBR as unknown as Dict).commercial.pipeline;
     for (const k of ["stage", "move", "refusal"]) {
       expect(shape(a[k]), k).toEqual(shape(b[k]));
     }

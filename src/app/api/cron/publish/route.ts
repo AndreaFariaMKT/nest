@@ -421,7 +421,7 @@ async function handler(request: NextRequest) {
   return NextResponse.json(summary);
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
+ 
 async function bumpFailure(admin: Admin, row: ScheduledRow, reason: string) {
   const nextAttempt = row.attempt_count + 1;
   const patch: Database["public"]["Tables"]["scheduled_posts"]["Update"] = {

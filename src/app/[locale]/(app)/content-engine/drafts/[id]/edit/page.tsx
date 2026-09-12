@@ -447,7 +447,7 @@ export default async function DraftEditPage({
             </h3>
             {draft.video_url ? (
               <div className="mb-3 space-y-2">
-                {/* eslint-disable-next-line jsx-a11y/media-has-caption */}
+                { }
                 <video
                   src={draft.video_url}
                   controls

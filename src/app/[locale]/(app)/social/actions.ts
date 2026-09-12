@@ -557,7 +557,7 @@ export async function releaseSignedOffAction(
   const eligible = (await listSocialClients()).map((c) => c.id);
   if (!eligible.length) return fail("nothingSignedOff");
 
-  let query = supabase
+  const query = supabase
     .from("content_drafts")
     .select("id, client_id, title")
     .eq("tenant_id", tenantId)
@@ -812,11 +812,13 @@ export async function saveMediaAction(
 }
 
 export async function deleteMediaAction(formData: FormData): Promise<Result> {
-  const { supabase, role } = await ctx();
+  // One ctx(), not two. It was resolved once for the capability check and
+  // again for the client, and the first `supabase` was never used — so every
+  // delete did the session and membership work twice.
+  const { supabase: db, role, tenantId } = await ctx();
   if (!hasCap(role, "coordinate")) return fail("notYours");
   const id = str(formData, "id");
   if (!id) return fail("notFound");
-  const { supabase: db, tenantId } = await ctx();
   const written = wrote(
     await db
       .from("media_assets")
@@ -922,11 +924,13 @@ export async function saveLoginAction(
 }
 
 export async function deleteLoginAction(formData: FormData): Promise<Result> {
-  const { supabase, role } = await ctx();
+  // One ctx(), not two. It was resolved once for the capability check and
+  // again for the client, and the first `supabase` was never used — so every
+  // delete did the session and membership work twice.
+  const { supabase: db, role, tenantId } = await ctx();
   if (!hasCap(role, "coordinate")) return fail("notYours");
   const id = str(formData, "id");
   if (!id) return fail("notFound");
-  const { supabase: db, tenantId } = await ctx();
   const written = wrote(
     await db
       .from("shared_logins")

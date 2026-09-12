@@ -76,7 +76,6 @@ export default async function CalendarPage({
 
   const prev = formatMonthKey(addMonths(key, -1));
   const next = formatMonthKey(addMonths(key, 1));
-  const todayISO = new Date();
   // The studio's day, not the server's: after 21:00 São Paulo the "today"
   // highlight used to move to tomorrow's cell.
   const todayKey = todayIso();

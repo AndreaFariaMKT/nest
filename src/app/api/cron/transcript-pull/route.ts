@@ -163,11 +163,11 @@ type ProcessResult =
 
 // `admin` is untyped (`any`) so we can call .from(table) on Postgres tables
 // the generated types don't surface — same pattern as src/app/api/cron/publish.
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
+ 
 async function processMeeting(
   meeting: MeetingCandidate,
   googleCreds: GoogleOAuthCreds,
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+   
   admin: Admin,
 ): Promise<ProcessResult> {
   const { data: profile } = await admin
@@ -269,7 +269,7 @@ function pickClosestConference<
 }
 
 async function extractAndInsertTasks(params: {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+   
   admin: Admin;
   meetingId: string;
   clientId: string | null;

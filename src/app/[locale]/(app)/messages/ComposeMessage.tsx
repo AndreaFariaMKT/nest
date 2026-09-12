@@ -56,7 +56,7 @@ export function ComposeMessage({
     // action's own response already carries the re-rendered list for whichever
     // one you are on — the refresh fetched an identical tree a second time.
     // With the live subscription now mounted, it would have been a third.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+     
   }, [state]);
 
   return (

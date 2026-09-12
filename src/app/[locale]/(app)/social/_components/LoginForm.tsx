@@ -12,7 +12,6 @@ import { isBlockedReason } from "@/lib/social";
 import {
   revealSecretAction,
   saveLoginAction,
-  type Result,
 } from "../actions";
 import { DisclosureForm } from "./DisclosureForm";
 import { FieldLabel } from "./Shared";

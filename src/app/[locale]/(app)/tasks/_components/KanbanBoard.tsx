@@ -98,7 +98,6 @@ export function KanbanBoard({
     next[kind] = value;
     if (next.client) params.set("client", next.client);
     if (next.assignee) params.set("assignee", next.assignee);
-    const query = params.toString();
     startTransitionBase(() => {
       router.replace(
         // next-intl router accepts a href object; "query" must be plain object

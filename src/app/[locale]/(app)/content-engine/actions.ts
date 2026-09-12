@@ -3,7 +3,7 @@
 import { dbError } from "@/lib/db-error";
 import { OPTION_LIST_CAP } from "@/lib/pagination";
 import { revalidatePath } from "next/cache";
-import { Constants, type Database } from "@/types/database.gen";
+import { type Database } from "@/types/database.gen";
 import { redirect } from "next/navigation";
 import type { Route } from "next";
 import { createClient as createSupabaseClient } from "@/lib/supabase/server";
@@ -12,10 +12,7 @@ import { log } from "@/lib/log";
 import { pseudonymiseSpeakers } from "@/lib/sanitize";
 import { getCurrentRole } from "@/lib/roles-server";
 import { canUseSocial, studioInstant } from "@/lib/social";
-import {
-  isEditableContentStatus,
-  EDITABLE_CONTENT_STATUSES,
-} from "@/lib/content-status";
+import { isEditableContentStatus } from "@/lib/content-status";
 import { parseVtt } from "@/lib/vtt";
 import { generate } from "@/lib/claude";
 import {

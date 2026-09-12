@@ -83,7 +83,6 @@ export default async function EditTaskPage({
       <TaskForm
         locale={locale}
         initial={task}
-        clients={clients}
         projects={projects}
         assignees={assignees}
         action={updateTaskAction}

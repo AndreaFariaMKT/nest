@@ -1,8 +1,5 @@
 import { setRequestLocale, getTranslations } from "next-intl/server";
 
-import { createClient } from "@/lib/supabase/server";
-import { currentTenantId } from "@/lib/tenant-server";
-import { OPTION_LIST_CAP } from "@/lib/pagination";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { Pill } from "@/components/ui/Pill";
 import { Link } from "@/i18n/routing";

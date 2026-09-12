@@ -36,11 +36,6 @@ type RawMetric = {
   } | null;
 };
 
-function pickOne<T>(v: T | T[] | null | undefined): T | null {
-  if (!v) return null;
-  return Array.isArray(v) ? v[0] ?? null : v;
-}
-
 export default async function KpiPage({
   params,
   searchParams,

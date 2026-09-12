@@ -7,7 +7,7 @@
  * vocabulary survives, and THEMES survives only because the type derives
  * from it.
  */
-const THEMES = ["nest", "afm"] as const;
+export const THEMES = ["nest", "afm"] as const;
 export type Theme = (typeof THEMES)[number];
 
 /**

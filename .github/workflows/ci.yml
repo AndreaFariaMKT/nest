@@ -36,8 +36,13 @@ jobs:
           # wrapped libraries no-op when env vars are absent.
           SKIP_E2E: "1"
 
-      # TODO: add a lint job once eslint is configured (next lint is
-      # deprecated upstream; we'll migrate to the @eslint/cli codemod).
+      - name: Lint
+        # `next lint` is deprecated upstream and there was no ESLint config at
+        # all, so it fell into its interactive "how would you like to configure
+        # ESLint?" prompt — which is why this step could not exist. Flat config
+        # lives in eslint.config.mjs now.
+        run: npm run lint
+
       # TODO: add a Playwright smoke job once a hosted Supabase preview
       # database + seed is available to CI — currently the smoke tests
       # rely on a local Supabase stack.

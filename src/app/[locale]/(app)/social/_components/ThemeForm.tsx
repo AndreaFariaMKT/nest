@@ -6,7 +6,7 @@ import { useTranslations } from "next-intl";
 
 import { CONTENT_ORIGINS, SOCIAL_CHANNELS } from "@/lib/social";
 import { POST_TYPES } from "@/types/database";
-import { createThemeAction, type Result } from "../actions";
+import { createThemeAction } from "../actions";
 import { DisclosureForm } from "./DisclosureForm";
 import { FieldLabel } from "./Shared";
 

@@ -7,6 +7,17 @@ import {
   DOCUMENT_REFUSALS,
 } from "@/lib/company-documents";
 
+/**
+ * A message dictionary, for the purpose of looking at its keys.
+ *
+ * Recursive on purpose and dishonest about leaves: a string is typed here as
+ * another dictionary. These tests only ever read KEY SHAPES — `Object.keys`,
+ * set membership, "do both locales agree" — so the lie never reaches a value,
+ * and it buys deep access without an `any` in sight.
+ */
+type Dict = { [key: string]: Dict };
+
+
 const DICTS = { en, "pt-BR": ptBR } as const;
 const EXPIRY = ["expired", "soon", "ok", "none"] as const;
 
@@ -17,7 +28,7 @@ const EXPIRY = ["expired", "soon", "ok", "none"] as const;
  */
 describe("administration strings", () => {
   for (const [locale, dict] of Object.entries(DICTS)) {
-    const scope = (dict as Record<string, any>).administration;
+    const scope = (dict as unknown as Dict).administration;
 
     it(`${locale}: names every category the schema allows`, () => {
       expect(DOCUMENT_CATEGORIES.filter((c) => !scope?.category?.[c])).toEqual([]);
@@ -46,7 +57,7 @@ describe("administration strings", () => {
 
   it("ships no category the schema would refuse", () => {
     const shipped = Object.keys(
-      (en as Record<string, any>).administration.category,
+      (en as unknown as Dict).administration.category,
     );
     expect(
       shipped.filter((c) => !(DOCUMENT_CATEGORIES as readonly string[]).includes(c)),
@@ -55,8 +66,8 @@ describe("administration strings", () => {
 
   it("keeps both dictionaries the same shape", () => {
     const shape = (o: Record<string, unknown>) => Object.keys(o).sort();
-    const a = (en as Record<string, any>).administration;
-    const b = (ptBR as Record<string, any>).administration;
+    const a = (en as unknown as Dict).administration;
+    const b = (ptBR as unknown as Dict).administration;
     for (const k of ["category", "expiry", "refusal", "fields"]) {
       expect(shape(a[k]), k).toEqual(shape(b[k]));
     }

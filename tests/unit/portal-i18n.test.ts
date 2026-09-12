@@ -4,6 +4,17 @@ import en from "../../messages/en.json";
 import ptBR from "../../messages/pt-BR.json";
 import { PORTAL_DECISIONS, PORTAL_REFUSALS } from "@/lib/portal-approval";
 
+/**
+ * A message dictionary, for the purpose of looking at its keys.
+ *
+ * Recursive on purpose and dishonest about leaves: a string is typed here as
+ * another dictionary. These tests only ever read KEY SHAPES — `Object.keys`,
+ * set membership, "do both locales agree" — so the lie never reaches a value,
+ * and it buys deep access without an `any` in sight.
+ */
+type Dict = { [key: string]: Dict };
+
+
 const DICTS = { en, "pt-BR": ptBR } as const;
 
 /**
@@ -14,7 +25,7 @@ const DICTS = { en, "pt-BR": ptBR } as const;
  */
 describe("portal.engineContent strings", () => {
   for (const [locale, dict] of Object.entries(DICTS)) {
-    const scope = (dict as Record<string, any>).portal?.engineContent;
+    const scope = (dict as unknown as Dict).portal?.engineContent;
 
     it(`${locale}: has the engineContent scope`, () => {
       expect(scope).toBeTruthy();
@@ -43,15 +54,15 @@ describe("portal.engineContent strings", () => {
   it("carries no refusal string the domain cannot produce", () => {
     const known = new Set<string>([...PORTAL_REFUSALS, "rateLimited", "failed"]);
     const shipped = Object.keys(
-      (en as Record<string, any>).portal.engineContent.refusal,
+      (en as unknown as Dict).portal.engineContent.refusal,
     );
     expect(shipped.filter((k) => !known.has(k))).toEqual([]);
   });
 
   it("keeps both dictionaries the same shape", () => {
     const shape = (o: Record<string, unknown>) => Object.keys(o).sort();
-    const a = (en as Record<string, any>).portal.engineContent;
-    const b = (ptBR as Record<string, any>).portal.engineContent;
+    const a = (en as unknown as Dict).portal.engineContent;
+    const b = (ptBR as unknown as Dict).portal.engineContent;
     expect(shape(a)).toEqual(shape(b));
     expect(shape(a.refusal)).toEqual(shape(b.refusal));
   });
