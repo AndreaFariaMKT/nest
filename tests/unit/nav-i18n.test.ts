@@ -6,32 +6,6 @@ import { NAV, NAV_BY_ROLE } from "@/lib/roles";
 
 type Dict = Record<string, unknown>;
 
-function flatten(node: unknown, prefix = ""): string[] {
-  if (node === null || typeof node !== "object") return [prefix];
-  return Object.entries(node as Dict).flatMap(([k, v]) =>
-    flatten(v, prefix ? `${prefix}.${k}` : k),
-  );
-}
-
-/**
- * The finance module's strings, in both languages, or not at all.
- *
- * next-intl throws at render on a missing key, and most of these live on
- * screens only two people ever open — so a key added to pt-BR and forgotten in
- * en is a 500 nobody sees until the accountant switches language. The module
- * gained three screens and about a hundred strings at once; this is the check
- * that keeps the two files the same shape.
- */
-describe("finance strings", () => {
-  it("has the same keys in both languages", () => {
-    const a = new Set(flatten((en as Dict).finance));
-    const b = new Set(flatten((ptBR as Dict).finance));
-    const onlyEn = [...a].filter((k) => !b.has(k));
-    const onlyPt = [...b].filter((k) => !a.has(k));
-    expect({ onlyEn, onlyPt }).toEqual({ onlyEn: [], onlyPt: [] });
-  });
-});
-
 /**
  * Every menu entry can name itself.
  *

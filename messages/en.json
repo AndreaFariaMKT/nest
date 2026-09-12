@@ -1353,7 +1353,9 @@
       "badRequest": "Something was missing from that request.",
       "badRole": "That is not a role this app has.",
       "membershipFailed": "The invite was sent, but they could not be added to the workspace. Tell them to wait before signing in.",
-      "roleFailed": "The role could not be changed. Try again."
+      "roleFailed": "The role could not be changed. Try again.",
+      "emailRateLimited": "The email service refused to send: message limit reached. Without your own SMTP, Supabase allows only a few per hour — use \"Create with a password\".",
+      "createFailed": "Could not create the account. Check the address and the error log."
     },
     "appRoles": {
       "founder": "Founder",
@@ -1369,7 +1371,13 @@
     "pendingName": "Invite not accepted yet",
     "pendingInvite": "Waiting for them to set a password",
     "roleSaved": "Saved",
-    "pickRole": "Pick a role"
+    "pickRole": "Pick a role",
+    "createWithPassword": "Create with a password",
+    "noEmailHint": "The invite needs email, which is not configured yet — without your own SMTP, Supabase sends only a couple of messages an hour. \"Create with a password\" opens the account immediately and shows a password to hand over; the person changes it in Settings.",
+    "created": {
+      "title": "Account created for {email}. This password is shown once:",
+      "warning": "Hand it over now and ask them to change it in Settings. It is stored nowhere — if you lose this screen, the way forward is a new password, not recovering this one."
+    }
   },
   "notifications": {
     "title": "Notifications",
@@ -1391,6 +1399,20 @@
         "connectedPill": "Connected",
         "notConnectedPill": "Not connected",
         "notConfigured": "Integration unavailable: GOOGLE_OAUTH_* env vars are not configured on the server."
+      }
+    },
+    "password": {
+      "title": "Password",
+      "description": "Change this account's password. If someone else created this login for you, change it now.",
+      "new": "New password",
+      "confirm": "Repeat the password",
+      "hint": "At least {min} characters. No uppercase or symbol rule — length beats composition.",
+      "submit": "Change password",
+      "done": "Password changed.",
+      "errors": {
+        "tooShort": "Password is too short.",
+        "mismatch": "The two passwords do not match.",
+        "passwordFailed": "Could not change the password. Sign out, sign in again, and retry."
       }
     }
   },

@@ -7,6 +7,7 @@ import { PageHeader } from "@/components/ui/PageHeader";
 import { getCurrentProfile } from "@/lib/auth";
 import { env } from "@/lib/env";
 import { disconnectGoogleAction } from "./actions";
+import { PasswordForm } from "./PasswordForm";
 
 type GoogleStatus =
   | "connected"
@@ -91,6 +92,19 @@ export default async function SettingsPage({
               {t("integrations.google.connect")}
             </a>
           )}
+        </CardContent>
+      </Card>
+
+      {/* Own password. There was no way to change one in the app, which became
+          the missing half of creating a login with a password someone else
+          picked and read out. */}
+      <Card>
+        <CardHeader>
+          <CardTitle>{t("password.title")}</CardTitle>
+          <CardDescription>{t("password.description")}</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <PasswordForm />
         </CardContent>
       </Card>
     </div>

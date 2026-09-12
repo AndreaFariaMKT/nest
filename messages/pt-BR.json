@@ -1353,7 +1353,9 @@
       "badRequest": "Faltou alguma coisa nesse pedido.",
       "badRole": "Esse papel não existe no sistema.",
       "membershipFailed": "O convite foi enviado, mas a pessoa não entrou no workspace. Peça para ela aguardar antes de entrar.",
-      "roleFailed": "Não deu para alterar o papel. Tente de novo."
+      "roleFailed": "Não deu para alterar o papel. Tente de novo.",
+      "emailRateLimited": "O serviço de e-mail recusou o envio por limite de mensagens. Sem SMTP configurado, o Supabase permite poucas por hora — use \"Criar com senha\".",
+      "createFailed": "Não consegui criar a conta. Confira o endereço e o log de erros."
     },
     "appRoles": {
       "founder": "Direção",
@@ -1369,7 +1371,13 @@
     "pendingName": "Convite ainda não aceito",
     "pendingInvite": "Esperando a pessoa criar a senha",
     "roleSaved": "Salvo",
-    "pickRole": "Escolha um papel"
+    "pickRole": "Escolha um papel",
+    "createWithPassword": "Criar com senha",
+    "noEmailHint": "O convite depende do e-mail, que ainda não está configurado — o Supabase só envia algumas mensagens por hora sem SMTP próprio. \"Criar com senha\" abre a conta na hora e mostra uma senha para você entregar; a pessoa troca em Configurações.",
+    "created": {
+      "title": "Conta criada para {email}. Esta senha aparece uma única vez:",
+      "warning": "Entregue agora e peça para trocar em Configurações. Ela não fica guardada em lugar nenhum — se você perder esta tela, o caminho é criar outra senha, não recuperar esta."
+    }
   },
   "notifications": {
     "title": "Notificações",
@@ -1391,6 +1399,20 @@
         "connectedPill": "Conectado",
         "notConnectedPill": "Não conectado",
         "notConfigured": "Integração indisponível: as variáveis GOOGLE_OAUTH_* não estão configuradas no servidor."
+      }
+    },
+    "password": {
+      "title": "Senha",
+      "description": "Troque a senha desta conta. Se alguém criou este login para você, troque agora.",
+      "new": "Nova senha",
+      "confirm": "Repita a senha",
+      "hint": "Mínimo de {min} caracteres. Sem regra de maiúscula ou símbolo — comprimento vale mais que composição.",
+      "submit": "Trocar senha",
+      "done": "Senha trocada.",
+      "errors": {
+        "tooShort": "Senha curta demais.",
+        "mismatch": "As duas senhas não são iguais.",
+        "passwordFailed": "Não consegui trocar a senha. Saia e entre de novo, e tente outra vez."
       }
     }
   },

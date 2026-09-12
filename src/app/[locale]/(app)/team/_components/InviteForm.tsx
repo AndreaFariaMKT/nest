@@ -6,15 +6,15 @@ import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { Label } from "@/components/ui/Label";
 import { APP_ROLES } from "@/lib/roles";
-import { inviteMemberAction, type InviteMemberState } from "../actions";
+import { addMemberAction, type AddMemberState } from "../actions";
 
 export function InviteForm({ locale }: { locale: string }) {
   const t = useTranslations("team");
   const tCommon = useTranslations("common");
   const [state, formAction, isPending] = useActionState<
-    InviteMemberState,
+    AddMemberState,
     FormData
-  >(inviteMemberAction, {});
+  >(addMemberAction, {});
 
   return (
     <form action={formAction} className="space-y-3" data-testid="invite-form">
@@ -70,12 +70,34 @@ export function InviteForm({ locale }: { locale: string }) {
             ))}
           </select>
         </div>
-        <div className="flex items-end">
-          <Button type="submit" disabled={isPending} className="h-10">
+        <div className="flex flex-wrap items-end gap-2">
+          {/* Two buttons, one set of fields. The button's own name and value
+              reach the action, so which path runs is decided by the one that
+              was pressed — no hidden state to keep in step with the UI. */}
+          <Button
+            type="submit"
+            name="mode"
+            value="invite"
+            disabled={isPending}
+            className="h-10"
+          >
             {isPending ? tCommon("loading") : t("invite")}
+          </Button>
+          <Button
+            type="submit"
+            name="mode"
+            value="password"
+            variant="secondary"
+            disabled={isPending}
+            className="h-10"
+          >
+            {t("createWithPassword")}
           </Button>
         </div>
       </div>
+
+      {/* Why the second button exists, next to it rather than in a doc. */}
+      <p className="text-xs text-muted-foreground">{t("noEmailHint")}</p>
       {state.error ? (
         <p role="alert" className="text-sm text-destructive">
           {state.error === "unauthorized"
@@ -91,6 +113,28 @@ export function InviteForm({ locale }: { locale: string }) {
         >
           {t("inviteSent", { email: state.success })}
         </p>
+      ) : null}
+
+      {/* The one moment this password is readable. It is not logged and not
+          stored — GoTrue keeps a hash — so losing it here means setting a new
+          one, not looking this one up. Said plainly, because a person who
+          navigates away expecting to find it later will not. */}
+      {state.created ? (
+        <div
+          role="status"
+          data-testid="created-credentials"
+          className="space-y-2 rounded-xl border border-border bg-muted/40 p-4"
+        >
+          <p className="text-sm font-medium">
+            {t("created.title", { email: state.created.email })}
+          </p>
+          <p className="select-all font-mono text-lg tracking-wide">
+            {state.created.password}
+          </p>
+          <p className="text-xs text-muted-foreground">
+            {t("created.warning")}
+          </p>
+        </div>
       ) : null}
     </form>
   );
