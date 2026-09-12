@@ -1373,10 +1373,10 @@
     "roleSaved": "Saved",
     "pickRole": "Pick a role",
     "createWithPassword": "Create with a password",
-    "noEmailHint": "The invite needs email, which is not configured yet — without your own SMTP, Supabase sends only a couple of messages an hour. \"Create with a password\" opens the account immediately and shows a password to hand over; the person changes it in Settings.",
+    "noEmailHint": "The invite needs email, which is not configured yet — without your own SMTP, Supabase sends only a couple of messages an hour. \"Create with a password\" opens the account immediately and shows a password to hand over; the person changes it under My account.",
     "created": {
       "title": "Account created for {email}. This password is shown once:",
-      "warning": "Hand it over now and ask them to change it in Settings. It is stored nowhere — if you lose this screen, the way forward is a new password, not recovering this one."
+      "warning": "Hand it over now and ask them to change it under My account. It is stored nowhere — if you lose this screen, the way forward is a new password, not recovering this one."
     }
   },
   "notifications": {
@@ -1399,20 +1399,6 @@
         "connectedPill": "Connected",
         "notConnectedPill": "Not connected",
         "notConfigured": "Integration unavailable: GOOGLE_OAUTH_* env vars are not configured on the server."
-      }
-    },
-    "password": {
-      "title": "Password",
-      "description": "Change this account's password. If someone else created this login for you, change it now.",
-      "new": "New password",
-      "confirm": "Repeat the password",
-      "hint": "At least {min} characters. No uppercase or symbol rule — length beats composition.",
-      "submit": "Change password",
-      "done": "Password changed.",
-      "errors": {
-        "tooShort": "Password is too short.",
-        "mismatch": "The two passwords do not match.",
-        "passwordFailed": "Could not change the password. Sign out, sign in again, and retry."
       }
     }
   },
@@ -1444,7 +1430,8 @@
       "pageOf": "Page {page} of {total}",
       "range": "{from}–{to} of {total}"
     },
-    "toggleGroup": "Show or hide {group}"
+    "toggleGroup": "Show or hide {group}",
+    "myAccount": "My account"
   },
   "social": {
     "screens": {
@@ -2078,6 +2065,24 @@
       "copy": "Copy",
       "copied": "Copied",
       "copyFailed": "Could not copy — your browser blocked clipboard access."
+    }
+  },
+  "account": {
+    "title": "My account",
+    "subtitle": "Your account in this system.",
+    "password": {
+      "title": "Password",
+      "description": "Change this account's password. If someone else created this login for you, change it now.",
+      "new": "New password",
+      "confirm": "Repeat the password",
+      "hint": "At least {min} characters. No uppercase or symbol rule — length beats composition.",
+      "submit": "Change password",
+      "done": "Password changed.",
+      "errors": {
+        "tooShort": "Password is too short.",
+        "mismatch": "The two passwords do not match.",
+        "passwordFailed": "Could not change the password. Sign out, sign in again, and retry."
+      }
     }
   }
 }

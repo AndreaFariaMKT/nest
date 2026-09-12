@@ -94,7 +94,40 @@ supabase migration repair --status applied $(seq -f "%03g" 1 55)
 supabase migration list --linked               # tudo aplicado, nos dois lados
 ```
 
-Aí `db push` volta a ser o caminho normal da 056 em diante.
+**Feito em 11/09/2026 — as 55 aparecem dos dois lados.**
+
+## Como aplicar uma migration (056 em diante)
+
+O reparo consertou o **histórico**; não conserta a **conexão**. `supabase db push`
+sozinho tenta o host direto `db.<ref>.supabase.co`, que é IPv6-only — e daqui ele
+expira:
+
+```
+failed to connect to postgres: ... failed SASL auth (read tcp [2001:...]:58311
+  -> [2600:...]:5432: i/o timeout)
+```
+
+É a mesma parede da virada. O que funciona é o **Session pooler**, que é IPv4.
+Pegue a string em Connect → Session pooler no painel do projeto, e use uma das
+duas formas:
+
+```bash
+# a que este projeto usou o tempo todo
+psql "<session pooler URL>" -f supabase/migrations/056_finance_founder_is_tenanted.sql
+
+# ou o push, apontado para o pooler em vez do host direto
+supabase db push --db-url "<session pooler URL>"
+```
+
+`supabase migration list --linked` funciona sem isso porque a CLI cria um papel
+temporário pela API de gestão — então "o list funciona" não quer dizer que o
+push vai funcionar. Foi o que me fez escrever a instrução errada aqui.
+
+### Pendente agora
+
+**056** — o grant de founder nas tabelas do financeiro não é escopado por
+tenant. Mesmo defeito que a 053 corrigiu para a contadora, na cláusula ao lado.
+Ninguém perde acesso: um founder continua founder no próprio tenant.
 
 ## A armadilha do `types:gen` — a segunda metade ainda mordia
 

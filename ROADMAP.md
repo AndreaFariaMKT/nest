@@ -21,7 +21,7 @@ The database was moved from us-east-1 to **sa-east-1 / São Paulo** in 2026-09: 
 Apply a new migration through the **Session pooler** string from the project's dashboard (Connect → Session pooler — the `db.<ref>.supabase.co` direct host is IPv6-only and unreachable from most laptops and from Docker):
 `psql "<session pooler URL>" -f supabase/migrations/<file>.sql`
 
-`supabase db push` is **not** safe here: the remote migration history is empty while the schema arrives whole from a dump, so a push would replay all 55 — and several carry `drop policy` and `revoke`, which run before any error surfaces. See [docs/pending-migrations.md](./docs/pending-migrations.md) for the repair.
+The migration history was repaired on 2026-09-11, so a push no longer replays all 55. But `supabase db push` on its own still fails from a laptop: it dials the direct `db.<ref>.supabase.co` host, which is IPv6-only. Point it at the Session pooler — `supabase db push --db-url "<session pooler URL>"` — or apply the file with `psql`. `supabase migration list --linked` works either way, through a temporary role the CLI creates over the management API, so it proves nothing about whether a push will connect. See [docs/pending-migrations.md](./docs/pending-migrations.md).
 
 ### Shipped this era
 - **Production deploy** — Vercel + Supabase Cloud; `/api/health` green; Analytics + Speed Insights wired (enable in dashboard).

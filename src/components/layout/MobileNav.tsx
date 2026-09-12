@@ -2,7 +2,7 @@
 
 import { useTranslations } from "next-intl";
 import { useEffect, useState } from "react";
-import { usePathname } from "@/i18n/routing";
+import { Link, usePathname } from "@/i18n/routing";
 import { BrandMark } from "@/components/icons/Brand";
 import { NavList } from "@/components/layout/NavList";
 import { RolePreview } from "@/components/layout/RolePreview";
@@ -169,9 +169,13 @@ export function MobileNav({
             <div className="space-y-3 border-t border-sidebar-border px-4 py-4">
               <RolePreview actualRole={actualRole} current={viewRole} />
               <div className="flex items-center justify-between gap-2">
-                <p className="min-w-0 flex-1 truncate text-xs text-sidebar-foreground/60">
+                <Link
+                  href="/account"
+                  onClick={() => setOpen(false)}
+                  className="min-w-0 flex-1 truncate rounded text-xs text-sidebar-foreground/60 underline-offset-4 hover:text-sidebar-foreground hover:underline"
+                >
                   {profileName}
-                </p>
+                </Link>
                 <LanguageSwitcher />
               </div>
             </div>

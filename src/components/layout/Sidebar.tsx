@@ -3,6 +3,7 @@
 import { useTranslations } from "next-intl";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { Link } from "@/i18n/routing";
 import { BrandMark } from "@/components/icons/Brand";
 import { RolePreview } from "@/components/layout/RolePreview";
 import { SignOutButton } from "@/components/layout/SignOutButton";
@@ -158,9 +159,16 @@ export function Sidebar({
           <>
             <RolePreview actualRole={actualRole} current={viewRole} />
             <div className="flex items-center justify-between">
-              <p className="min-w-0 flex-1 truncate text-xs text-sidebar-foreground/60">
+              {/* The way to your own account, on the name that is already
+                  there. A nav entry would have to be added to all eight role
+                  menus; the footer is rendered for every one of them. */}
+              <Link
+                href="/account"
+                title={tCommon("myAccount")}
+                className="min-w-0 flex-1 truncate rounded text-xs text-sidebar-foreground/60 underline-offset-4 hover:text-sidebar-foreground hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              >
                 {profileName}
-              </p>
+              </Link>
               <div className="flex items-center gap-1">
                 <NotificationsBell
                   locale={locale}

@@ -8,6 +8,23 @@ nada disso, de propósito: é a informação mais sensível do produto.
 
 ---
 
+## Passo 0 — a Aline precisa de um login
+
+Sem isto, nada abaixo acontece.
+
+O convite por e-mail ainda não é confiável: sem SMTP próprio, o Supabase envia
+poucas mensagens por hora. Então use o outro caminho, em **Equipe**:
+
+1. E-mail da Aline, nome, e papel **Contadora**
+2. Botão **Criar com senha** (não o "Enviar convite")
+3. A senha aparece **uma vez só** na tela — entregue na hora
+4. A Aline entra e troca em **Minha conta** — o nome dela no rodapé da barra lateral
+
+O papel Contadora dá o menu do financeiro, mais Início e Mensagens. Ela não vê
+clientes, conteúdo nem projetos.
+
+---
+
 ## A ordem importa
 
 Três telas, nesta ordem. Cada uma destrava a seguinte.

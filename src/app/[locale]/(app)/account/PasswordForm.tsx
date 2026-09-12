@@ -13,7 +13,7 @@ import { changePasswordAction, type PasswordState } from "./actions";
 const initial: PasswordState = {};
 
 export function PasswordForm() {
-  const t = useTranslations("settings.password");
+  const t = useTranslations("account.password");
   const [state, action, pending] = useActionState(changePasswordAction, initial);
 
   return (
