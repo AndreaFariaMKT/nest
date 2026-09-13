@@ -125,6 +125,28 @@ push vai funcionar. Foi o que me fez escrever a instrução errada aqui.
 
 ### Pendente agora
 
+**058** — o `revoke` da 057 não revogava nada.
+
+A 057 dizia `revoke execute ... from public`, o teste conferia que o texto
+estava no arquivo, e o privilégio continuou de pé: o Supabase concede EXECUTE
+em funções novas do `public` a `anon`, `authenticated` e `service_role`
+**nominalmente**, e revogar do pseudo-papel PUBLIC não toca nessas concessões.
+
+Medido contra produção depois de aplicar a 057: a chave anônima chamou a função
+e recebeu `{"allowed":true,"remaining":4}`. Isso permitia inserir linhas com
+nomes de bucket arbitrários sem limite e sem login — o caminho mais curto para
+encher o disco — e estourar o contador de um cliente específico usando o bucket
+do link de aprovação dele.
+
+```bash
+psql "<session pooler URL>" -f supabase/migrations/058_rate_limit_revoke_named_roles.sql
+./scripts/verificar-rate-limit.sh    # pergunta ao banco, não ao arquivo
+```
+
+Um teste que lê SQL não sabe o que o SQL faz. O script pergunta.
+
+### Já resolvido
+
 Duas, e na mesma leva:
 
 ```bash

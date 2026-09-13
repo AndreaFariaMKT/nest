@@ -2550,6 +2550,24 @@ export type Database = {
           },
         ]
       }
+      rate_limits: {
+        Row: {
+          bucket: string
+          count: number
+          window_start: string
+        }
+        Insert: {
+          bucket: string
+          count?: number
+          window_start: string
+        }
+        Update: {
+          bucket?: string
+          count?: number
+          window_start?: string
+        }
+        Relationships: []
+      }
       scheduled_posts: {
         Row: {
           attempt_count: number
@@ -3144,6 +3162,7 @@ export type Database = {
       has_client_access: { Args: { target_client: string }; Returns: boolean }
       is_founder: { Args: { target_tenant: string }; Returns: boolean }
       is_owner: { Args: never; Returns: boolean }
+      is_owner_legacy: { Args: never; Returns: boolean }
       is_portal_user: { Args: never; Returns: boolean }
       is_tenant_member: { Args: { target_tenant: string }; Returns: boolean }
       match_drafts: {
@@ -3168,6 +3187,15 @@ export type Database = {
           total: number
         }[]
       }
+      rate_limit_hit: {
+        Args: { p_bucket: string; p_limit: number; p_window_ms: number }
+        Returns: {
+          allowed: boolean
+          remaining: number
+          reset_ms: number
+        }[]
+      }
+      rate_limit_sweep: { Args: { p_older_than?: string }; Returns: number }
       show_limit: { Args: never; Returns: number }
       show_trgm: { Args: { "": string }; Returns: string[] }
       social_month_kpis: {
