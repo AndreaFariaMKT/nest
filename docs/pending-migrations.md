@@ -96,7 +96,22 @@ supabase migration list --linked               # tudo aplicado, nos dois lados
 
 **Feito em 11/09/2026 — as 55 aparecem dos dois lados.**
 
-## Como aplicar uma migration (056 em diante)
+## Como aplicar uma migration
+
+```bash
+./scripts/aplicar-migration.sh supabase/migrations/0NN_nome.sql
+```
+
+Pede só a senha do banco de São Paulo, monta a string do pooler sozinho, roda
+com `ON_ERROR_STOP=1` e **só então** registra no histórico.
+
+As duas metades andarem juntas é o ponto. `supabase migration repair` escreve no
+histórico e nunca roda o SQL — separá-las por engano produz um registro dizendo
+"aplicada" sobre um banco que não mudou, que foi o que aconteceu com a 058.
+
+### O caminho manual, e por que ele erra
+
+
 
 O reparo consertou o **histórico**; não conserta a **conexão**. `supabase db push`
 sozinho tenta o host direto `db.<ref>.supabase.co`, que é IPv6-only — e daqui ele
