@@ -119,6 +119,9 @@ export async function respondToDraftAction(
   const now = new Date().toISOString();
   const row: TablesInsert<"approvals"> = {
     draft_id: draft.id,
+    // The admin client has no active tenant, so the column default (059) is
+    // null here. The draft's house, not the old AFM default.
+    tenant_id: draft.tenant_id,
     // No token. Migration 044 made the column nullable precisely so a portal
     // answer does not have to mint a live 14-day link nobody sent.
     token: null,

@@ -6,6 +6,7 @@ import { Link, usePathname } from "@/i18n/routing";
 import { BrandMark } from "@/components/icons/Brand";
 import { NavList } from "@/components/layout/NavList";
 import { RolePreview } from "@/components/layout/RolePreview";
+import { TenantSwitcher } from "@/components/layout/TenantSwitcher";
 import { SignOutButton } from "@/components/layout/SignOutButton";
 import { LanguageSwitcher } from "@/components/ui/LanguageSwitcher";
 import {
@@ -30,6 +31,8 @@ import type { Theme } from "@/lib/theme";
 export function MobileNav({
   theme,
   tenantName,
+  tenantId,
+  tenants,
   locale,
   profileName,
   role,
@@ -42,6 +45,9 @@ export function MobileNav({
 }: {
   theme: Theme;
   tenantName: string;
+  /** The active house, and every house the login belongs to (the switcher). */
+  tenantId: string;
+  tenants: readonly { id: string; name: string }[];
   locale: string;
   profileName: string;
   role: AppRole;
@@ -167,6 +173,7 @@ export function MobileNav({
             />
 
             <div className="space-y-3 border-t border-sidebar-border px-4 py-4">
+              <TenantSwitcher locale={locale} current={tenantId} tenants={tenants} />
               <RolePreview actualRole={actualRole} current={viewRole} />
               <div className="flex items-center justify-between gap-2">
                 <Link

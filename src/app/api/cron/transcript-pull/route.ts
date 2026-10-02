@@ -59,6 +59,7 @@ type MeetingCandidate = {
   id: string;
   title: string;
   client_id: string | null;
+  tenant_id: string;
   starts_at: string;
   ends_at: string | null;
   google_meet_url: string | null;
@@ -112,7 +113,7 @@ async function handler(request: NextRequest) {
   const { data: candidates } = await admin
     .from("meetings")
     .select(
-      "id, title, client_id, starts_at, ends_at, google_meet_url, created_by, transcripts(id)",
+      "id, title, client_id, tenant_id, starts_at, ends_at, google_meet_url, created_by, transcripts(id)",
     )
     .gte("ends_at", lookbackIso)
     .lte("ends_at", recentlyEndedIso)
@@ -218,6 +219,8 @@ async function processMeeting(
     .from("transcripts")
     .insert({
       meeting_id: meeting.id,
+      // The service role has no active tenant (migration 059): the meeting's.
+      tenant_id: meeting.tenant_id,
       content: text,
       source: "google_meet",
       language,
@@ -239,6 +242,7 @@ async function processMeeting(
   const tasksCreated = await extractAndInsertTasks({
     admin,
     meetingId: meeting.id,
+    tenantId: meeting.tenant_id,
     clientId: meeting.client_id,
     creatorId: meeting.created_by!,
     transcript: text,
@@ -272,13 +276,15 @@ async function extractAndInsertTasks(params: {
    
   admin: Admin;
   meetingId: string;
+  tenantId: string;
   clientId: string | null;
   creatorId: string;
   transcript: string;
   meetingTitle: string;
   language: "pt-BR" | "en";
 }): Promise<number> {
-  const { admin, clientId, creatorId, transcript, meetingTitle, language } = params;
+  const { admin, tenantId, clientId, creatorId, transcript, meetingTitle, language } =
+    params;
 
   // Lookup client name (best-effort) for the prompt context.
   let clientName: string | null = null;
@@ -322,6 +328,7 @@ async function extractAndInsertTasks(params: {
 
   const rows = extracted.map((t) => ({
     client_id: clientId,
+    tenant_id: tenantId,
     title: t.title,
     // The hint is a pseudonym now ("Speaker B"), not a name — transcripts are
     // stripped before they reach Claude. It still says "one specific person on

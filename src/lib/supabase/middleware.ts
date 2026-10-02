@@ -2,6 +2,7 @@ import { createServerClient, type CookieOptions } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 
 import { guardRedirect, mapLegacyRole, isAppRoleValue } from "@/lib/guard";
+import { TENANT_COOKIE, pickTenantId } from "@/lib/tenant";
 
 /**
  * Refresh the Supabase auth session on every request, then enforce per-role
@@ -59,14 +60,19 @@ export async function updateSession(
     const prefix = isEn ? "/en" : "";
     const base = (isEn ? lower.slice(3) : lower) || "/";
 
-    // Effective role: the login's role, or a founder's "view as" preview.
-    const { data: membership } = await supabase
+    // Effective role: the login's role IN THE HOUSE IT IS WORKING IN, or a
+    // founder's "view as" preview. The same person can be founder of one
+    // house and accountant of another, so the role is read for the house the
+    // switcher chose — by the same rule getCurrentTenant() applies.
+    const { data: memberships } = await supabase
       .from("tenant_members")
-      .select("role")
-      .eq("user_id", user.id)
-      .order("tenant_id", { ascending: true })
-      .limit(1)
-      .maybeSingle();
+      .select("tenant_id, role")
+      .eq("user_id", user.id);
+    const active = pickTenantId(
+      (memberships ?? []).map((m) => m.tenant_id),
+      request.cookies.get(TENANT_COOKIE)?.value,
+    );
+    const membership = memberships?.find((m) => m.tenant_id === active);
     let role = mapLegacyRole(membership?.role);
     if (role === "founder") {
       const preview = request.cookies.get("nest-view-role")?.value;

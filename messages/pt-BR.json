@@ -1415,6 +1415,7 @@
     "openMenu": "Abrir menu",
     "closeMenu": "Fechar menu",
     "toggleSidebar": "Recolher ou expandir a barra lateral",
+    "company": "Empresa",
     "viewAs": "Ver como",
     "db": {
       "dbDenied": "Você não tem permissão para essa alteração. Nada mudou. Se deveria ter, fale com a coordenação.",

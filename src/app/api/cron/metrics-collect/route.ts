@@ -117,14 +117,32 @@ async function handler(request: NextRequest) {
     failed: 0,
   };
 
-  for (const post of (posts ?? []) as Array<{
-    id: string;
-    external_id: string;
-  }>) {
+  // The house each post belongs to. stale_metrics_posts does not return it,
+  // and the service role has no active tenant to default to (migration 059),
+  // so the metrics row has to be told — one read for the whole batch.
+  const candidates = (posts ?? []) as Array<{ id: string; external_id: string }>;
+  const { data: owners } = candidates.length
+    ? await admin
+        .from("published_posts")
+        .select("id, tenant_id")
+        .in(
+          "id",
+          candidates.map((p) => p.id),
+        )
+    : { data: [] as { id: string; tenant_id: string }[] };
+  const tenantOf = new Map((owners ?? []).map((o) => [o.id, o.tenant_id]));
+
+  for (const post of candidates) {
+    const tenantId = tenantOf.get(post.id);
+    if (!tenantId) {
+      summary.skipped += 1;
+      continue;
+    }
     try {
       const metrics = await fetchPostMetrics(creds, post.external_id);
       const { error } = await admin.from("post_metrics").insert({
         published_post_id: post.id,
+        tenant_id: tenantId,
         impressions: metrics.impressions,
         reach: metrics.reach,
         likes: metrics.likes,

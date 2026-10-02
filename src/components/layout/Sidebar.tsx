@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { Link } from "@/i18n/routing";
 import { BrandMark } from "@/components/icons/Brand";
 import { RolePreview } from "@/components/layout/RolePreview";
+import { TenantSwitcher } from "@/components/layout/TenantSwitcher";
 import { SignOutButton } from "@/components/layout/SignOutButton";
 import { LanguageSwitcher } from "@/components/ui/LanguageSwitcher";
 import {
@@ -36,6 +37,8 @@ function Chevron({ dir }: { dir: "left" | "right" }) {
 export function Sidebar({
   theme,
   tenantName,
+  tenantId,
+  tenants,
   locale,
   profileName,
   role,
@@ -50,6 +53,9 @@ export function Sidebar({
   theme: Theme;
   /** The tenant's own name, from the database — the mark's accessible name. */
   tenantName: string;
+  /** The active house, and every house the login belongs to (the switcher). */
+  tenantId: string;
+  tenants: readonly { id: string; name: string }[];
   locale: string;
   profileName: string;
   role: AppRole;
@@ -157,6 +163,7 @@ export function Sidebar({
           </>
         ) : (
           <>
+            <TenantSwitcher locale={locale} current={tenantId} tenants={tenants} />
             <RolePreview actualRole={actualRole} current={viewRole} />
             <div className="flex items-center justify-between">
               {/* The way to your own account, on the name that is already

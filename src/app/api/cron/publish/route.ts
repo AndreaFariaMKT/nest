@@ -330,6 +330,9 @@ async function handler(request: NextRequest) {
         .from("published_posts")
         .insert({
           draft_id: draft.id,
+          // The service role has no active tenant (migration 059), so the
+          // house is stated: the scheduled row's, which is the draft's.
+          tenant_id: row.tenant_id,
           platform: row.platform,
           post_type: row.post_type,
           external_id: outcome.publishedId,

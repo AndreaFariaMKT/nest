@@ -1415,6 +1415,7 @@
     "openMenu": "Open menu",
     "closeMenu": "Close menu",
     "toggleSidebar": "Collapse or expand the sidebar",
+    "company": "Company",
     "viewAs": "View as",
     "db": {
       "dbDenied": "You do not have permission for that change. Nothing was changed. If you should have, talk to coordination.",

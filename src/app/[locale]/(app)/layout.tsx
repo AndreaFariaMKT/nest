@@ -5,7 +5,7 @@ import { createClient } from "@/lib/supabase/server";
 import { Sidebar } from "@/components/layout/Sidebar";
 import { MobileNav } from "@/components/layout/MobileNav";
 import type { NotificationItem } from "@/components/layout/NotificationsBell";
-import { getCurrentTenant } from "@/lib/tenant-server";
+import { getCurrentTenant, getMyTenants } from "@/lib/tenant-server";
 import { getSessionUser, getCurrentProfile } from "@/lib/auth";
 import { getCurrentRole, getActualRole, getViewRole } from "@/lib/roles-server";
 import { socialSidebarScreens } from "@/lib/social";
@@ -37,9 +37,10 @@ export default async function AppLayout({
   // reads to finish first, for no reason. The five helpers are all
   // React.cache()-wrapped, so the layout, Sidebar and every screen below share
   // one result each.
-  const [tenant, profile, role, actualRole, viewRole, list, unread] =
+  const [tenant, tenants, profile, role, actualRole, viewRole, list, unread] =
     await Promise.all([
       getCurrentTenant(),
+      getMyTenants(),
       getCurrentProfile(),
       getCurrentRole(),
       getActualRole(),
@@ -77,6 +78,8 @@ export default async function AppLayout({
       <Sidebar
         theme={tenant.theme}
         tenantName={tenant.name}
+        tenantId={tenant.id}
+        tenants={tenants}
         locale={locale}
         profileName={profile?.full_name ?? user.email ?? ""}
         role={role}
@@ -94,7 +97,9 @@ export default async function AppLayout({
       <div className="flex min-w-0 flex-1 flex-col overflow-hidden">
         <MobileNav
           theme={tenant.theme}
-        tenantName={tenant.name}
+          tenantName={tenant.name}
+          tenantId={tenant.id}
+          tenants={tenants}
           locale={locale}
           profileName={profile?.full_name ?? user.email ?? ""}
           role={role}

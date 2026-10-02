@@ -43,7 +43,7 @@ async function handler(request: NextRequest) {
 
   const { data: clients, error: clientsError } = await supabase
     .from("clients")
-    .select("id")
+    .select("id, tenant_id")
     .eq("status", "active");
 
   if (clientsError) {
@@ -54,8 +54,11 @@ async function handler(request: NextRequest) {
     return NextResponse.json({ createdOrKept: 0, year, month });
   }
 
+  // Every row states its house: the service role has no active tenant for the
+  // column default to use (migration 059).
   const rows = clients.map((c) => ({
     client_id: c.id,
+    tenant_id: c.tenant_id,
     year,
     month,
     starts_on: bounds.startsOn,
@@ -68,15 +71,19 @@ async function handler(request: NextRequest) {
       onConflict: "client_id,year,month",
       ignoreDuplicates: true,
     })
-    .select("id, client_id");
+    .select("id, client_id, tenant_id");
 
   if (upsertError) {
     return NextResponse.json({ error: upsertError.message }, { status: 500 });
   }
 
   // For each freshly-created cycle, clone matching templates into real tasks.
-  // Templates with client_id = null apply to every client.
-  const newCycles = (data ?? []) as { id: string; client_id: string }[];
+  // Templates with client_id = null apply to every client OF THEIR HOUSE.
+  const newCycles = (data ?? []) as {
+    id: string;
+    client_id: string;
+    tenant_id: string;
+  }[];
   let clonedTasks = 0;
 
   if (newCycles.length > 0) {
@@ -85,7 +92,7 @@ async function handler(request: NextRequest) {
     const { data: templatesData } = await supabase
       .from("tasks")
       .select(
-        "client_id, title, description, priority, assignee_id, due_at",
+        "client_id, tenant_id, title, description, priority, assignee_id, due_at",
       )
       .eq("is_template", true)
       .or(`client_id.is.null,client_id.in.(${clientIds.join(",")})`);
@@ -99,8 +106,13 @@ async function handler(request: NextRequest) {
           if (tpl.client_id !== null && tpl.client_id !== cycle.client_id) {
             continue;
           }
+          // A house-wide template is AFM's or Nest's routine, not everyone's.
+          // Without this, a template one house wrote was cloned into every
+          // client of the other on the 1st of the month.
+          if (tpl.tenant_id !== cycle.tenant_id) continue;
           clones.push({
             client_id: cycle.client_id,
+            tenant_id: cycle.tenant_id,
             cycle_id: cycle.id,
             title: tpl.title,
             description: tpl.description,

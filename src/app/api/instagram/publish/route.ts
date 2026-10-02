@@ -72,7 +72,7 @@ export async function POST(request: NextRequest) {
 
   const { data: draft } = await admin
     .from("content_drafts")
-    .select("id, client_id, caption, hashtags, status, slides(position, creatives(image_url, version))")
+    .select("id, client_id, tenant_id, caption, hashtags, status, slides(position, creatives(image_url, version))")
     .eq("id", draftId)
     .maybeSingle();
 
@@ -149,6 +149,8 @@ export async function POST(request: NextRequest) {
     // Record the publish for analytics / dedupe later.
     await admin.from("published_posts").insert({
       draft_id: draft.id,
+      // The service role has no active tenant; the row belongs to the draft's.
+      tenant_id: draft.tenant_id,
       platform: "instagram",
       post_type: "carousel",
       external_id: result.publishedId,

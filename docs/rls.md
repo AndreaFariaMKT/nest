@@ -12,6 +12,33 @@ Last reviewed: 2026-04-24.
 
 ---
 
+## 0. The active tenant (migration 059) — read this first
+
+The restrictive `tenant_isolation` floor on every tenant-owned table is
+`tenant_id = (select current_tenant_id())`, not `is_tenant_member(tenant_id)`.
+`current_tenant_id()` returns the `x-nest-tenant` request header when the
+caller is a member of that tenant, otherwise the caller's lowest tenant id, and
+null with no user. `src/lib/supabase/server.ts` sends the header from the
+`nest-tenant` cookie the sidebar switcher sets; `pickTenantId()` in
+`src/lib/tenant.ts` is the same rule on the app side, and the two must agree.
+
+Consequences worth knowing before writing a query:
+
+- A login that belongs to AFM and Nest sees ONE of them at a time, everywhere,
+  including pages that open a row by id. No query needs `.eq("tenant_id", …)`
+  to be safe, though the existing ones stay (they help the planner).
+- `tenant_id` defaults to `current_tenant_id()`. A session insert lands in the
+  active house without naming it.
+- The service role has no active tenant: an insert that omits `tenant_id` fails
+  on NOT NULL. Crons and admin-client inserts must take it from the parent row.
+- Realtime does not carry request headers, so a subscription is evaluated
+  against the fallback (lowest tenant id). A dual member working in Nest gets
+  no live events for Nest rows; the page is still right on refresh.
+- `tenants` and `tenant_members` keep `is_tenant_member()`: the switcher needs
+  to list every house the login belongs to.
+
+Test: `supabase/tests/active_tenant.sql` (local database only).
+
 ## 1. Actors
 
 **[corrected 2026-08-25]** — there are **eight** roles, in

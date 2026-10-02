@@ -160,6 +160,59 @@ psql "<session pooler URL>" -f supabase/migrations/058_rate_limit_revoke_named_r
 
 Um teste que lê SQL não sabe o que o SQL faz. O script pergunta.
 
+**059** — a empresa ativa. Quem pertence às duas (a Andréa) passa a trabalhar
+em uma por vez, escolhida no seletor "Empresa" da barra lateral.
+
+Antes, o piso de RLS era "você é membro da empresa da linha", e a Andréa é
+membro das duas: toda tela que esquecia de filtrar por `tenant_id` mostraria
+linhas da AFM dentro da Nest. Não aparecia porque a Nest estava vazia e ela
+nunca conseguia entrar nela. Agora o app manda a empresa escolhida no header
+`x-nest-tenant`, `current_tenant_id()` valida contra `tenant_members`, e o piso
+passa a ser `tenant_id = current_tenant_id()`. O default de `tenant_id` deixa
+de ser a AFM fixa e vira a empresa ativa. Sem usuário (service role), o default
+é nulo e o insert falha, por isso os crons passaram a informar a empresa. A
+migração também torna `clients.slug` e `services.slug` únicos por empresa e
+copia para a Nest as categorias financeiras e os fluxos de projeto que só a
+AFM tinha.
+
+**Ordem: o código primeiro, a 059 logo em seguida, fora das janelas dos crons
+(03:00, 04:00, 05:00, 11:00 e 11:10 UTC).** Com a 059 aplicada e o código
+antigo no ar, os crons que não informam `tenant_id` falham. Com o código novo
+e sem a 059, o seletor troca o nome e o tema, mas o banco ainda não isola.
+
+```bash
+# 1. push da main → deploy na Vercel; esperar o deploy ficar Ready
+./scripts/aplicar-migration.sh supabase/migrations/059_active_tenant.sql
+```
+
+Conferir no SQL Editor:
+
+```sql
+-- a Andréa precisa ser membro das duas, ou o seletor não aparece para ela
+select t.slug, m.role from tenant_members m
+join tenants t on t.id = m.tenant_id
+join auth.users u on u.id = m.user_id
+where u.email = 'andrea@andreafariamkt.com';
+-- esperado: duas linhas, afm e nest
+
+-- o piso novo está em todas as tabelas
+select count(*) from pg_policies
+where policyname = 'tenant_isolation' and qual ilike '%current_tenant_id%';
+-- esperado: 43 (mais o error_log, escrito à parte)
+```
+
+Se a Andréa só aparecer na `afm`:
+
+```sql
+insert into tenant_members (tenant_id, user_id, role)
+select '00000000-0000-0000-0000-000000000e57', id, 'founder'
+from auth.users where email = 'andrea@andreafariamkt.com'
+on conflict (tenant_id, user_id) do nothing;
+```
+
+Teste local do isolamento: `supabase/tests/active_tenant.sql` (só contra
+`127.0.0.1:54322`).
+
 ### Já resolvido
 
 Duas, e na mesma leva:
