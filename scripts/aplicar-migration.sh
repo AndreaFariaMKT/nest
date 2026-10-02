@@ -2,6 +2,11 @@
 # Aplica uma migration no banco de São Paulo e registra no histórico.
 #
 #   ./scripts/aplicar-migration.sh supabase/migrations/058_....sql
+#   ./scripts/aplicar-migration.sh supabase/migrations/058_....sql --so-registrar
+#
+# --so-registrar pula o SQL e só grava no histórico: para quando o SQL já
+# passou e o registro falhou. Rodar o SQL de novo não é seguro em geral (uma
+# migration que cria uma constraint falha na segunda vez).
 #
 # Por que existe, em duas linhas:
 #
@@ -19,6 +24,8 @@ set -euo pipefail
 
 SP="eorvzmvjmxmfejujbgiu"
 FILE="${1:-}"
+ONLY_RECORD=""
+[ "${2:-}" = "--so-registrar" ] && ONLY_RECORD=1
 
 [ -n "$FILE" ] || { echo "Uso: $0 supabase/migrations/0NN_nome.sql"; exit 1; }
 [ -f "$FILE" ] || { echo "Não achei $FILE"; exit 1; }
@@ -60,6 +67,7 @@ if [ -z "$URL" ]; then
   exit 1
 fi
 
+if [ -z "$ONLY_RECORD" ]; then
 echo
 echo "Aplicando. ON_ERROR_STOP: qualquer erro interrompe aqui."
 echo
@@ -69,11 +77,16 @@ echo
 # ON_ERROR_STOP é o que garante que uma falha não passe despercebida — foi a
 # ausência dele que deixou o `revoke` da 057 falhar em silêncio.
 psql "$URL" -v ON_ERROR_STOP=1 -f "$FILE"
+fi
 
 echo
 echo "Registrando no histórico..."
-npx --no-install supabase migration repair --status applied "$VERSION"
+# --db-url, a mesma conexão que acabou de rodar o SQL. Sem ele o repair usa o
+# projeto LINKADO, e um checkout que nunca rodou `supabase link` parava aqui
+# ("Cannot find project ref") com o SQL já aplicado e o histórico sem o
+# registro — foi o que aconteceu com a 059.
+npx --no-install supabase migration repair --db-url "$URL" --status applied "$VERSION"
 
 echo
 echo "Pronto. Confira:"
-echo "  npx supabase migration list --linked"
+echo "  npx supabase migration list --db-url '<a mesma URL>'  (ou --linked, se o projeto estiver linkado)"
